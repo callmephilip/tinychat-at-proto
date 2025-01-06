@@ -6,7 +6,7 @@
   "vitepress": {
     "title": "tinychat",
     "description": "tinychat docs",
-    "base": "/jurassic/",
+    "base": "/tinychat-at-proto/",
     "cleanUrls": true,
     "themeConfig": {
       "search": { "provider": "local" },

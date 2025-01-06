@@ -8,8 +8,8 @@ hero:
   tagline: WIP
   actions:
     - theme: brand
-      text: Get started
-      link: /get-started
+      text: Go
+      link: /go
   image:
     src: /logo.png
     alt: Logo

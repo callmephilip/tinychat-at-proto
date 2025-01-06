@@ -1,0 +1,20 @@
+name: Publish
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    uses: callmephilip/jurassic/.github/workflows/build.yml@main
+  docs:
+    uses: callmephilip/jurassic/.github/workflows/docs.yml@main

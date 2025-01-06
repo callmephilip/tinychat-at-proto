@@ -1,0 +1,14 @@
+{
+  "version": "0.1.0",
+  "license": "MIT",
+  "tasks": {
+    "build": "deno run -A --reload jsr:@jurassic/jurassic/export . && deno task runnbs && deno check . && deno lint && deno fmt && deno task clean && deno test --allow-all",
+    "clean": "deno run --allow-read --allow-env --allow-write --allow-run jsr:@jurassic/jurassic/clean",
+    "docs": "deno run -A --reload jsr:@jurassic/jurassic/docs . && deno lint && deno fmt",
+    "runnbs": "deno run --allow-read --allow-env --allow-run jsr:@jurassic/jurassic/runnbs"
+  },
+  "exports": { ".": "./mod.ts" },
+  "imports": { "tinychat/": "./tinychat/" },
+  "publish": { "exclude": ["nbs/", "docs/"] },
+  "exclude": ["_docs", "docs"]
+}

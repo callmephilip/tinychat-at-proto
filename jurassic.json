@@ -1,0 +1,26 @@
+{
+  "nbsPath": "nbs",
+  "outputPath": "tinychat",
+  "docsInputPath": "docs",
+  "docsOutputPath": "_docs",
+  "vitepress": {
+    "title": "tinychat",
+    "description": "tinychat docs",
+    "base": "/jurassic/",
+    "cleanUrls": true,
+    "themeConfig": {
+      "search": { "provider": "local" },
+      "logo": "/logo.png",
+      "nav": [],
+      "sidebar": [
+        {
+          "text": "Guides",
+          "items": [{ "text": "Get started", "link": "/get-started" }]
+        }
+      ],
+      "socialLinks": [
+        { "icon": "github", "link": "https://github.com/callmephilip/jurassic" }
+      ]
+    }
+  }
+}

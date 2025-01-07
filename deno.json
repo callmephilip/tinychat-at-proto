@@ -9,6 +9,8 @@
   },
   "exports": { ".": "./mod.ts" },
   "imports": {
+    "@atproto/jwk": "npm:@atproto/jwk@^0.1.1",
+    "@atproto/oauth-client": "npm:@atproto/oauth-client@^0.3.6",
     "hono": "jsr:@hono/hono@^4.6.16",
     "sqlite": "jsr:@db/sqlite@^0.12.0",
     "tinychat/": "./tinychat/"

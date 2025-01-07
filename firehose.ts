@@ -12,7 +12,7 @@ db.prepare(
     message TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
-`
+`,
 ).run();
 
 // Deno signal handling

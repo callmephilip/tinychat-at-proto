@@ -31,4 +31,3 @@ services:
     restart: always
     volumes:
       - /Users/philip/projects/tinychat/data:/app/data
-    

@@ -15,7 +15,7 @@ db.prepare(
     message TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
-`
+`,
 ).run();
 
 const app = new Hono();
@@ -29,7 +29,7 @@ app.get("/", (c) => {
     SELECT id, message, created_at 
     FROM messages 
     ORDER BY created_at DESC
-  `
+  `,
     )
     .all();
 

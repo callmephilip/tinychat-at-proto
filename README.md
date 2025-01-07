@@ -1,0 +1,1 @@
+deno compile --allow-all --output firehose firehose.ts

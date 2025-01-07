@@ -8,7 +8,15 @@
     "runnbs": "deno run --allow-read --allow-env --allow-run jsr:@jurassic/jurassic/runnbs"
   },
   "exports": { ".": "./mod.ts" },
-  "imports": { "tinychat/": "./tinychat/" },
+  "imports": {
+    "hono": "jsr:@hono/hono@^4.6.16",
+    "sqlite": "jsr:@db/sqlite@^0.12.0",
+    "tinychat/": "./tinychat/"
+  },
+  "compilerOptions": {
+    "jsx": "precompile",
+    "jsxImportSource": "hono/jsx"
+  },
   "publish": { "exclude": ["nbs/", "docs/"] },
   "exclude": ["_docs", "docs"]
 }

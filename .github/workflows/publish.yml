@@ -3,10 +3,6 @@ on:
   push:
     branches:
       - main
-env:
-  SESSION_COOKIE_KEY: ${{ secrets.SESSION_COOKIE_KEY }}
-  SESSION_COOKIE_ALLOW_INSECURE: ${{ secrets.SESSION_COOKIE_ALLOW_INSECURE }}
-  PUBLIC_URL: ${{ secrets.PUBLIC_URL }}
 
 permissions:
   contents: read
@@ -25,7 +21,15 @@ jobs:
         run: echo $PUBLIC_URL
   build:
     uses: callmephilip/jurassic/.github/workflows/build.yml@main
-    secrets: inherit
+    env:
+      SESSION_COOKIE_KEY: ${{ secrets.SESSION_COOKIE_KEY }}
+      SESSION_COOKIE_ALLOW_INSECURE: ${{ secrets.SESSION_COOKIE_ALLOW_INSECURE }}
+      PUBLIC_URL: ${{ secrets.PUBLIC_URL }}
+
   docs:
     uses: callmephilip/jurassic/.github/workflows/docs.yml@main
-    secrets: inherit
+    env:
+      SESSION_COOKIE_KEY: ${{ secrets.SESSION_COOKIE_KEY }}
+      SESSION_COOKIE_ALLOW_INSECURE: ${{ secrets.SESSION_COOKIE_ALLOW_INSECURE }}
+      PUBLIC_URL: ${{ secrets.PUBLIC_URL }}
+

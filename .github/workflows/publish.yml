@@ -4,8 +4,8 @@ on:
     branches:
       - main
 env:
-  SESSION_COOKIE_KEY: {{ secrets.SESSION_COOKIE_KEY }}
-  SESSION_COOKIE_ALLOW_INSECURE: {{ secrets.SESSION_COOKIE_ALLOW_INSECURE }}
+  SESSION_COOKIE_KEY: ${{ secrets.SESSION_COOKIE_KEY }}
+  SESSION_COOKIE_ALLOW_INSECURE: ${{ secrets.SESSION_COOKIE_ALLOW_INSECURE }}
 
 permissions:
   contents: read

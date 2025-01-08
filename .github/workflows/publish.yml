@@ -18,6 +18,10 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  test:
+    steps:
+      - name: see if env vars propagate OK
+        run: echo $PUBLIC_URL
   build:
     uses: callmephilip/jurassic/.github/workflows/build.yml@main
     secrets: inherit

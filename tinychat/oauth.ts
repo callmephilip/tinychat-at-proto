@@ -221,7 +221,7 @@ export const getOAuthClient = () =>
     responseMode: "query",
     clientMetadata: {
       client_name: "AT Protocol Express App",
-      client_id: publicUrl + "/client-metadata.json",
+      client_id: publicUrl?.replace(/\/$/ig, "") + "/client-metadata.json",
       client_uri: publicUrl,
       redirect_uris: [`${publicUrl}/oauth/callback`],
       scope: "atproto transition:generic",

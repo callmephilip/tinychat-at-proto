@@ -209,7 +209,7 @@ import { InternalStateData, OAuthClient, Session } from "@atproto/oauth-client";
 import { createHash, randomBytes } from "node:crypto";
 
 // set this to the public URL of the app
-const publicUrl = "https://tinychat.ngrok.app";
+const publicUrl = Deno.env.get("PUBLIC_URL");
 
 // in memory store for state and session data
 const stateStore: Map<string, InternalStateData> = new Map();

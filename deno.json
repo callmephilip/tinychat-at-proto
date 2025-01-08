@@ -2,21 +2,26 @@
   "version": "0.1.0",
   "license": "MIT",
   "tasks": {
-    "build": "deno run -A --reload jsr:@jurassic/jurassic/export . && deno task runnbs && deno check . && deno lint && deno fmt && deno task clean && deno test --allow-all",
+    "build": "deno run -A --reload jsr:@jurassic/jurassic/export . && deno task runnbs && deno check . && deno lint && deno fmt && deno task clean && deno test --allow-all --env-file",
     "clean": "deno run --allow-read --allow-env --allow-write --allow-run jsr:@jurassic/jurassic/clean",
     "docs": "deno run -A --reload jsr:@jurassic/jurassic/docs . && deno lint && deno fmt",
-    "runnbs": "deno run --allow-read --allow-env --allow-run jsr:@jurassic/jurassic/runnbs"
+    "runnbs": "deno run --allow-read --allow-env --allow-run jsr:@jurassic/jurassic/runnbs",
+    "dev:client": "deno run --watch --env-file --allow-all client.tsx"
   },
   "exports": { ".": "./mod.ts" },
   "imports": {
+    "@atproto/api": "npm:@atproto/api@^0.13.26",
+    "@atproto/common": "npm:@atproto/common@^0.4.6",
     "@atproto/jwk": "npm:@atproto/jwk@^0.1.1",
     "@atproto/oauth-client": "npm:@atproto/oauth-client@^0.3.6",
+    "asserts": "jsr:@std/assert@^1.0.10",
     "hono": "jsr:@hono/hono@^4.6.16",
+    "iron-session": "npm:iron-session@^8.0.4",
     "sqlite": "jsr:@db/sqlite@^0.12.0",
     "tinychat/": "./tinychat/"
   },
   "compilerOptions": {
-    "jsx": "precompile",
+    "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx"
   },
   "publish": { "exclude": ["nbs/", "docs/"] },

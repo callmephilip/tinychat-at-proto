@@ -5,6 +5,7 @@ on:
 env:
   SESSION_COOKIE_KEY: ${{ secrets.SESSION_COOKIE_KEY }}
   SESSION_COOKIE_ALLOW_INSECURE: ${{ secrets.SESSION_COOKIE_ALLOW_INSECURE }}
+  PUBLIC_URL: ${{ secrets.PUBLIC_URL }}
 
 jobs:
   build:

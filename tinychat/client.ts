@@ -2,19 +2,24 @@
 
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
+import { Agent } from "@atproto/api";
+import { TID } from "@atproto/common";
 import { logger } from "hono/logger";
 import { getIronSession, IronSession } from "iron-session";
 import { createMiddleware } from "hono/factory";
-import { getOAuthClient } from "tinychat/oauth.ts";
+import { getOAuthClient, OAuthClient } from "tinychat/oauth.ts";
 
 export type Session = {
   did: string | undefined;
   // testing purposes
   t: string | undefined;
+  atprotoSession: Map<string, string>;
 };
 
 export type AppContext = {
   session: IronSession<Session>;
+  oauthClient: OAuthClient;
+  agent: () => Promise<Agent | undefined>;
 };
 
 declare module "hono" {
@@ -48,7 +53,20 @@ app.use(
         path: "/",
       },
     });
-    c.set("ctx", { session });
+
+    const oauthClient = await getOAuthClient();
+
+    c.set("ctx", {
+      session,
+      oauthClient,
+      agent: async () => {
+        if (!session.did) {
+          throw new HTTPException(401, { message: "Unauthorized" });
+        }
+        return new Agent(await oauthClient.restore(session.did));
+      },
+    });
+
     await next();
   }),
 );
@@ -58,14 +76,17 @@ app.get("/set-session-t", async (c) => {
   await c.var.ctx.session.save();
   return c.json({ status: "ok", t: c.var.ctx.session.t });
 });
-const oauthClient = getOAuthClient();
-
-app.get("/client-metadata.json", (c) => c.json(oauthClient.clientMetadata));
+app.get(
+  "/client-metadata.json",
+  (c) => c.json(c.var.ctx.oauthClient.clientMetadata),
+);
 
 app.get("/oauth/callback", async (c) => {
   const { session } = c.var.ctx;
   const params = new URLSearchParams(c.req.url.split("?")[1]);
-  const { session: oauthSession } = await oauthClient.callback(params);
+  const { session: oauthSession } = await c.var.ctx.oauthClient.callback(
+    params,
+  );
   session.did = oauthSession.did;
   await session.save();
   return c.redirect("/");
@@ -81,7 +102,7 @@ app.post("/login", async (c) => {
       throw new HTTPException(400, { message: "Missing handle" });
     }
 
-    const url = await oauthClient.authorize(handle, {
+    const url = await c.var.ctx.oauthClient.authorize(handle, {
       scope: "atproto transition:generic",
     });
 
@@ -91,67 +112,31 @@ app.post("/login", async (c) => {
     return c.json({ error: "Internal server error" }, 500);
   }
 });
+app.post("/send-message", async (c) => {
+  const agent = await c.var.ctx.agent();
 
-/*
-import { Hono } from "hono";
-import { logger } from "hono/logger";
-import { Agent } from "@atproto/api";
-import { TID } from "@atproto/common";
+  const body = await c.req.parseBody();
+  // @ts-ignore it's a string, yo
+  const message: string | undefined = body?.message;
 
-const app = new Hono();
-const oauthClient = getOAuthClient();
-
-app.use("*", logger());
-app.get("/client-metadata.json", async (c) => {
-  return c.json(oauthClient.clientMetadata);
-});
-
-app.get("/oauth/callback", async (c) => {
-  const params = new URLSearchParams(c.req.url.split("?")[1]);
-
-  const { session } = await oauthClient.callback(params);
-
-  console.log("session", session);
-
-  const oauthSession = await oauthClient.restore(session.did);
-
-  console.log("oauth session", oauthSession);
-
-
-  const agent = new Agent(oauthSession);
-
-  console.log(
-    await agent.com.atproto.repo.getRecord({
-      repo: agent.assertDid, // The user
-      collection: "app.bsky.actor.profile", // The collection
-      rkey: "self", // The record key
-    })
-  );
-const rkey = TID.nextStr();
-
-  console.log(
-
-
-// Write the
-await agent.com.atproto.repo.putRecord({
-  repo: agent.assertDid,                 // The user
-  collection: 'xyz.statusphere.status',  // The collection
-  rkey,                                  // The record key
-  record: {                              // The record value
-    status: "👍",
-    createdAt: new Date().toISOString()
+  if (!agent) {
+    throw new HTTPException(401, { message: "Unauthorized" });
   }
-})
-  );
 
-  return c.redirect("/");
-});
+  if (!message) {
+    throw new HTTPException(400, { message: "Missing message" });
+  }
 
-app.get("/login", async (c) => {
-  const url = await oauthClient.authorize("callmephilip.com", {
-    scope: "atproto transition:generic",
+  await agent.com.atproto.repo.putRecord({
+    repo: agent.assertDid, // The user
+    collection: "xyz.statusphere.status", // The collection
+    rkey: TID.nextStr(), // The record key
+    record: {
+      // The record value
+      status: message,
+      createdAt: new Date().toISOString(),
+    },
   });
-  return c.redirect(url.toString());
-});
 
-*/
+  return c.json({ status: "ok" });
+});

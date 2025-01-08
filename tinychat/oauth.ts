@@ -30,6 +30,10 @@ import {
   VerifyResult,
 } from "@atproto/jwk";
 
+import { SimpleStore } from "@atproto-labs/simple-store";
+import { InternalStateData, OAuthClient, Session } from "@atproto/oauth-client";
+import { createHash, randomBytes } from "node:crypto";
+
 export function either<T extends string | number | boolean>(
   a?: T,
   b?: T,
@@ -51,6 +55,10 @@ export class JoseKey extends Key {
 
   protected async getKey() {
     try {
+      // @ts-ignore readonly
+      this.jwk.key_ops = ["sign"];
+      // @ts-ignore readonly
+      this.jwk.ext = true;
       return (this.#keyObj ||= await importJWK(this.jwk as JWK, "ES256"));
     } catch (cause) {
       throw new JwkError("Failed to import JWK", undefined, { cause });
@@ -205,23 +213,59 @@ export class JoseKey extends Key {
     return new JoseKey(jwkValidator.parse({ ...jwk, kid, use }));
   }
 }
-import { InternalStateData, OAuthClient, Session } from "@atproto/oauth-client";
-import { createHash, randomBytes } from "node:crypto";
+type ToDpopJwkValue<V extends { dpopKey: Key }> = Omit<V, "dpopKey"> & {
+  dpopJwk: Jwk;
+};
+
+/**
+ * Utility function that allows to simplify the store interface by exposing a
+ * JWK (JSON) instead of a Key instance.
+ */
+export function toDpopKeyStore<K extends string, V extends { dpopKey: Key }>(
+  store: SimpleStore<K, ToDpopJwkValue<V>>,
+): SimpleStore<K, V> {
+  return {
+    async set(sub: K, { dpopKey, ...data }: V) {
+      const dpopJwk = dpopKey.privateJwk;
+      if (!dpopJwk) throw new Error("Private DPoP JWK is missing.");
+
+      await store.set(sub, { ...data, dpopJwk });
+    },
+
+    async get(sub: K) {
+      const result = await store.get(sub);
+      if (!result) return undefined;
+
+      const { dpopJwk, ...data } = result;
+      const dpopKey = await JoseKey.fromJWK(dpopJwk);
+      return { ...data, dpopKey } as unknown as V;
+    },
+
+    del: store.del.bind(store),
+    clear: store.clear?.bind(store),
+  };
+}
+
+export type NodeSavedState = ToDpopJwkValue<InternalStateData>;
+export type NodeSavedStateStore = SimpleStore<string, NodeSavedState>;
+
+export type NodeSavedSession = ToDpopJwkValue<Session>;
+export type NodeSavedSessionStore = SimpleStore<string, NodeSavedSession>;
+
+export { OAuthClient } from "@atproto/oauth-client";
 
 // set this to the public URL of the app
 const publicUrl = Deno.env.get("PUBLIC_URL");
 
-// in memory store for state and session data
-const stateStore: Map<string, InternalStateData> = new Map();
-const sessionStore: Map<string, Session> = new Map();
+export const getOAuthClient = async () => {
+  const kv = await Deno.openKv();
 
-export const getOAuthClient = () =>
-  new OAuthClient({
+  return new OAuthClient({
     handleResolver: "https://api.bsky.app", // backend instances should use a DNS based resolver
     responseMode: "query",
     clientMetadata: {
       client_name: "AT Protocol Express App",
-      client_id: publicUrl?.replace(/\/$/ig, "") + "/client-metadata.json",
+      client_id: publicUrl?.replace(/\/$/gi, "") + "/client-metadata.json",
       client_uri: publicUrl,
       redirect_uris: [`${publicUrl}/oauth/callback`],
       scope: "atproto transition:generic",
@@ -232,34 +276,40 @@ export const getOAuthClient = () =>
       dpop_bound_access_tokens: true,
     },
 
-    stateStore: {
+    stateStore: toDpopKeyStore({
       // A store for saving state data while the user is being redirected to the
       // authorization server.
 
-      set(key: string, internalState: InternalStateData) {
-        stateStore.set(key, internalState);
+      async set(key: string, internalState: NodeSavedState) {
+        await kv.set(["atprotostate", key], JSON.stringify(internalState));
       },
-      get(key: string): InternalStateData | undefined {
-        return stateStore.get(key);
+      async get(key: string): Promise<NodeSavedState | undefined> {
+        const v =
+          (await kv.get<string | undefined>(["atprotostate", key])).value ||
+          undefined;
+        return v && JSON.parse(v);
       },
-      del(key: string) {
-        stateStore.delete(key);
+      async del(key: string) {
+        await kv.delete(["atprotosession", key]);
       },
-    },
+    }),
 
-    sessionStore: {
+    sessionStore: toDpopKeyStore({
       // A store for saving session data.
 
-      set(sub: string, session: Session) {
-        sessionStore.set(sub, session);
+      async set(sub: string, session: NodeSavedSession) {
+        await kv.set(["atprotosession", sub], JSON.stringify(session));
       },
-      get(sub: string): Session | undefined {
-        return sessionStore.get(sub);
+      async get(sub: string): Promise<NodeSavedSession | undefined> {
+        const v =
+          (await kv.get<string | undefined>(["atprotosession", sub])).value ||
+          undefined;
+        return v && JSON.parse(v);
       },
-      del(sub: string) {
-        stateStore.delete(sub);
+      async del(sub: string) {
+        await kv.delete(["atprotosession", sub]);
       },
-    },
+    }),
 
     runtimeImplementation: {
       // A runtime specific implementation of the crypto operations needed by the
@@ -270,11 +320,9 @@ export const getOAuthClient = () =>
         return JoseKey.generate(algs);
       },
       getRandomValues: randomBytes,
-      digest(
-        bytes: Uint8Array,
-        algorithm: { name: string },
-      ) {
+      digest(bytes: Uint8Array, algorithm: { name: string }) {
         return createHash(algorithm.name).update(bytes).digest();
       },
     },
   });
+};

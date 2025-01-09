@@ -5,7 +5,7 @@ on:
     branches: [main]
 env:
   REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
-  IMAGE_NAME: tinychat-atproto
+  IMAGE_NAME: tinychat
   PRODUCTION_DOT_ENV: ${{ secrets.PRODUCTION_DOT_ENV }}
   SERVER_APP_DIRECTORY: /opt/tinychat-atproto
   DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
@@ -47,58 +47,58 @@ jobs:
           source: "config/docker-compose.yml"
           strip_components: 1
           target: ${{ secrets.SERVER_APP_DIRECTORY }}
-  #     - name: Config nginx
-  #       uses: appleboy/scp-action@v0.1.7
-  #       with:
-  #         host: ${{ secrets.HOST_IP }}
-  #         username: root
-  #         key: ${{ secrets.DIGITAL_OCEAN_SSH_KEY }}
-  #         passphrase: ${{ secrets.PASSPHRASE }}
-  #         source: "config/nginx/site-confs/default.conf"
-  #         strip_components: 1
-  #         # change this if you change volumes mapping for swag in docker-compose.yml
-  #         target: /etc/config/swag
-  #     - name: Deploy to Digital Ocean droplet via SSH action
-  #       uses: appleboy/ssh-action@v1.1.0
-  #       with:
-  #         host: ${{ secrets.HOST_IP }}
-  #         username: root
-  #         key: ${{ secrets.DIGITAL_OCEAN_SSH_KEY }}
-  #         passphrase: ${{ secrets.PASSPHRASE }}
-  #         envs: SERVER_APP_DIRECTORY,IMAGE_NAME,REGISTRY,DIGITALOCEAN_ACCESS_TOKEN,GITHUB_SHA,PRODUCTION_DOT_ENV,HOST_URL,IMAGE_TAG
-  #         script: |
-  #           # Login to registry
-  #           docker login -u $(echo DIGITALOCEAN_ACCESS_TOKEN) -p $(echo DIGITALOCEAN_ACCESS_TOKEN) registry.digitalocean.com
+      - name: Config nginx
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST_IP }}
+          username: root
+          key: ${{ secrets.DIGITAL_OCEAN_SSH_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          source: "config/nginx/site-confs/default.conf"
+          strip_components: 1
+          # change this if you change volumes mapping for swag in docker-compose.yml
+          target: /etc/config/swag
+      - name: Deploy to Digital Ocean droplet via SSH action
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.HOST_IP }}
+          username: root
+          key: ${{ secrets.DIGITAL_OCEAN_SSH_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          envs: SERVER_APP_DIRECTORY,IMAGE_NAME,REGISTRY,DIGITALOCEAN_ACCESS_TOKEN,GITHUB_SHA,PRODUCTION_DOT_ENV,HOST_URL,IMAGE_TAG
+          script: |
+            # Login to registry
+            docker login -u $(echo DIGITALOCEAN_ACCESS_TOKEN) -p $(echo DIGITALOCEAN_ACCESS_TOKEN) registry.digitalocean.com
 
-  #           # Stop running containers
+            # Stop running containers
             
-  #           if [ "$(docker ps -q -f name=$(echo $IMAGE_NAME))" ]; then
-  #             docker stop $(echo $IMAGE_NAME)
-  #           fi
+            if [ "$(docker ps -q -f name=$(echo $IMAGE_NAME))" ]; then
+              docker stop $(echo $IMAGE_NAME)
+            fi
 
-  #           # Remove old containers
+            # Remove old containers
 
-  #           if [ "$(docker ps -aq -f status=exited -f name=$(echo $IMAGE_NAME))" ]; then
-  #             docker rm $(echo $IMAGE_NAME)
-  #           fi
+            if [ "$(docker ps -aq -f status=exited -f name=$(echo $IMAGE_NAME))" ]; then
+              docker rm $(echo $IMAGE_NAME)
+            fi
 
-  #           # set up directories for the app
-  #           if [ ! -d "$(echo $SERVER_APP_DIRECTORY)" ]; then
-  #             mkdir $(echo $SERVER_APP_DIRECTORY)
-  #           fi
-  #           if [ ! -d "$(echo $SERVER_APP_DIRECTORY)/data" ]; then
-  #             mkdir $(echo $SERVER_APP_DIRECTORY)/data
-  #           fi
+            # set up directories for the app
+            if [ ! -d "$(echo $SERVER_APP_DIRECTORY)" ]; then
+              mkdir $(echo $SERVER_APP_DIRECTORY)
+            fi
+            if [ ! -d "$(echo $SERVER_APP_DIRECTORY)/data" ]; then
+              mkdir $(echo $SERVER_APP_DIRECTORY)/data
+            fi
 
-  #           # app configuration
-  #           echo "$PRODUCTION_DOT_ENV" > $(echo $SERVER_APP_DIRECTORY)/.env
+            # app configuration
+            echo "$PRODUCTION_DOT_ENV" > $(echo $SERVER_APP_DIRECTORY)/.env
 
-  #           cd $(echo $SERVER_APP_DIRECTORY)
-  #           docker compose down
-  #           docker compose up -d
-  #     - name: Check the deployed service URL
-  #       uses: jtalk/url-health-check-action@v4
-  #       with:
-  #         url: ${{ secrets.HEALTH_CHECK_URL }}
-  #         max-attempts: 3
-  #         retry-delay: 5s
+            cd $(echo $SERVER_APP_DIRECTORY)
+            docker compose down
+            docker compose up -d
+      - name: Check the deployed service URL
+        uses: jtalk/url-health-check-action@v4
+        with:
+          url: ${{ secrets.HEALTH_CHECK_URL }}
+          max-attempts: 3
+          retry-delay: 5s

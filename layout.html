@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html data-theme="dark">
+  <head>
+    <title>H4ck3r Ch4t</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      :root[data-theme="dark"] {
+        --bg-primary: #000;
+        --bg-secondary: #0a0a0a;
+        --text-primary: #0f0;
+        --text-secondary: #0a0;
+        --border-color: #0f0;
+      }
+
+      :root[data-theme="light"] {
+        --bg-primary: #f0f0f0;
+        --bg-secondary: #fff;
+        --text-primary: #1a1a1a;
+        --text-secondary: #2a2a2a;
+        --border-color: #2a2a2a;
+      }
+
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        font-family: "Courier New", monospace;
+      }
+
+      .theme-toggle {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        padding: 0.5rem;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        cursor: pointer;
+      }
+
+      .container {
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .content {
+        max-width: 100%;
+        overflow-wrap: break-word;
+      }
+
+      .channels {
+        width: 15%;
+        background: var(--bg-secondary);
+        padding: 1rem;
+        border-right: 1px solid var(--border-color);
+      }
+
+      .channel {
+        padding: 0.5rem;
+        cursor: pointer;
+      }
+
+      .channel:hover {
+        background: var(--bg-primary);
+      }
+
+      .messages {
+        width: 85%;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      .message-list {
+        flex-grow: 1;
+        padding: 1rem;
+        overflow-y: auto;
+      }
+
+      .message {
+        margin: 0.5rem 0;
+        padding: 0.5rem;
+        border-left: 2px solid var(--text-secondary);
+        word-break: break-word;
+      }
+
+      .timestamp {
+        color: var(--text-secondary);
+      }
+
+      .username {
+        color: var(--text-primary);
+        font-weight: bold;
+      }
+
+      .composer {
+        padding: 1rem;
+        border-top: 1px solid var(--border-color);
+        width: 100%;
+      }
+
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        max-width: 100%;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        padding: 0.5rem;
+        font-family: "Courier New", monospace;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: var(--text-primary);
+        box-shadow: 0 0 5px var(--text-secondary);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+      <div class="channels">
+        <div class="channel"># root</div>
+        <div class="channel"># exploits</div>
+        <div class="channel"># zero-day</div>
+      </div>
+
+      <div class="messages">
+        <div class="message-list">
+          <div class="message">
+            <span class="timestamp">[21:34:15]</span>
+            <span class="username">@gh0st</span>:
+            <span class="content">just breached the mainframe</span>
+          </div>
+          <div class="message">
+            <span class="timestamp">[21:34:45]</span>
+            <span class="username">@r00t</span>:
+            <span class="content">running trace route on target</span>
+          </div>
+          <div class="message">
+            <span class="timestamp">[21:35:01]</span>
+            <span class="username">@cyph3r</span>:
+            <span class="content">$ sudo rm -rf /</span>
+          </div>
+          <div class="message">
+            <span class="timestamp">[21:35:15]</span>
+            <span class="username">@n3t</span>:
+            <span class="content"
+              >initiating distributed scan on ports 1-65535</span
+            >
+          </div>
+        </div>
+
+        <div class="composer">
+          <input type="text" placeholder="[root@localhost ~]$ _" />
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function toggleTheme() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute("data-theme");
+        const newTheme = currentTheme === "dark" ? "light" : "dark";
+        html.setAttribute("data-theme", newTheme);
+        localStorage.setItem("theme", newTheme);
+      }
+
+      // Load saved theme
+      const savedTheme = localStorage.getItem("theme") || "dark";
+      document.documentElement.setAttribute("data-theme", savedTheme);
+    </script>
+  </body>
+</html>

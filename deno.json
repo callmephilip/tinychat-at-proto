@@ -6,20 +6,25 @@
     "clean": "deno run --allow-read --allow-env --allow-write --allow-run jsr:@jurassic/jurassic/clean",
     "docs": "deno run -A --reload jsr:@jurassic/jurassic/docs . && deno lint && deno fmt",
     "runnbs": "deno run --allow-read --allow-env --allow-run jsr:@jurassic/jurassic/runnbs",
-    "dev:client": "deno run --unstable-kv --watch --env-file --allow-all client.tsx"
+    "dev:client": "deno run --unstable-kv --watch --env-file --allow-all client.tsx",
+    "dev:server": "deno run --watch --env-file --allow-all server.ts"
   },
   "exports": { ".": "./mod.ts" },
   "imports": {
     "@atproto-labs/simple-store": "npm:@atproto-labs/simple-store@^0.1.1",
     "@atproto/api": "npm:@atproto/api@^0.13.26",
     "@atproto/common": "npm:@atproto/common@^0.4.6",
+    "@atproto/identity": "npm:@atproto/identity@^0.4.5",
     "@atproto/jwk": "npm:@atproto/jwk@^0.1.1",
     "@atproto/oauth-client": "npm:@atproto/oauth-client@^0.3.6",
+    "@atproto/sync": "npm:@atproto/sync@^0.1.9",
+    "@skyware/jetstream": "npm:@skyware/jetstream@^0.2.2",
     "asserts": "jsr:@std/assert@^1.0.10",
     "hono": "jsr:@hono/hono@^4.6.16",
     "iron-session": "npm:iron-session@^8.0.4",
     "sqlite": "jsr:@db/sqlite@^0.12.0",
-    "tinychat/": "./tinychat/"
+    "tinychat/": "./tinychat/",
+    "@tinychat/ui/": "./ui/"
   },
   "compilerOptions": {
     "jsx": "react-jsx",

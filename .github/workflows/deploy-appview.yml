@@ -8,7 +8,7 @@ env:
   IMAGE_NAME: tinychat-atproto
   PRODUCTION_DOT_ENV: ${{ secrets.PRODUCTION_DOT_ENV }}
   SERVER_APP_DIRECTORY: /opt/tinychat-atproto
-  DIGITAL_OCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+  DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
   HOST_URL: tinychat.chat
 jobs:
   build-and-push:
@@ -20,7 +20,7 @@ jobs:
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
         with:
-          token: ${{ secrets.DIGITAL_OCEAN_ACCESS_TOKEN }}
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
       - name: Build image
         run: docker build -t $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7) .
       - name: Log in to DigitalOcean Container Registry with short-lived credentials
@@ -65,10 +65,10 @@ jobs:
   #         username: root
   #         key: ${{ secrets.DIGITAL_OCEAN_SSH_KEY }}
   #         passphrase: ${{ secrets.PASSPHRASE }}
-  #         envs: SERVER_APP_DIRECTORY,IMAGE_NAME,REGISTRY,DIGITAL_OCEAN_ACCESS_TOKEN,GITHUB_SHA,PRODUCTION_DOT_ENV,HOST_URL,IMAGE_TAG
+  #         envs: SERVER_APP_DIRECTORY,IMAGE_NAME,REGISTRY,DIGITALOCEAN_ACCESS_TOKEN,GITHUB_SHA,PRODUCTION_DOT_ENV,HOST_URL,IMAGE_TAG
   #         script: |
   #           # Login to registry
-  #           docker login -u $(echo DIGITAL_OCEAN_ACCESS_TOKEN) -p $(echo DIGITAL_OCEAN_ACCESS_TOKEN) registry.digitalocean.com
+  #           docker login -u $(echo DIGITALOCEAN_ACCESS_TOKEN) -p $(echo DIGITALOCEAN_ACCESS_TOKEN) registry.digitalocean.com
 
   #           # Stop running containers
             

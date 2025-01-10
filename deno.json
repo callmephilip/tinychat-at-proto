@@ -41,6 +41,7 @@
   },
   "nodeModulesDir": "auto",
   "publish": { "exclude": ["nbs/", "docs/"] },
-  "exclude": ["_docs", "docs", "tinychat/lexicons", "tinychat/api"],
+  "lint": { "exclude": ["tinychat/api"] },
+  "exclude": ["_docs", "docs"],
   "unstable": ["sloppy-imports"]
 }

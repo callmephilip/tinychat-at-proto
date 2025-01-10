@@ -71,7 +71,7 @@ jobs:
             docker login -u $(echo DIGITALOCEAN_ACCESS_TOKEN) -p $(echo DIGITALOCEAN_ACCESS_TOKEN) registry.digitalocean.com
 
             # Stop running containers
-            
+
             if [ "$(docker ps -q -f name=$(echo $IMAGE_NAME))" ]; then
               docker stop $(echo $IMAGE_NAME)
             fi

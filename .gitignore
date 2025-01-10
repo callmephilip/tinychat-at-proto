@@ -2,3 +2,4 @@ _docs
 .ipynb_checkpoints
 .env
 test.db
+node_modules

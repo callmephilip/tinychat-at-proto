@@ -1,0 +1,22 @@
+{
+  "lexicon": 1,
+  "id": "chat.tinychat.actor.profile",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "Person's or org's profile on tinychat",
+      "key": "literal:self",
+      "record": {
+        "type": "object",
+        "properties": {
+          "handle": {
+            "type": "string",
+            "description": "Account handle",
+            "maxGraphemes": 64,
+            "maxLength": 640
+          }
+        }
+      }
+    }
+  }
+}

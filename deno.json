@@ -2,26 +2,35 @@
   "version": "0.1.0",
   "license": "MIT",
   "tasks": {
-    "build": "deno run -A --reload jsr:@jurassic/jurassic/export . && deno task runnbs && deno check . && deno lint && deno fmt && deno task clean && deno test --unstable-kv --allow-all --env-file",
+    "build": "deno run -A --reload jsr:@jurassic/jurassic/export . && deno task generate:lexicons && deno task runnbs && deno check . && deno lint && deno fmt && deno task clean && deno test --unstable-kv --allow-all --env-file",
     "clean": "deno run --allow-read --allow-env --allow-write --allow-run jsr:@jurassic/jurassic/clean",
     "docs": "deno run -A --reload jsr:@jurassic/jurassic/docs . && deno lint && deno fmt",
     "runnbs": "deno run --allow-read --allow-env --allow-run jsr:@jurassic/jurassic/runnbs",
     "dev:client": "deno run --unstable-kv --watch --env-file --allow-all client.tsx",
-    "dev:server": "deno run --watch --env-file --allow-all server.ts"
+    "dev:server": "deno run --watch --env-file --allow-all server.ts",
+    "generate:lexicons": "lex gen-api --yes tinychat/api lexicons/**/*",
+    "lex": "lex-cli generate lexicons/**/*.json -o tinychat/tinychat.lexicons.ts"
   },
   "exports": { ".": "./mod.ts" },
   "imports": {
+    "@atcute/client": "npm:@atcute/client@^2.0.6",
+    "@atcute/lex-cli": "npm:@atcute/lex-cli@^1.0.4",
     "@atproto-labs/simple-store": "npm:@atproto-labs/simple-store@^0.1.1",
     "@atproto/api": "npm:@atproto/api@^0.13.26",
     "@atproto/common": "npm:@atproto/common@^0.4.6",
     "@atproto/identity": "npm:@atproto/identity@^0.4.5",
     "@atproto/jwk": "npm:@atproto/jwk@^0.1.1",
+    "@atproto/lex-cli": "npm:@atproto/lex-cli@^0.5.5",
+    "@atproto/lexicon": "npm:@atproto/lexicon@^0.4.5",
     "@atproto/oauth-client": "npm:@atproto/oauth-client@^0.3.6",
     "@atproto/sync": "npm:@atproto/sync@^0.1.9",
+    "@atproto/xrpc": "npm:@atproto/xrpc@^0.6.6",
+    "@atproto/xrpc-server": "npm:@atproto/xrpc-server@^0.7.6",
     "@skyware/jetstream": "npm:@skyware/jetstream@^0.2.2",
     "asserts": "jsr:@std/assert@^1.0.10",
     "hono": "jsr:@hono/hono@^4.6.16",
     "iron-session": "npm:iron-session@^8.0.4",
+    "multiformats": "npm:multiformats@^13.3.1",
     "sqlite": "jsr:@db/sqlite@^0.12.0",
     "tinychat/": "./tinychat/",
     "@tinychat/ui/": "./ui/"
@@ -30,6 +39,8 @@
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx"
   },
+  "nodeModulesDir": "auto",
   "publish": { "exclude": ["nbs/", "docs/"] },
-  "exclude": ["_docs", "docs"]
+  "exclude": ["_docs", "docs", "tinychat/lexicons", "tinychat/api"],
+  "unstable": ["sloppy-imports"]
 }

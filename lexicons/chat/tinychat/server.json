@@ -1,0 +1,23 @@
+{
+  "lexicon": 1,
+  "id": "chat.tinychat.server",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "Chat server instance",
+      "key": "any",
+      "record": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Server name",
+            "maxGraphemes": 64,
+            "maxLength": 640
+          }
+        }
+      }
+    }
+  }
+}

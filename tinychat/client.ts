@@ -3,11 +3,11 @@
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { Agent } from "@atproto/api";
-import { TID } from "@atproto/common";
 import { logger } from "hono/logger";
 import { getIronSession, IronSession } from "iron-session";
 import { createMiddleware } from "hono/factory";
 import { getOAuthClient, OAuthClient } from "tinychat/oauth.ts";
+import { TinychatAgent } from "tinychat/utils.ts";
 
 export type Session = {
   did: string | undefined;
@@ -19,7 +19,7 @@ export type Session = {
 export type AppContext = {
   session: IronSession<Session>;
   oauthClient: OAuthClient;
-  agent: () => Promise<Agent | undefined>;
+  agent: () => Promise<TinychatAgent | undefined>;
 };
 
 declare module "hono" {
@@ -33,6 +33,7 @@ export type HonoServer = Hono<{
     ctx: AppContext;
   };
 }>;
+
 export const app = new Hono();
 
 app.use("*", logger());
@@ -61,9 +62,12 @@ app.use(
       oauthClient,
       agent: async () => {
         if (!session.did) {
-          throw new HTTPException(401, { message: "Unauthorized" });
+          c.redirect("/login");
+          return;
         }
-        return new Agent(await oauthClient.restore(session.did));
+        return TinychatAgent.create(
+          new Agent(await oauthClient.restore(session.did)),
+        );
       },
     });
 
@@ -120,23 +124,32 @@ app.post("/send-message", async (c) => {
   const message: string | undefined = body?.message;
 
   if (!agent) {
-    throw new HTTPException(401, { message: "Unauthorized" });
+    return c.redirect("/login");
   }
 
   if (!message) {
     throw new HTTPException(400, { message: "Missing message" });
   }
 
-  await agent.com.atproto.repo.putRecord({
-    repo: agent.assertDid, // The user
-    collection: "xyz.statusphere.status", // The collection
-    rkey: TID.nextStr(), // The record key
-    record: {
-      // The record value
-      status: message,
-      createdAt: new Date().toISOString(),
+  // await agent.com.atproto.repo.putRecord({
+  //   repo: agent.assertDid, // The user
+  //   collection: "xyz.statusphere.status", // The collection
+  //   rkey: TID.nextStr(), // The record key
+  //   record: {
+  //     // The record value
+  //     status: message,
+  //     createdAt: new Date().toISOString(),
+  //   },
+  // });
+
+  await agent.chat.tinychat.server.create(
+    {
+      repo: agent.agent.assertDid,
     },
-  });
+    {
+      name: "hello server",
+    },
+  );
 
   return c.json({ status: "ok" });
 });

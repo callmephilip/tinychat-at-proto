@@ -8,8 +8,7 @@
     "runnbs": "deno run --allow-read --allow-env --allow-run jsr:@jurassic/jurassic/runnbs",
     "dev:client": "deno run --unstable-kv --watch --env-file --allow-all client.tsx",
     "dev:server": "deno run --watch --env-file --allow-all server.ts",
-    "generate:lexicons": "lex gen-api --yes tinychat/api lexicons/**/*",
-    "lex": "lex-cli generate lexicons/**/*.json -o tinychat/tinychat.lexicons.ts"
+    "generate:lexicons": "lex gen-api --yes tinychat/api lexicons/**/*"
   },
   "exports": { ".": "./mod.ts" },
   "imports": {

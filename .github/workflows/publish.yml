@@ -41,7 +41,6 @@ jobs:
         with:
           project: "tinychat"
           entrypoint: "client.tsx"
-          include: ./tinychat
           root: "."
           exclude: |
             "**/node_modules"

@@ -35,3 +35,27 @@ export class TinychatAgent {
     return new TinychatAgent(testAgent);
   }
 }
+const processLine = (line: string): string => {
+  if (!line.trim().match(/^import|export/ig)) {
+    return line;
+  }
+  const module = line.split("from").pop()?.trim().replaceAll(/'|"|;/ig, "");
+  if (!module || !module.startsWith(".") || module.endsWith(".ts")) {
+    return line;
+  }
+  return line.replace(module!, `${module}.ts`);
+};
+const processFile = async (file: string): Promise<string> => {
+  const text = await Deno.readTextFile(file);
+  const modifiedText = text.split("\n").map(processLine).join("\n");
+  await Deno.writeTextFile(file, modifiedText);
+  return modifiedText;
+};
+
+import { walk } from "jsr:@std/fs/walk";
+
+export const unslopifyModules = async (dir: string) => {
+  for await (const dirEntry of walk(dir, { exts: ["ts"] })) {
+    await processFile(dirEntry.path);
+  }
+};

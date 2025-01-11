@@ -3,8 +3,8 @@
  */
 import { HeadersMap, XRPCError } from "@atproto/xrpc";
 import { BlobRef, ValidationResult } from "@atproto/lexicon";
-import { hasProp, isObj } from "../../../../util";
-import { lexicons } from "../../../../lexicons";
+import { hasProp, isObj } from "../../../../util.ts";
+import { lexicons } from "../../../../lexicons.ts";
 import { CID } from "multiformats/cid";
 
 /** Represents an update of repository state. Note that empty commits are allowed, which include no repo data changes, but an update to rev and signature. */

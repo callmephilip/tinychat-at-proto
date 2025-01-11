@@ -8,7 +8,8 @@
     "runnbs": "deno run --allow-read --allow-env --allow-run jsr:@jurassic/jurassic/runnbs",
     "dev:client": "deno run --unstable-kv --watch --env-file --allow-all client.tsx",
     "dev:server": "deno run --watch --env-file --allow-all server.ts",
-    "generate:lexicons": "lex gen-api --yes tinychat/api lexicons/**/*"
+    "generate:lexicons": "lex gen-api --yes tinychat/api lexicons/**/* && deno task unslopify",
+    "unslopify": "deno run --allow-read --allow-write ./bin/unslopify.ts ./tinychat/api"
   },
   "exports": { ".": "./mod.ts" },
   "imports": {
@@ -26,6 +27,7 @@
     "@atproto/xrpc": "npm:@atproto/xrpc@^0.6.6",
     "@atproto/xrpc-server": "npm:@atproto/xrpc-server@^0.7.6",
     "@skyware/jetstream": "npm:@skyware/jetstream@^0.2.2",
+    "@std/fs": "jsr:@std/fs@^1.0.9",
     "asserts": "jsr:@std/assert@^1.0.10",
     "hono": "jsr:@hono/hono@^4.6.16",
     "iron-session": "npm:iron-session@^8.0.4",

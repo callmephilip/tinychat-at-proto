@@ -3,12 +3,12 @@
  */
 import { HeadersMap, XRPCError } from "@atproto/xrpc";
 import { BlobRef, ValidationResult } from "@atproto/lexicon";
-import { hasProp, isObj } from "../../../../util";
-import { lexicons } from "../../../../lexicons";
+import { hasProp, isObj } from "../../../../util.ts";
+import { lexicons } from "../../../../lexicons.ts";
 import { CID } from "multiformats/cid";
-import * as ComAtprotoModerationDefs from "./defs";
-import * as ComAtprotoAdminDefs from "../admin/defs";
-import * as ComAtprotoRepoStrongRef from "../repo/strongRef";
+import * as ComAtprotoModerationDefs from "./defs.ts";
+import * as ComAtprotoAdminDefs from "../admin/defs.ts";
+import * as ComAtprotoRepoStrongRef from "../repo/strongRef.ts";
 
 export interface QueryParams {}
 

@@ -10,10 +10,13 @@
     "jsr:@std/assert@^1.0.10": "1.0.10",
     "jsr:@std/encoding@0.221": "0.221.0",
     "jsr:@std/fmt@0.221": "0.221.0",
+    "jsr:@std/fs@*": "1.0.9",
     "jsr:@std/fs@0.221": "0.221.0",
+    "jsr:@std/fs@^1.0.9": "1.0.9",
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/path@0.217": "0.217.0",
     "jsr:@std/path@0.221": "0.221.0",
+    "jsr:@std/path@^1.0.8": "1.0.8",
     "npm:@atcute/client@^2.0.6": "2.0.6",
     "npm:@atcute/lex-cli@1.0.4": "1.0.4_@badrap+valita@0.3.16",
     "npm:@atcute/lex-cli@^1.0.4": "1.0.4_@badrap+valita@0.3.16",
@@ -47,7 +50,7 @@
       "dependencies": [
         "jsr:@std/encoding",
         "jsr:@std/fmt",
-        "jsr:@std/fs",
+        "jsr:@std/fs@0.221",
         "jsr:@std/path@0.221"
       ]
     },
@@ -82,6 +85,12 @@
         "jsr:@std/path@0.221"
       ]
     },
+    "@std/fs@1.0.9": {
+      "integrity": "3eef7e3ed3d317b29432c7dcb3b20122820dbc574263f721cb0248ad91bad890",
+      "dependencies": [
+        "jsr:@std/path@^1.0.8"
+      ]
+    },
     "@std/internal@1.0.5": {
       "integrity": "54a546004f769c1ac9e025abd15a76b6671ddc9687e2313b67376125650dc7ba"
     },
@@ -96,6 +105,9 @@
       "dependencies": [
         "jsr:@std/assert@0.221"
       ]
+    },
+    "@std/path@1.0.8": {
+      "integrity": "548fa456bb6a04d3c1a1e7477986b6cffbce95102d0bb447c67c4ee70e0364be"
     }
   },
   "npm": {
@@ -1266,6 +1278,7 @@
       "jsr:@db/sqlite@0.12",
       "jsr:@hono/hono@^4.6.16",
       "jsr:@std/assert@^1.0.10",
+      "jsr:@std/fs@^1.0.9",
       "npm:@atcute/client@^2.0.6",
       "npm:@atcute/lex-cli@^1.0.4",
       "npm:@atproto-labs/simple-store@~0.1.1",

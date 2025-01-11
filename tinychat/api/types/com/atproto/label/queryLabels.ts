@@ -3,10 +3,10 @@
  */
 import { HeadersMap, XRPCError } from "@atproto/xrpc";
 import { BlobRef, ValidationResult } from "@atproto/lexicon";
-import { hasProp, isObj } from "../../../../util";
-import { lexicons } from "../../../../lexicons";
+import { hasProp, isObj } from "../../../../util.ts";
+import { lexicons } from "../../../../lexicons.ts";
 import { CID } from "multiformats/cid";
-import * as ComAtprotoLabelDefs from "./defs";
+import * as ComAtprotoLabelDefs from "./defs.ts";
 
 export interface QueryParams {
   /** List of AT URI patterns to match (boolean 'OR'). Each may be a prefix (ending with '*'; will match inclusive of the string leading to '*'), or a full URI. */

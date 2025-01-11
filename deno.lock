@@ -1279,7 +1279,6 @@
       "jsr:@hono/hono@^4.6.16",
       "jsr:@std/assert@^1.0.10",
       "jsr:@std/fs@^1.0.9",
-      "npm:@atcute/client@^2.0.6",
       "npm:@atcute/lex-cli@^1.0.4",
       "npm:@atproto-labs/simple-store@~0.1.1",
       "npm:@atproto/api@~0.13.26",

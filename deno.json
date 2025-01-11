@@ -13,7 +13,6 @@
   },
   "exports": { ".": "./mod.ts" },
   "imports": {
-    "@atcute/client": "npm:@atcute/client@^2.0.6",
     "@atcute/lex-cli": "npm:@atcute/lex-cli@^1.0.4",
     "@atproto-labs/simple-store": "npm:@atproto-labs/simple-store@^0.1.1",
     "@atproto/api": "npm:@atproto/api@^0.13.26",

@@ -24,4 +24,4 @@ services:
     ports:
       - 8000:8000
     volumes:
-      - ${SERVER_APP_DIRECTORY}/data:/code/data
+      - ${SERVER_APP_DIRECTORY}/data:/app/data

@@ -4,6 +4,8 @@ WORKDIR /app
 
 COPY . .
 
+RUN chown -R deno /app/data
+
 USER deno
 EXPOSE 8000
 

@@ -25,6 +25,7 @@
     "@atproto/sync": "npm:@atproto/sync@^0.1.9",
     "@atproto/xrpc": "npm:@atproto/xrpc@^0.6.6",
     "@atproto/xrpc-server": "npm:@atproto/xrpc-server@^0.7.6",
+    "@db/sqlite": "jsr:@db/sqlite@^0.12.0",
     "@skyware/jetstream": "npm:@skyware/jetstream@^0.2.2",
     "@std/fs": "jsr:@std/fs@^1.0.9",
     "asserts": "jsr:@std/assert@^1.0.10",

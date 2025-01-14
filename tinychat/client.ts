@@ -6,19 +6,18 @@ import { Agent } from "@atproto/api";
 import { logger } from "hono/logger";
 import { getIronSession, IronSession } from "iron-session";
 import { createMiddleware } from "hono/factory";
-import { getOAuthClient, OAuthClient } from "tinychat/oauth.ts";
+import { TinychatOAuthClient } from "tinychat/oauth.ts";
 import { TinychatAgent } from "tinychat/utils.ts";
 
 export type Session = {
   did: string | undefined;
   // testing purposes
   t: string | undefined;
-  atprotoSession: Map<string, string>;
 };
 
 export type AppContext = {
   session: IronSession<Session>;
-  oauthClient: OAuthClient;
+  oauthClient: TinychatOAuthClient;
   agent: () => Promise<TinychatAgent | undefined>;
 };
 
@@ -55,7 +54,7 @@ app.use(
       },
     });
 
-    const oauthClient = await getOAuthClient();
+    const oauthClient = new TinychatOAuthClient();
 
     c.set("ctx", {
       session,
@@ -65,6 +64,7 @@ app.use(
           c.redirect("/login");
           return;
         }
+
         return TinychatAgent.create(
           new Agent(await oauthClient.restore(session.did)),
         );

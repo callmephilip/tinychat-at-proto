@@ -4,7 +4,10 @@ import { Hono } from "hono";
 import { upgradeWebSocket } from "hono/deno";
 import { startJetstream } from "tinychat/firehose.ts";
 import { message } from "@tinychat/ui/message.tsx";
-
+import { createMiddleware } from "hono/factory";
+import { TinychatOAuthClient } from "tinychat/oauth.ts";
+import { Agent } from "@atproto/api";
+import { TinychatAgent } from "tinychat/utils.ts";
 // based on https://docs.deno.com/examples/chat_app_tutorial/
 
 export default class ChatServer {
@@ -33,9 +36,15 @@ export default class ChatServer {
     }
   }
 }
-
 const app = new Hono();
 const chatServer = new ChatServer();
+
+app.use(
+  "*",
+  createMiddleware(async (_c, next) => {
+    await next();
+  }),
+);
 
 app.get("/", (c) => c.redirect("https://github.com/callmephilip/tinychat"));
 
@@ -65,6 +74,31 @@ app.get("/__test", (c) =>
     </div>
 </body>
 </html>`));
+
+app.get("/xrpc/chat.tinychat.getServers", async (c) => {
+  const authorization = c.req.header("Authorization");
+
+  if (!authorization) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
+  const ta = await TinychatAgent.create(
+    new Agent(
+      await TinychatOAuthClient.restoreSessionFromAuthorizationHeader(
+        authorization,
+      ),
+    ),
+  );
+
+  await ta.chat.tinychat.server.create(
+    { repo: ta.agent.assertDid },
+    {
+      name: "appview-server",
+    },
+  );
+
+  return c.json({ message: c.req.header("Authorization") });
+});
 
 app.get(
   "/ws",
@@ -100,5 +134,8 @@ export const runAppView = () => {
     },
   });
 
-  Deno.serve(app.fetch);
+  Deno.serve(
+    { port: parseInt(Deno.env.get("APPVIEW_PORT") || "8000") },
+    app.fetch,
+  );
 };

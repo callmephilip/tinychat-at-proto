@@ -26,6 +26,43 @@ export const schemaDict = {
       },
     },
   },
+  ChatTinychatGetServers: {
+    lexicon: 1,
+    id: "chat.tinychat.getServers",
+    defs: {
+      main: {
+        type: "query",
+        description: "Get all tinychat servers.",
+        parameters: {
+          type: "params",
+          required: ["uris"],
+          properties: {
+            uris: {
+              type: "array",
+              description: "List of post AT-URIs to return hydrated views for.",
+              items: {
+                type: "string",
+                format: "at-uri",
+              },
+              maxLength: 25,
+            },
+          },
+        },
+        output: {
+          encoding: "application/json",
+          schema: {
+            type: "object",
+            required: ["message"],
+            properties: {
+              message: {
+                type: "string",
+              },
+            },
+          },
+        },
+      },
+    },
+  },
   ChatTinychatServer: {
     lexicon: 1,
     id: "chat.tinychat.server",
@@ -4136,6 +4173,7 @@ export const schemas = Object.values(schemaDict);
 export const lexicons: Lexicons = new Lexicons(schemas);
 export const ids = {
   ChatTinychatActorProfile: "chat.tinychat.actor.profile",
+  ChatTinychatGetServers: "chat.tinychat.getServers",
   ChatTinychatServer: "chat.tinychat.server",
   ComAtprotoAdminDefs: "com.atproto.admin.defs",
   ComAtprotoAdminDeleteAccount: "com.atproto.admin.deleteAccount",

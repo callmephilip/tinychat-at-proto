@@ -5,6 +5,7 @@ import { FetchHandler, FetchHandlerOptions, XrpcClient } from "@atproto/xrpc";
 import { schemas } from "./lexicons.ts";
 import { CID } from "multiformats/cid";
 import * as ChatTinychatActorProfile from "./types/chat/tinychat/actor/profile.ts";
+import * as ChatTinychatGetServers from "./types/chat/tinychat/getServers.ts";
 import * as ChatTinychatServer from "./types/chat/tinychat/server.ts";
 import * as ComAtprotoAdminDefs from "./types/com/atproto/admin/defs.ts";
 import * as ComAtprotoAdminDeleteAccount from "./types/com/atproto/admin/deleteAccount.ts";
@@ -89,6 +90,7 @@ import * as ComAtprotoTempFetchLabels from "./types/com/atproto/temp/fetchLabels
 import * as ComAtprotoTempRequestPhoneVerification from "./types/com/atproto/temp/requestPhoneVerification.ts";
 
 export * as ChatTinychatActorProfile from "./types/chat/tinychat/actor/profile.ts";
+export * as ChatTinychatGetServers from "./types/chat/tinychat/getServers.ts";
 export * as ChatTinychatServer from "./types/chat/tinychat/server.ts";
 export * as ComAtprotoAdminDefs from "./types/com/atproto/admin/defs.ts";
 export * as ComAtprotoAdminDeleteAccount from "./types/com/atproto/admin/deleteAccount.ts";
@@ -217,6 +219,18 @@ export class ChatTinychatNS {
     this._client = client;
     this.actor = new ChatTinychatActorNS(client);
     this.server = new ServerRecord(client);
+  }
+
+  getServers(
+    params?: ChatTinychatGetServers.QueryParams,
+    opts?: ChatTinychatGetServers.CallOptions,
+  ): Promise<ChatTinychatGetServers.Response> {
+    return this._client.call(
+      "chat.tinychat.getServers",
+      params,
+      undefined,
+      opts,
+    );
   }
 }
 

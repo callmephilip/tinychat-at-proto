@@ -2,12 +2,11 @@
 
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
-import { Agent } from "@atproto/api";
 import { logger } from "hono/logger";
 import { getIronSession, IronSession } from "iron-session";
 import { createMiddleware } from "hono/factory";
 import { TinychatOAuthClient } from "tinychat/oauth.ts";
-import { TinychatAgent } from "tinychat/utils.ts";
+import { TinychatAgent } from "tinychat/agent.ts";
 
 export type Session = {
   did: string | undefined;
@@ -16,8 +15,8 @@ export type Session = {
 };
 
 export type AppContext = {
-  session: IronSession<Session>;
-  oauthClient: TinychatOAuthClient;
+  session: IronSession<Session> | undefined;
+  oauthClient: TinychatOAuthClient | undefined;
   agent: () => Promise<TinychatAgent | undefined>;
 };
 
@@ -64,35 +63,41 @@ app.use(
           c.redirect("/login");
           return;
         }
-
-        return TinychatAgent.create(
-          new Agent(await oauthClient.restore(session.did)),
-        );
+        return await TinychatAgent.create(oauthClient, session.did);
       },
     });
 
     await next();
   }),
 );
-app.get("/health", (c) => c.json({ status: "ok", t: c.var.ctx.session.t }));
+app.get("/health", (c) => c.json({ status: "ok", t: c.var.ctx.session!.t }));
 app.get("/set-session-t", async (c) => {
-  c.var.ctx.session.t = "foo";
-  await c.var.ctx.session.save();
-  return c.json({ status: "ok", t: c.var.ctx.session.t });
+  if (!c.var.ctx.session) {
+    throw new HTTPException(500, { message: "Session not found" });
+  }
+
+  c.var.ctx.session!.t = "foo";
+  await c.var.ctx.session!.save();
+  return c.json({ status: "ok", t: c.var.ctx.session!.t });
 });
 app.get(
   "/client-metadata.json",
-  (c) => c.json(c.var.ctx.oauthClient.clientMetadata),
+  (c) => c.json(c.var.ctx.oauthClient?.clientMetadata),
 );
 
 app.get("/oauth/callback", async (c) => {
-  const { session } = c.var.ctx;
+  const { session, oauthClient } = c.var.ctx;
+
+  if (!oauthClient) {
+    throw new HTTPException(500, { message: "OAuth client not found" });
+  }
+
   const params = new URLSearchParams(c.req.url.split("?")[1]);
-  const { session: oauthSession } = await c.var.ctx.oauthClient.callback(
+  const { session: oauthSession } = await oauthClient.callback(
     params,
   );
-  session.did = oauthSession.did;
-  await session.save();
+  session!.did = oauthSession.did;
+  await session?.save();
   return c.redirect("/");
 });
 
@@ -106,6 +111,10 @@ app.post("/login", async (c) => {
       throw new HTTPException(400, { message: "Missing handle" });
     }
 
+    if (!c.var.ctx.oauthClient) {
+      throw new HTTPException(500, { message: "OAuth client not found" });
+    }
+
     const url = await c.var.ctx.oauthClient.authorize(handle, {
       scope: "atproto transition:generic",
     });
@@ -115,41 +124,4 @@ app.post("/login", async (c) => {
     console.error(e);
     return c.json({ error: "Internal server error" }, 500);
   }
-});
-app.post("/send-message", async (c) => {
-  const agent = await c.var.ctx.agent();
-
-  const body = await c.req.parseBody();
-  // @ts-ignore it's a string, yo
-  const message: string | undefined = body?.message;
-
-  if (!agent) {
-    return c.redirect("/login");
-  }
-
-  if (!message) {
-    throw new HTTPException(400, { message: "Missing message" });
-  }
-
-  // await agent.com.atproto.repo.putRecord({
-  //   repo: agent.assertDid, // The user
-  //   collection: "xyz.statusphere.status", // The collection
-  //   rkey: TID.nextStr(), // The record key
-  //   record: {
-  //     // The record value
-  //     status: message,
-  //     createdAt: new Date().toISOString(),
-  //   },
-  // });
-
-  await agent.chat.tinychat.server.create(
-    {
-      repo: agent.agent.assertDid,
-    },
-    {
-      name: "hello server",
-    },
-  );
-
-  return c.json({ status: "ok" });
 });

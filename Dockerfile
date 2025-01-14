@@ -2,9 +2,7 @@ FROM denoland/deno:alpine-2.1.4
 
 WORKDIR /app
 
-COPY . .
-
-RUN chown -R deno /app
+COPY --link --chown=deno . .
 
 USER deno
 EXPOSE 8000

@@ -39,7 +39,6 @@
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx"
   },
-  "nodeModulesDir": "auto",
   "publish": { "exclude": ["nbs/", "docs/"] },
   "lint": { "exclude": ["tinychat/api"] },
   "exclude": ["_docs", "docs"]

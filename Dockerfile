@@ -7,4 +7,4 @@ COPY . .
 USER deno
 EXPOSE 8000
 
-CMD ["run", "-A", "api.ts"]
+CMD ["run", "-A", "appview.ts"]

@@ -3,3 +3,4 @@ _docs
 .env
 test.db
 node_modules
+data/*.db

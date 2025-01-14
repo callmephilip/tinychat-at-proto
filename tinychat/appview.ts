@@ -8,7 +8,7 @@ import { createMiddleware } from "hono/factory";
 import { TinychatOAuthClient } from "tinychat/oauth.ts";
 import { Agent } from "@atproto/api";
 import { TinychatAgent } from "tinychat/utils.ts";
-import { getDatabase } from "tinychat/db.ts";
+// import { getDatabase } from "tinychat/db.ts";
 // based on https://docs.deno.com/examples/chat_app_tutorial/
 
 export default class ChatServer {
@@ -115,13 +115,13 @@ app.get(
   }),
 );
 export const runAppView = () => {
-  const db = getDatabase();
-  console.log("Starting appview with db", db);
+  // const db = getDatabase();
+  // console.log("Starting appview with db", db);
 
   // Cleanup function
   const cleanup = () => {
     console.log("goodbye");
-    db.close();
+    // db.close();
     Deno.exit(0);
   };
 

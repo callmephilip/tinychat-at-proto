@@ -42,7 +42,6 @@ const getPdsForDid = async (did: string): Promise<string> => {
   return service.find((s) => s.type === "AtprotoPersonalDataServer")
     .serviceEndpoint;
 };
-
 import { Agent, AtpAgent } from "@atproto/api";
 import { XrpcClient } from "@atproto/xrpc";
 import { ChatNS, ComAtprotoNS } from "tinychat/api/index.ts";

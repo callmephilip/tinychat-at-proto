@@ -1,0 +1,52 @@
+{
+  "lexicon": 1,
+  "id": "chat.tinychat.message",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "Chat message from a given channel",
+      "key": "any",
+      "record": {
+        "type": "object",
+        "required": ["text", "server", "channel", "createdAt"],
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 3000,
+            "maxGraphemes": 300,
+            "description": "The primary message content. May be an empty string, if there are embeds."
+          },
+          "server": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "Reference (AT-URI) to the server record (chat.tinychat.server)."
+          },
+          "channel": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "Reference (AT-URI) to the channel record (chat.tinychat.channel)."
+          },
+          "facets": {
+            "type": "array",
+            "description": "Annotations of text (mentions, URLs, hashtags, etc)",
+            "items": { "type": "ref", "ref": "chat.tinychat.richtext.facet" }
+          },
+          "reply": { "type": "ref", "ref": "#replyRef" },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Client-declared timestamp when this post was originally created."
+          }
+        }
+      }
+    },
+    "replyRef": {
+      "type": "object",
+      "required": ["root", "parent"],
+      "properties": {
+        "root": { "type": "ref", "ref": "com.atproto.repo.strongRef" },
+        "parent": { "type": "ref", "ref": "com.atproto.repo.strongRef" }
+      }
+    }
+  }
+}

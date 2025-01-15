@@ -17,7 +17,6 @@ app.get("/session", async (c) => {
   if (!ta) {
     return c.redirect("/login");
   }
-  console.log(">>>>>>>>>>>> servers are", await ta.chat.tinychat.getServers());
   return c.html("ok");
 });
 

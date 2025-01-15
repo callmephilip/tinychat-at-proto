@@ -95,24 +95,24 @@ app.get("/__test", (c) =>
 </body>
 </html>`));
 
-app.get("/xrpc/chat.tinychat.getServers", async (c) => {
-  const ta = await c.var.ctx.agent();
+// app.get("/xrpc/chat.tinychat.getServers", async (c) => {
+//   const ta = await c.var.ctx.agent();
 
-  if (!ta) {
-    return c.json({ error: "Unauthorized" }, 401);
-  }
+//   if (!ta) {
+//     return c.json({ error: "Unauthorized" }, 401);
+//   }
 
-  await ta.chat.tinychat.server.create(
-    {
-      repo: ta.agent.assertDid,
-    },
-    {
-      name: "Test Servers",
-    },
-  );
+//   await ta.chat.tinychat.server.create(
+//     {
+//       repo: ta.agent.assertDid,
+//     },
+//     {
+//       name: "Test Servers",
+//     }
+//   );
 
-  return c.json({ message: "ok" });
-});
+//   return c.json({ message: "ok" });
+// });
 
 app.get(
   "/ws",
@@ -127,14 +127,17 @@ app.get(
     };
   }),
 );
-export const runAppView = () => {
+type AppViewShutdown = () => Promise<void>;
+
+export const runAppView = (): AppViewShutdown => {
   const db = getDatabase();
   console.log("Starting appview with db", db);
 
   // Cleanup function
   const cleanup = () => {
     console.log("goodbye");
-    // db.close();
+    Deno.removeSignalListener("SIGINT", cleanup);
+    Deno.removeSignalListener("SIGTERM", cleanup);
     Deno.exit(0);
   };
 
@@ -145,15 +148,28 @@ export const runAppView = () => {
 
   console.log("Service started");
 
-  startJetstream({
+  const shutdownJetstream = startJetstream({
     onMessage: (msg) => {
       console.log(">>>>>>> received message", msg);
       chatServer.broadcast(message(msg).toString());
     },
   });
 
-  Deno.serve(
+  const server = Deno.serve(
     { port: parseInt(Deno.env.get("APPVIEW_PORT") || "8000") },
     app.fetch,
   );
+
+  return async () => {
+    try {
+      shutdownJetstream();
+      console.log("Shutting down server");
+      await server.shutdown();
+      console.log("Server shut down");
+      Deno.removeSignalListener("SIGINT", cleanup);
+      Deno.removeSignalListener("SIGTERM", cleanup);
+    } catch (e) {
+      console.error("Error shutting down server", e);
+    }
+  };
 };

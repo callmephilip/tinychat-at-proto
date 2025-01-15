@@ -1,0 +1,27 @@
+{
+  "lexicon": 1,
+  "id": "chat.tinychat.graph.membership",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "Person's membership in a chat server",
+      "key": "any",
+      "record": {
+        "type": "object",
+        "required": ["server", "createdAt"],
+        "properties": {
+          "server": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "Reference (AT-URI) to the server record (chat.tinychat.server)."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Client-declared timestamp when she joined."
+          }
+        }
+      }
+    }
+  }
+}

@@ -83,3 +83,55 @@ Deno.test("test validation", async () => {
     )
   );
 });
+
+Deno.test("test basic data model", async () => {
+  const ta = await TinychatAgent.create();
+  const repo = ta.agent.assertDid;
+
+  // create a server
+  const { uri } = await ta.chat.tinychat.server.create(
+    { repo },
+    { name: "tinychat dev community" },
+  );
+
+  // join it
+
+  await ta.chat.tinychat.graph.membership.create({ repo }, {
+    server: uri,
+    createdAt: new Date().toISOString(),
+  });
+
+  // add channels to the server
+  const channel = await ta.chat.tinychat.channel.create(
+    { repo },
+    { name: "general", server: uri },
+  );
+
+  // message the channel
+  const message = await ta.chat.tinychat.message.create(
+    { repo },
+    {
+      channel: channel.uri,
+      text: "hello world",
+      server: uri,
+      createdAt: new Date().toISOString(),
+      // @ts-ignore yolo
+    },
+  );
+
+  // reply to it
+  await ta.chat.tinychat.message.create(
+    { repo },
+    {
+      channel: channel.uri,
+      text: "nice post",
+      server: uri,
+      createdAt: new Date().toISOString(),
+      reply: {
+        root: { uri: message.uri, cid: message.cid },
+        parent: { uri: message.uri, cid: message.cid },
+      },
+      // @ts-ignore yolo
+    },
+  );
+});

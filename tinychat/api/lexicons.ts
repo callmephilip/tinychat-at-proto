@@ -26,38 +26,208 @@ export const schemaDict = {
       },
     },
   },
-  ChatTinychatGetServers: {
+  ChatTinychatChannel: {
     lexicon: 1,
-    id: "chat.tinychat.getServers",
+    id: "chat.tinychat.channel",
     defs: {
       main: {
-        type: "query",
-        description: "Get all tinychat servers.",
-        parameters: {
-          type: "params",
-          required: ["uris"],
+        type: "record",
+        description: "Chat channel that is part of chat server",
+        key: "any",
+        record: {
+          type: "object",
+          required: ["name", "server"],
           properties: {
-            uris: {
-              type: "array",
-              description: "List of post AT-URIs to return hydrated views for.",
-              items: {
-                type: "string",
-                format: "at-uri",
-              },
-              maxLength: 25,
+            name: {
+              type: "string",
+              description: "Channel name",
+              maxGraphemes: 64,
+              maxLength: 640,
+            },
+            server: {
+              type: "string",
+              format: "at-uri",
+              description:
+                "Reference (AT-URI) to the server record (chat.tinychat.server).",
             },
           },
         },
-        output: {
-          encoding: "application/json",
-          schema: {
-            type: "object",
-            required: ["message"],
-            properties: {
-              message: {
-                type: "string",
+      },
+    },
+  },
+  ChatTinychatGraphMembership: {
+    lexicon: 1,
+    id: "chat.tinychat.graph.membership",
+    defs: {
+      main: {
+        type: "record",
+        description: "Person's membership in a chat server",
+        key: "any",
+        record: {
+          type: "object",
+          required: ["server", "createdAt"],
+          properties: {
+            server: {
+              type: "string",
+              format: "at-uri",
+              description:
+                "Reference (AT-URI) to the server record (chat.tinychat.server).",
+            },
+            createdAt: {
+              type: "string",
+              format: "datetime",
+              description: "Client-declared timestamp when she joined.",
+            },
+          },
+        },
+      },
+    },
+  },
+  ChatTinychatMessage: {
+    lexicon: 1,
+    id: "chat.tinychat.message",
+    defs: {
+      main: {
+        type: "record",
+        description: "Chat message from a given channel",
+        key: "any",
+        record: {
+          type: "object",
+          required: ["text", "server", "channel", "createdAt"],
+          properties: {
+            text: {
+              type: "string",
+              maxLength: 3000,
+              maxGraphemes: 300,
+              description:
+                "The primary message content. May be an empty string, if there are embeds.",
+            },
+            server: {
+              type: "string",
+              format: "at-uri",
+              description:
+                "Reference (AT-URI) to the server record (chat.tinychat.server).",
+            },
+            channel: {
+              type: "string",
+              format: "at-uri",
+              description:
+                "Reference (AT-URI) to the channel record (chat.tinychat.channel).",
+            },
+            facets: {
+              type: "array",
+              description:
+                "Annotations of text (mentions, URLs, hashtags, etc)",
+              items: {
+                type: "ref",
+                ref: "lex:chat.tinychat.richtext.facet",
               },
             },
+            reply: {
+              type: "ref",
+              ref: "lex:chat.tinychat.message#replyRef",
+            },
+            createdAt: {
+              type: "string",
+              format: "datetime",
+              description:
+                "Client-declared timestamp when this post was originally created.",
+            },
+          },
+        },
+      },
+      replyRef: {
+        type: "object",
+        required: ["root", "parent"],
+        properties: {
+          root: {
+            type: "ref",
+            ref: "lex:com.atproto.repo.strongRef",
+          },
+          parent: {
+            type: "ref",
+            ref: "lex:com.atproto.repo.strongRef",
+          },
+        },
+      },
+    },
+  },
+  ChatTinychatRichtextFacet: {
+    lexicon: 1,
+    id: "chat.tinychat.richtext.facet",
+    defs: {
+      main: {
+        type: "object",
+        description: "Annotation of a sub-string within rich text.",
+        required: ["index", "features"],
+        properties: {
+          index: {
+            type: "ref",
+            ref: "lex:chat.tinychat.richtext.facet#byteSlice",
+          },
+          features: {
+            type: "array",
+            items: {
+              type: "union",
+              refs: [
+                "lex:chat.tinychat.richtext.facet#mention",
+                "lex:chat.tinychat.richtext.facet#link",
+                "lex:chat.tinychat.richtext.facet#tag",
+              ],
+            },
+          },
+        },
+      },
+      mention: {
+        type: "object",
+        description:
+          "Facet feature for mention of another account. The text is usually a handle, including a '@' prefix, but the facet reference is a DID.",
+        required: ["did"],
+        properties: {
+          did: {
+            type: "string",
+            format: "did",
+          },
+        },
+      },
+      link: {
+        type: "object",
+        description:
+          "Facet feature for a URL. The text URL may have been simplified or truncated, but the facet reference should be a complete URL.",
+        required: ["uri"],
+        properties: {
+          uri: {
+            type: "string",
+            format: "uri",
+          },
+        },
+      },
+      tag: {
+        type: "object",
+        description:
+          "Facet feature for a hashtag. The text usually includes a '#' prefix, but the facet reference should not (except in the case of 'double hash tags').",
+        required: ["tag"],
+        properties: {
+          tag: {
+            type: "string",
+            maxLength: 640,
+            maxGraphemes: 64,
+          },
+        },
+      },
+      byteSlice: {
+        type: "object",
+        description:
+          "Specifies the sub-string range a facet feature applies to. Start index is inclusive, end index is exclusive. Indices are zero-indexed, counting bytes of the UTF-8 encoded text. NOTE: some languages, like Javascript, use UTF-16 or Unicode codepoints for string slice indexing; in these languages, convert to byte arrays before working with facets.",
+        required: ["byteStart", "byteEnd"],
+        properties: {
+          byteStart: {
+            type: "integer",
+            minimum: 0,
+          },
+          byteEnd: {
+            type: "integer",
+            minimum: 0,
           },
         },
       },
@@ -4173,7 +4343,10 @@ export const schemas = Object.values(schemaDict);
 export const lexicons: Lexicons = new Lexicons(schemas);
 export const ids = {
   ChatTinychatActorProfile: "chat.tinychat.actor.profile",
-  ChatTinychatGetServers: "chat.tinychat.getServers",
+  ChatTinychatChannel: "chat.tinychat.channel",
+  ChatTinychatGraphMembership: "chat.tinychat.graph.membership",
+  ChatTinychatMessage: "chat.tinychat.message",
+  ChatTinychatRichtextFacet: "chat.tinychat.richtext.facet",
   ChatTinychatServer: "chat.tinychat.server",
   ComAtprotoAdminDefs: "com.atproto.admin.defs",
   ComAtprotoAdminDeleteAccount: "com.atproto.admin.deleteAccount",

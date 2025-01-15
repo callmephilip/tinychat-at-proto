@@ -30,8 +30,14 @@ export default class ChatServer {
 }
 import { Hono } from "hono";
 import { upgradeWebSocket } from "hono/deno";
-import { startJetstream } from "tinychat/firehose.ts";
-import { message } from "@tinychat/ui/message.tsx";
+import {
+  NewChannelRecord,
+  NewMembershipRecord,
+  NewMessageRecord,
+  NewServerRecord,
+  startJetstream,
+} from "tinychat/firehose.ts";
+// import { message } from "@tinychat/ui/message.tsx";
 import { createMiddleware } from "hono/factory";
 import { TinychatOAuthClient } from "tinychat/oauth.ts";
 import { TinychatAgent } from "tinychat/agent.ts";
@@ -149,10 +155,14 @@ export const runAppView = (): AppViewShutdown => {
   console.log("Service started");
 
   const shutdownJetstream = startJetstream({
-    onMessage: (msg) => {
-      console.log(">>>>>>> received message", msg);
-      chatServer.broadcast(message(msg).toString());
-    },
+    // onMessage: (msg) => {
+    //   console.log(">>>>>>> received message", msg);
+    //   chatServer.broadcast(message(msg).toString());
+    // },
+    onNewServer: (m: NewServerRecord) => console.log(m),
+    onNewChannel: (m: NewChannelRecord) => console.log(m),
+    onNewMembership: (m: NewMembershipRecord) => console.log(m),
+    onNewMessage: (m: NewMessageRecord) => console.log(m),
   });
 
   const server = Deno.serve(

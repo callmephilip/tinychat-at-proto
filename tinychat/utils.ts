@@ -24,3 +24,5 @@ export const unslopifyModules = async (dir: string) => {
     await processFile(dirEntry.path);
   }
 };
+export const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));

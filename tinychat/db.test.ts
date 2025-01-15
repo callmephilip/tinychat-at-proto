@@ -3,8 +3,44 @@
 import { Database } from "@db/sqlite";
 
 const tables: Record<string, string> = {
-  "foo": "CREATE TABLE foo (id INTEGER PRIMARY KEY, name TEXT)",
-  "bar": "CREATE TABLE bar (id INTEGER PRIMARY KEY, name TEXT)",
+  users: `
+    CREATE TABLE users (
+      did TEXT PRIMARY KEY,
+      handle TEXT NOT NULL,
+      display_name TEXT NOT NULL,
+      avatar TEXT,
+      description TEXT
+    )`,
+  servers: `
+    CREATE TABLE servers (
+      uri TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      creator TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (creator) REFERENCES users(did)
+    );`,
+  channels: `CREATE TABLE channels (
+  uri TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  server TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (server) REFERENCES servers(uri)
+);`,
+  memberships: `CREATE TABLE memberships (
+  uri TEXT PRIMARY KEY,
+  server TEXT NOT NULL,
+  created_at DATETIME NOT NULL,
+  FOREIGN KEY (server) REFERENCES servers(uri)
+);`,
+  messages: `CREATE TABLE messages (
+  uri TEXT PRIMARY KEY,
+  channel TEXT NOT NULL,
+  server TEXT NOT NULL,
+  text TEXT NOT NULL,
+  created_at DATETIME NOT NULL,
+  FOREIGN KEY (channel) REFERENCES channels(uri),
+  FOREIGN KEY (server) REFERENCES servers(uri)
+);`,
 };
 
 export const getDatabase = () => {
@@ -33,7 +69,10 @@ Deno.test("getDatabase", () => {
     .all<{
       name: string;
     }>();
-  assert(ts.length === 2);
-  assert(ts.some((t) => t.name === "foo"));
-  assert(ts.some((t) => t.name === "bar"));
+  assert(ts.length === 5);
+  assert(ts.some((t) => t.name === "users"));
+  assert(ts.some((t) => t.name === "servers"));
+  assert(ts.some((t) => t.name === "channels"));
+  assert(ts.some((t) => t.name === "memberships"));
+  assert(ts.some((t) => t.name === "messages"));
 });

@@ -9,3 +9,5 @@ TODO
 
 - look into ID resolver
   https://github.com/nperez0111/bookhive/blob/main/src/bsky/id-resolver.ts
+
+lsof -i tcp:8000 sudo kill -9 <PID>

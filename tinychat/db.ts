@@ -2,6 +2,7 @@
 
 import { Database } from "@db/sqlite";
 
+export type { Database } from "@db/sqlite";
 const tables: Record<string, string> = {
   users: `
     CREATE TABLE users (
@@ -26,11 +27,13 @@ const tables: Record<string, string> = {
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (server) REFERENCES servers(uri)
 );`,
-  memberships: `CREATE TABLE memberships (
-  uri TEXT PRIMARY KEY,
+  memberships: `CREATE TABLE server_memberships (
+  user TEXT NOT NULL,
   server TEXT NOT NULL,
-  created_at DATETIME NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user, server),
   FOREIGN KEY (server) REFERENCES servers(uri)
+  FOREIGN KEY (user) REFERENCES users(did)
 );`,
   messages: `CREATE TABLE messages (
   uri TEXT PRIMARY KEY,
@@ -43,17 +46,24 @@ const tables: Record<string, string> = {
 );`,
 };
 
-export const getDatabase = () => {
-  const db = new Database(Deno.env.get("DB_URL") || ":memory:");
-  const existingTables = db
+let __db: Database | null = null;
+
+export const getDatabase = (): Database => {
+  if (__db) {
+    return __db;
+  }
+
+  __db = new Database(Deno.env.get("DB_URL") || ":memory:");
+
+  const existingTables = __db
     .prepare("SELECT name FROM sqlite_master WHERE type='table'")
     .all<{ name: string }>();
 
   Object.keys(tables).forEach((table) => {
     if (!existingTables.some((t) => t.name === table)) {
-      db.prepare(tables[table]).run();
+      __db && __db.prepare(tables[table]).run();
     }
   });
 
-  return db;
+  return __db;
 };

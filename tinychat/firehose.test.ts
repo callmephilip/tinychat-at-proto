@@ -80,7 +80,7 @@ const jetstream = new Jetstream({
 type JetstreamCleanup = () => void;
 
 type JetstreamConfig = {
-  onNewServer: (m: NewServerRecord) => void;
+  onNewServer: (m: NewServerRecord) => Promise<void>;
   onNewChannel: (m: NewChannelRecord) => void;
   onNewMembership: (m: NewMembershipRecord) => void;
   onNewMessage: (m: NewMessageRecord) => void;
@@ -109,39 +109,39 @@ export function startJetstream(
   });
 
   // handle server updates
-  jetstream.on(ids.ChatTinychatServer, (event) => {
+  jetstream.on(ids.ChatTinychatServer, async (event) => {
     // we only do creates for now
     if (event.commit.operation !== "create") {
       return;
     }
-    onNewServer(newServerRecordSchema.parse(event));
+    await onNewServer(newServerRecordSchema.parse(event));
   });
 
   // handle membership updates
-  jetstream.on(ids.ChatTinychatGraphMembership, (event) => {
+  jetstream.on(ids.ChatTinychatGraphMembership, async (event) => {
     // we only do creates for now
     if (event.commit.operation !== "create") {
       return;
     }
-    onNewMembership(newMembershipRecordSchema.parse(event));
+    await onNewMembership(newMembershipRecordSchema.parse(event));
   });
 
   // handle channel updates
-  jetstream.on(ids.ChatTinychatChannel, (event) => {
+  jetstream.on(ids.ChatTinychatChannel, async (event) => {
     // we only do creates for now
     if (event.commit.operation !== "create") {
       return;
     }
-    onNewChannel(newChannelRecordSchema.parse(event));
+    await onNewChannel(newChannelRecordSchema.parse(event));
   });
 
   // handle new message
-  jetstream.on(ids.ChatTinychatMessage, (event) => {
+  jetstream.on(ids.ChatTinychatMessage, async (event) => {
     // we only do creates for now
     if (event.commit.operation !== "create") {
       return;
     }
-    onNewMessage(newMessageRecordSchema.parse(event));
+    await onNewMessage(newMessageRecordSchema.parse(event));
   });
 
   jetstream.start();
@@ -169,10 +169,19 @@ Deno.test("jetstream", async (t) => {
   const channels: NewChannelRecord[] = [];
   const messages: NewMessageRecord[] = [];
   const cleanup = startJetstream({
-    onNewServer: (m: NewServerRecord) => servers.push(m),
-    onNewChannel: (m: NewChannelRecord) => channels.push(m),
-    onNewMembership: (m: NewMembershipRecord) => memberships.push(m),
-    onNewMessage: (m: NewMessageRecord) => messages.push(m),
+    onNewServer: async (m: NewServerRecord) => {
+      servers.push(m);
+      await Promise.resolve();
+    },
+    onNewChannel: (m: NewChannelRecord) => {
+      channels.push(m);
+    },
+    onNewMembership: (m: NewMembershipRecord) => {
+      memberships.push(m);
+    },
+    onNewMessage: (m: NewMessageRecord) => {
+      messages.push(m);
+    },
   });
   const serverName = `test-${TID.nextStr()}`;
   const agent = await TinychatAgent.create();

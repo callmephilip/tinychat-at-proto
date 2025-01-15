@@ -1,0 +1,32 @@
+/* when loading messages, show a loading indicator */
+.messages-loading.htmx-request {
+  padding: 10px;
+  background-image: url("https://htmx.org/img/bars.svg");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* style links in messages */
+.chat-message a {
+  text-underline-offset: 4px;
+  text-decoration-line: underline;
+  font-weight: 500;
+}
+
+/* CKEditor */
+.ck-powered-by {
+  display: none;
+}
+
+.ck-editor__editable {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.ck-toolbar {
+  border: none !important;
+}
+
+.ck-sticky-panel__content {
+  border: none !important;
+}

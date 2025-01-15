@@ -1,16 +1,12 @@
+import { serveStatic } from "hono/deno";
 import { app } from "tinychat/client.ts";
+import { landing } from "@tinychat/ui/landing.tsx";
+import { chat } from "@tinychat/ui/chat.tsx";
 
-app.get("/", (c) => {
-  return c.html(
-    <>
-      <h1>Welcome to tinychat</h1>
-      <form method="post" action="/send-message">
-        <textarea name="message" placeholder="your message"></textarea>
-        <button type="submit">Send</button>
-      </form>
-    </>,
-  );
-});
+app.use("/static/*", serveStatic({ root: "./" }));
+
+app.get("/", (c) => c.html(landing()));
+app.get("/chat", (c) => c.html(chat()));
 
 app.get("/session", async (c) => {
   const ta = await c.var.ctx.agent();

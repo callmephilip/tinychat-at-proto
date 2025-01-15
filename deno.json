@@ -34,7 +34,8 @@
     "multiformats": "npm:multiformats@^13.3.1",
     "sqlite": "jsr:@db/sqlite@^0.12.0",
     "tinychat/": "./tinychat/",
-    "@tinychat/ui/": "./ui/"
+    "@tinychat/ui/": "./ui/",
+    "zod": "npm:zod@^3.24.1"
   },
   "compilerOptions": {
     "jsx": "react-jsx",

@@ -11,7 +11,10 @@ import * as ChatTinychatCoreMessage from "./types/chat/tinychat/core/message.ts"
 import * as ChatTinychatCoreServer from "./types/chat/tinychat/core/server.ts";
 import * as ChatTinychatRichtextFacet from "./types/chat/tinychat/richtext/facet.ts";
 import * as ChatTinychatServerDefs from "./types/chat/tinychat/server/defs.ts";
+import * as ChatTinychatServerGetChannels from "./types/chat/tinychat/server/getChannels.ts";
+import * as ChatTinychatServerGetMessages from "./types/chat/tinychat/server/getMessages.ts";
 import * as ChatTinychatServerGetServers from "./types/chat/tinychat/server/getServers.ts";
+import * as ChatTinychatServerSendMessage from "./types/chat/tinychat/server/sendMessage.ts";
 import * as ComAtprotoAdminDefs from "./types/com/atproto/admin/defs.ts";
 import * as ComAtprotoAdminDeleteAccount from "./types/com/atproto/admin/deleteAccount.ts";
 import * as ComAtprotoAdminDisableAccountInvites from "./types/com/atproto/admin/disableAccountInvites.ts";
@@ -101,7 +104,10 @@ export * as ChatTinychatCoreMessage from "./types/chat/tinychat/core/message.ts"
 export * as ChatTinychatCoreServer from "./types/chat/tinychat/core/server.ts";
 export * as ChatTinychatRichtextFacet from "./types/chat/tinychat/richtext/facet.ts";
 export * as ChatTinychatServerDefs from "./types/chat/tinychat/server/defs.ts";
+export * as ChatTinychatServerGetChannels from "./types/chat/tinychat/server/getChannels.ts";
+export * as ChatTinychatServerGetMessages from "./types/chat/tinychat/server/getMessages.ts";
 export * as ChatTinychatServerGetServers from "./types/chat/tinychat/server/getServers.ts";
+export * as ChatTinychatServerSendMessage from "./types/chat/tinychat/server/sendMessage.ts";
 export * as ComAtprotoAdminDefs from "./types/com/atproto/admin/defs.ts";
 export * as ComAtprotoAdminDeleteAccount from "./types/com/atproto/admin/deleteAccount.ts";
 export * as ComAtprotoAdminDisableAccountInvites from "./types/com/atproto/admin/disableAccountInvites.ts";
@@ -607,6 +613,30 @@ export class ChatTinychatServerNS {
     this._client = client;
   }
 
+  getChannels(
+    params?: ChatTinychatServerGetChannels.QueryParams,
+    opts?: ChatTinychatServerGetChannels.CallOptions,
+  ): Promise<ChatTinychatServerGetChannels.Response> {
+    return this._client.call(
+      "chat.tinychat.server.getChannels",
+      params,
+      undefined,
+      opts,
+    );
+  }
+
+  getMessages(
+    params?: ChatTinychatServerGetMessages.QueryParams,
+    opts?: ChatTinychatServerGetMessages.CallOptions,
+  ): Promise<ChatTinychatServerGetMessages.Response> {
+    return this._client.call(
+      "chat.tinychat.server.getMessages",
+      params,
+      undefined,
+      opts,
+    );
+  }
+
   getServers(
     params?: ChatTinychatServerGetServers.QueryParams,
     opts?: ChatTinychatServerGetServers.CallOptions,
@@ -615,6 +645,18 @@ export class ChatTinychatServerNS {
       "chat.tinychat.server.getServers",
       params,
       undefined,
+      opts,
+    );
+  }
+
+  sendMessage(
+    data?: ChatTinychatServerSendMessage.InputSchema,
+    opts?: ChatTinychatServerSendMessage.CallOptions,
+  ): Promise<ChatTinychatServerSendMessage.Response> {
+    return this._client.call(
+      "chat.tinychat.server.sendMessage",
+      opts?.qp,
+      data,
       opts,
     );
   }

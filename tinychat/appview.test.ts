@@ -41,6 +41,7 @@ import { TinychatOAuthClient } from "tinychat/oauth.ts";
 import { TinychatAgent } from "tinychat/agent.ts";
 import { getDatabase } from "tinychat/db.ts";
 import type { Database } from "tinychat/db.ts";
+import { ids } from "tinychat/api/lexicons.ts";
 
 export type AppContext = {
   agent: () => Promise<TinychatAgent | undefined>;
@@ -189,15 +190,23 @@ export const runAppView = (
       });
     },
     onNewChannel: (m: NewChannelRecord) => {
-      db.prepare(
-        `INSERT INTO channels (uri, name, server) VALUES (
+      try {
+        db.prepare(
+          `INSERT INTO channels (uri, name, server) VALUES (
           :uri, :name, :server
         ) ON CONFLICT(uri) DO NOTHING`,
-      ).run({
-        uri: m.uri,
-        name: m.commit.record.name,
-        server: m.commit.record.server,
-      });
+        ).run({
+          uri: m.uri,
+          name: m.commit.record.name,
+          server: m.commit.record.server,
+        });
+      } catch (e) {
+        console.error(
+          ">>>>>>>>>>>>>>>>> ERRR >>>>>>>>>>>>>>>>>Error adding channel",
+          e,
+        );
+        console.log("Adding channel", m);
+      }
     },
     onNewMembership: (m: NewMembershipRecord) => {
       // add server memberships record
@@ -218,14 +227,15 @@ export const runAppView = (
     },
     onNewMessage: (m: NewMessageRecord) => {
       db.prepare(
-        `INSERT INTO messages (uri, channel, server, text, created_at) VALUES (
-          :uri, :channel, :server, :text, :created_at
+        `INSERT INTO messages (uri, channel, server, text, sender, created_at) VALUES (
+          :uri, :channel, :server, :text, :sender, :created_at
         )`,
       ).run({
         uri: m.uri,
         channel: m.commit.record.channel,
         server: m.commit.record.server,
         text: m.commit.record.text,
+        sender: m.did,
         created_at: m.commit.record.createdAt,
       });
 
@@ -262,13 +272,52 @@ interface ServerData {
   name: string;
 }
 
-app.get("/xrpc/chat.tinychat.server.getServers", (c) => {
+const runServerQuery = ({
+  uris,
+  did,
+  db,
+}: {
+  db: Database;
+  uris: string[] | undefined;
+  did: string | undefined;
+}): ServerData[] => {
+  if (uris && uris.length > 0) {
+    return db
+      .prepare(
+        `SELECT * FROM servers WHERE uri IN (${
+          uris
+            .map((u) => `'${u}'`)
+            .join(", ")
+        })`,
+      )
+      .all<ServerData>();
+  } else if (did) {
+    return db.prepare(`SELECT * FROM servers WHERE creator = :did`).all<
+      ServerData
+    >({
+      did,
+    });
+  }
+
+  return db.prepare(`SELECT * FROM servers`).all<ServerData>();
+};
+
+app.get(`/xrpc/${ids.ChatTinychatServerGetServers}`, (c) => {
   const { db } = c.var.ctx;
 
   if (!db) {
     throw new HTTPException(500, { message: "DB not available" });
   }
-  const servers = db.prepare(`SELECT * FROM servers`).all<ServerData>();
+
+  const { did } = c.req.query();
+  const { uris } = c.req.queries();
+
+  console.log(">>>>>>>>>>>>>. getting servers for", uris, did);
+
+  const servers = runServerQuery({ db, uris, did });
+
+  console.log(">>>>>>>>>>>>>. servers", servers);
+
   const r = {
     servers: servers.map((s: ServerData) => ({
       uri: s.uri,
@@ -276,11 +325,90 @@ app.get("/xrpc/chat.tinychat.server.getServers", (c) => {
       name: s.name,
     })),
   };
-  console.log("getServers", r);
   return c.json(r);
 });
 
 "";
+interface ChannelData {
+  name: string;
+  uri: string;
+}
+
+app.get(`/xrpc/${ids.ChatTinychatServerGetChannels}`, (c) => {
+  const { db } = c.var.ctx;
+
+  if (!db) {
+    throw new HTTPException(500, { message: "DB not available" });
+  }
+
+  const { server } = c.req.query();
+
+  const channels = db.prepare(
+    `SELECT name, uri FROM channels WHERE server = :server`,
+  ).all<ChannelData>({
+    server,
+  });
+
+  return c.json({ channels });
+});
+
+"";
+interface Message {
+  uri: string;
+  text: string;
+  sender: string;
+  createdAt: string;
+}
+
+app.get(`/xrpc/${ids.ChatTinychatServerGetMessages}`, (c) => {
+  const { db } = c.var.ctx;
+
+  if (!db) {
+    throw new HTTPException(500, { message: "DB not available" });
+  }
+
+  const { channel } = c.req.query();
+
+  console.log("getMessages >>>>>>>>>>>>>> for channel >>>>>>>>>", channel);
+
+  const messages = db.prepare(
+    `SELECT uri, text, sender, created_at as createdAt FROM messages WHERE channel = :channel`,
+  ).all<Message>({
+    channel,
+  });
+
+  return c.json({ messages });
+});
+
+"";
+
+import { z } from "zod";
+
+app.post(`/xrpc/${ids.ChatTinychatServerSendMessage}`, async (c) => {
+  const agent = await c.var.ctx.agent();
+
+  if (!agent) {
+    throw new HTTPException(401, { message: "Agent not available" });
+  }
+
+  const { server, channel, text } = z.object({
+    channel: z.string(),
+    server: z.string(),
+    text: z.string(),
+  }).parse(await c.req.json());
+
+  await agent.chat.tinychat.core.message.create(
+    { repo: agent.agent.assertDid },
+    {
+      server,
+      channel,
+      text,
+      createdAt: new Date().toISOString(),
+    },
+  );
+
+  return c.json({});
+});
 
 /** ----------------tests ---------------- **/
 
@@ -294,47 +422,142 @@ Deno.test("/", async () => {
   // @ts-ignore cannot figure out type of test client
   const res = await testClient(app)["/"].$get();
   assertEquals(res.status, 302);
-  // assertEquals(await res.json(), { status: "ok" });
 });
-
-// Deno.test("/xrpc/chat.tinychat.getServers", async () => {
-//   // @ts-ignore cannot figure out type of test client
-//   const res = await testClient(app)["/xrpc/chat.tinychat.getServers"].$get();
-//   assertEquals(res.status, 200);
-// });
 
 Deno.test("test xrpc", async (t) => {
   const agent = await TinychatAgent.create();
+  const repo = agent.agent.assertDid;
   const serverName = `test-${TID.nextStr()}`;
-  const db = getDatabase();
+  const anotherServerName = `test-${TID.nextStr()}`;
+  const db = getDatabase({ reset: true });
   const shutdown = runAppView({ database: db });
 
   // populate db, shall we?
-  await agent.chat.tinychat.core.server.create(
+  const chatServer = await agent.chat.tinychat.core.server.create(
     {
-      repo: agent.agent.assertDid,
+      repo,
     },
     {
       name: serverName,
     },
   );
+  const anotherChatServer = await agent.chat.tinychat.core.server.create(
+    {
+      repo,
+    },
+    {
+      name: anotherServerName,
+    },
+  );
 
-  await sleep(2000);
+  await sleep(4000);
+
+  const channel = await agent.chat.tinychat.core.channel.create({ repo }, {
+    server: chatServer.uri,
+    name: "general",
+  });
+
+  await agent.chat.tinychat.core.message.create(
+    { repo },
+    {
+      server: chatServer.uri,
+      channel: channel.uri,
+      text: "hello",
+      createdAt: new Date().toISOString(),
+    },
+  );
+
+  await sleep(1000);
 
   await t.step("list available servers", async () => {
-    const { data } = await agent.chat.tinychat.server.getServers({
-      uris: [],
-    });
+    const { data } = await agent.chat.tinychat.server.getServers();
     assert(data.servers.length > 0, "got a least 1 server");
     assert(data.servers.find((s) => s.name === serverName), "found our server");
+    assert(
+      data.servers.find((s) => s.name === anotherServerName),
+      "found another server",
+    );
+  });
+
+  await t.step("list servers by uris", async () => {
+    const { data } = await agent.chat.tinychat.server.getServers({
+      uris: [chatServer.uri],
+    });
+    assert(data.servers.length === 1, "got 1 server for specific URI");
+    assert(data.servers[0].name === serverName, "found our server");
+
+    const { data: data1 } = await agent.chat.tinychat.server.getServers({
+      uris: [chatServer.uri, anotherChatServer.uri],
+    });
+    assert(data1.servers.length === 2, "got 2 servers for specific URIs");
+    assert(
+      data1.servers.find((s: ServerData) => s.name === serverName),
+      "found our server",
+    );
+    assert(
+      data1.servers.find((s: ServerData) => s.name === anotherServerName),
+      "found another server",
+    );
+  });
+
+  await t.step("list servers by did", async () => {
+    const { data } = await agent.chat.tinychat.server.getServers({
+      did: repo,
+    });
+    assert(data.servers.length === 2, "got 2 server for the user");
+    assert(
+      data.servers.find((s: ServerData) => s.name === serverName),
+      "found our server",
+    );
+    assert(
+      data.servers.find((s: ServerData) => s.name === anotherServerName),
+      "found another server",
+    );
+  });
+
+  await t.step("list available channels", async () => {
+    const { data } = await agent.chat.tinychat.server.getChannels({
+      server: chatServer.uri,
+    });
+    assert(data.channels.length > 0, "got a least 1 channel");
+    assert(
+      data.channels.find((c) => c.name === "general"),
+      "found our channel",
+    );
+  });
+
+  await t.step("list messages", async () => {
+    const { data } = await agent.chat.tinychat.server.getMessages({
+      channel: channel.uri,
+    });
+    assert(data.messages.length > 0, "got a least 1 message");
+    assert(data.messages.find((m) => m.text === "hello"), "found our message");
+  });
+
+  // send another message
+
+  await t.step("send message via xrpc", async () => {
+    await agent.chat.tinychat.server.sendMessage({
+      server: chatServer.uri,
+      channel: channel.uri,
+      text: "message via xrpc",
+    });
+    await sleep(2000);
+
+    const messages = db.prepare("SELECT * FROM messages").all<Message>();
+    assert(messages.length === 2, "expecting 2 messages");
+    assert(
+      messages.find((m) => m.text === "message via xrpc"),
+      "found our new xrpc message",
+    );
   });
 
   await shutdown();
   await sleep(2000);
 });
 
-Deno.test.ignore("test app view", async (t) => {
-  const db = getDatabase();
+Deno.test("test app view", async (t) => {
+  const db = getDatabase({ reset: true });
   const shutdown = runAppView({ database: db });
   const serverName = `test-${TID.nextStr()}`;
   const agent = await TinychatAgent.create();
@@ -398,7 +621,7 @@ Deno.test.ignore("test app view", async (t) => {
     );
     channel = c.uri;
 
-    await sleep(1000);
+    await sleep(2000);
 
     assert(
       db.prepare(`SELECT * FROM channels`).all().length === 1,
@@ -418,7 +641,7 @@ Deno.test.ignore("test app view", async (t) => {
       },
     );
 
-    await sleep(1000);
+    await sleep(2000);
 
     assert(
       db.prepare(`SELECT * FROM messages`).all().length === 1,
@@ -432,9 +655,12 @@ Deno.test.ignore("test app view", async (t) => {
       { name: serverName + "2" },
     );
 
-    await sleep(1000);
+    await sleep(2000);
 
-    assert(db.prepare(`SELECT * FROM servers`).all().length === 2);
+    assert(
+      db.prepare(`SELECT * FROM servers`).all().length === 2,
+      "expecting 2 servers",
+    );
   });
 
   await t.step("confirm messages get received over ws", () => {

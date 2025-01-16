@@ -278,6 +278,117 @@ export const schemaDict = {
           },
         },
       },
+      channelView: {
+        type: "object",
+        description: "Chat server channel instance view",
+        required: ["uri", "name"],
+        properties: {
+          uri: {
+            type: "string",
+            format: "at-uri",
+          },
+          name: {
+            type: "string",
+          },
+        },
+      },
+      messageView: {
+        type: "object",
+        description: "Message view",
+        required: ["uri", "sender", "text", "createdAt"],
+        properties: {
+          uri: {
+            type: "string",
+            format: "at-uri",
+          },
+          sender: {
+            type: "string",
+            format: "did",
+          },
+          text: {
+            type: "string",
+          },
+          createdAt: {
+            type: "string",
+            format: "datetime",
+          },
+        },
+      },
+    },
+  },
+  ChatTinychatServerGetChannels: {
+    lexicon: 1,
+    id: "chat.tinychat.server.getChannels",
+    defs: {
+      main: {
+        type: "query",
+        description:
+          "Gets a list of channels for a given chat server instance.",
+        parameters: {
+          type: "params",
+          required: ["server"],
+          properties: {
+            server: {
+              type: "string",
+              format: "at-uri",
+              description: "Server AT-URI to return channels for.",
+            },
+          },
+        },
+        output: {
+          encoding: "application/json",
+          schema: {
+            type: "object",
+            required: ["channels"],
+            properties: {
+              channels: {
+                type: "array",
+                items: {
+                  type: "ref",
+                  ref: "lex:chat.tinychat.server.defs#channelView",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  ChatTinychatServerGetMessages: {
+    lexicon: 1,
+    id: "chat.tinychat.server.getMessages",
+    defs: {
+      main: {
+        type: "query",
+        description: "Gets a list of of messages for a given channel.",
+        parameters: {
+          type: "params",
+          required: ["channel"],
+          properties: {
+            channel: {
+              type: "string",
+              format: "at-uri",
+              description: "Channel AT-URI to return messages for.",
+            },
+          },
+        },
+        output: {
+          encoding: "application/json",
+          schema: {
+            type: "object",
+            required: ["messages"],
+            properties: {
+              messages: {
+                type: "array",
+                items: {
+                  type: "ref",
+                  ref: "lex:chat.tinychat.server.defs#messageView",
+                },
+              },
+            },
+          },
+        },
+      },
     },
   },
   ChatTinychatServerGetServers: {
@@ -289,7 +400,6 @@ export const schemaDict = {
         description: "Gets a list of chat server instances.",
         parameters: {
           type: "params",
-          required: ["uris"],
           properties: {
             uris: {
               type: "array",
@@ -300,6 +410,12 @@ export const schemaDict = {
                 format: "at-uri",
               },
               maxLength: 25,
+            },
+            did: {
+              type: "string",
+              format: "did",
+              description:
+                "Did of the person to get servers for. This returns servers person is member of.",
             },
           },
         },
@@ -317,6 +433,47 @@ export const schemaDict = {
                 },
               },
             },
+          },
+        },
+      },
+    },
+  },
+  ChatTinychatServerSendMessage: {
+    lexicon: 1,
+    id: "chat.tinychat.server.sendMessage",
+    defs: {
+      main: {
+        type: "procedure",
+        description:
+          "Sends message to specified channel on the specified chat server.",
+        input: {
+          encoding: "application/json",
+          schema: {
+            type: "object",
+            required: ["channel", "server", "text"],
+            properties: {
+              channel: {
+                type: "string",
+                format: "at-uri",
+                description: "Channel AT-URI to return messages for.",
+              },
+              server: {
+                type: "string",
+                format: "at-uri",
+                description: "Server AT-URI to return messages for.",
+              },
+              text: {
+                type: "string",
+                description: "Message content.",
+              },
+            },
+          },
+        },
+        output: {
+          encoding: "application/json",
+          schema: {
+            type: "object",
+            properties: {},
           },
         },
       },
@@ -4415,7 +4572,10 @@ export const ids = {
   ChatTinychatCoreServer: "chat.tinychat.core.server",
   ChatTinychatRichtextFacet: "chat.tinychat.richtext.facet",
   ChatTinychatServerDefs: "chat.tinychat.server.defs",
+  ChatTinychatServerGetChannels: "chat.tinychat.server.getChannels",
+  ChatTinychatServerGetMessages: "chat.tinychat.server.getMessages",
   ChatTinychatServerGetServers: "chat.tinychat.server.getServers",
+  ChatTinychatServerSendMessage: "chat.tinychat.server.sendMessage",
   ComAtprotoAdminDefs: "com.atproto.admin.defs",
   ComAtprotoAdminDeleteAccount: "com.atproto.admin.deleteAccount",
   ComAtprotoAdminDisableAccountInvites:

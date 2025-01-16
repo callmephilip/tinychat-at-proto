@@ -25,3 +25,43 @@ export function isServerView(v: unknown): v is ServerView {
 export function validateServerView(v: unknown): ValidationResult {
   return lexicons.validate("chat.tinychat.server.defs#serverView", v);
 }
+
+/** Chat server channel instance view */
+export interface ChannelView {
+  uri: string;
+  name: string;
+  [k: string]: unknown;
+}
+
+export function isChannelView(v: unknown): v is ChannelView {
+  return (
+    isObj(v) &&
+    hasProp(v, "$type") &&
+    v.$type === "chat.tinychat.server.defs#channelView"
+  );
+}
+
+export function validateChannelView(v: unknown): ValidationResult {
+  return lexicons.validate("chat.tinychat.server.defs#channelView", v);
+}
+
+/** Message view */
+export interface MessageView {
+  uri: string;
+  sender: string;
+  text: string;
+  createdAt: string;
+  [k: string]: unknown;
+}
+
+export function isMessageView(v: unknown): v is MessageView {
+  return (
+    isObj(v) &&
+    hasProp(v, "$type") &&
+    v.$type === "chat.tinychat.server.defs#messageView"
+  );
+}
+
+export function validateMessageView(v: unknown): ValidationResult {
+  return lexicons.validate("chat.tinychat.server.defs#messageView", v);
+}

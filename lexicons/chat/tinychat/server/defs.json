@@ -11,6 +11,26 @@
         "name": { "type": "string" },
         "creator": { "type": "string", "format": "did" }
       }
+    },
+    "channelView": {
+      "type": "object",
+      "description": "Chat server channel instance view",
+      "required": ["uri", "name"],
+      "properties": {
+        "uri": { "type": "string", "format": "at-uri" },
+        "name": { "type": "string" }
+      }
+    },
+    "messageView": {
+      "type": "object",
+      "description": "Message view",
+      "required": ["uri", "sender", "text", "createdAt"],
+      "properties": {
+        "uri": { "type": "string", "format": "at-uri" },
+        "sender": { "type": "string", "format": "did" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string", "format": "datetime" }
+      }
     }
   }
 }

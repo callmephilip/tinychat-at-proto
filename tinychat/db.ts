@@ -40,16 +40,20 @@ const tables: Record<string, string> = {
   channel TEXT NOT NULL,
   server TEXT NOT NULL,
   text TEXT NOT NULL,
+  sender TEXT NOT NULL,
   created_at DATETIME NOT NULL,
   FOREIGN KEY (channel) REFERENCES channels(uri),
   FOREIGN KEY (server) REFERENCES servers(uri)
+  FOREIGN KEY (sender) REFERENCES users(did)
 );`,
 };
 
 let __db: Database | null = null;
 
-export const getDatabase = (): Database => {
-  if (__db) {
+export const getDatabase = (
+  { reset }: { reset: boolean } = { reset: false },
+): Database => {
+  if (__db && !reset) {
     return __db;
   }
 

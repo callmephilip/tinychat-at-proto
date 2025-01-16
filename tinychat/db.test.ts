@@ -40,16 +40,20 @@ const tables: Record<string, string> = {
   channel TEXT NOT NULL,
   server TEXT NOT NULL,
   text TEXT NOT NULL,
+  sender TEXT NOT NULL,
   created_at DATETIME NOT NULL,
   FOREIGN KEY (channel) REFERENCES channels(uri),
   FOREIGN KEY (server) REFERENCES servers(uri)
+  FOREIGN KEY (sender) REFERENCES users(did)
 );`,
 };
 
 let __db: Database | null = null;
 
-export const getDatabase = (): Database => {
-  if (__db) {
+export const getDatabase = (
+  { reset }: { reset: boolean } = { reset: false },
+): Database => {
+  if (__db && !reset) {
     return __db;
   }
 
@@ -121,6 +125,20 @@ Deno.test("test keys for memberships", () => {
     server: "1",
     user: "1",
   });
+
+  // try select in
+
+  assert(
+    db
+      .prepare(
+        `SELECT * FROM server_memberships WHERE user IN (${
+          ["1"]
+            .map((id) => `'${id}'`)
+            .join(",")
+        })`,
+      )
+      .all().length === 1,
+  );
 
   // try inserting duplicate membership
 

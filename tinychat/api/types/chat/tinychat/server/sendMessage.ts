@@ -6,25 +6,28 @@ import { BlobRef, ValidationResult } from "@atproto/lexicon";
 import { hasProp, isObj } from "../../../../util.ts";
 import { lexicons } from "../../../../lexicons.ts";
 import { CID } from "multiformats/cid";
-import * as ChatTinychatServerDefs from "./defs.ts";
 
-export interface QueryParams {
-  /** List of server AT-URIs to return hydrated views for. */
-  uris?: string[];
-  /** Did of the person to get servers for. This returns servers person is member of. */
-  did?: string;
+export interface QueryParams {}
+
+export interface InputSchema {
+  /** Channel AT-URI to return messages for. */
+  channel: string;
+  /** Server AT-URI to return messages for. */
+  server: string;
+  /** Message content. */
+  text: string;
+  [k: string]: unknown;
 }
 
-export type InputSchema = undefined;
-
 export interface OutputSchema {
-  servers: ChatTinychatServerDefs.ServerView[];
   [k: string]: unknown;
 }
 
 export interface CallOptions {
   signal?: AbortSignal;
   headers?: HeadersMap;
+  qp?: QueryParams;
+  encoding?: "application/json";
 }
 
 export interface Response {

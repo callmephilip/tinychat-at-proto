@@ -41,6 +41,7 @@ import { TinychatOAuthClient } from "tinychat/oauth.ts";
 import { TinychatAgent } from "tinychat/agent.ts";
 import { getDatabase } from "tinychat/db.ts";
 import type { Database } from "tinychat/db.ts";
+import { ids } from "tinychat/api/lexicons.ts";
 
 export type AppContext = {
   agent: () => Promise<TinychatAgent | undefined>;
@@ -189,15 +190,23 @@ export const runAppView = (
       });
     },
     onNewChannel: (m: NewChannelRecord) => {
-      db.prepare(
-        `INSERT INTO channels (uri, name, server) VALUES (
+      try {
+        db.prepare(
+          `INSERT INTO channels (uri, name, server) VALUES (
           :uri, :name, :server
         ) ON CONFLICT(uri) DO NOTHING`,
-      ).run({
-        uri: m.uri,
-        name: m.commit.record.name,
-        server: m.commit.record.server,
-      });
+        ).run({
+          uri: m.uri,
+          name: m.commit.record.name,
+          server: m.commit.record.server,
+        });
+      } catch (e) {
+        console.error(
+          ">>>>>>>>>>>>>>>>> ERRR >>>>>>>>>>>>>>>>>Error adding channel",
+          e,
+        );
+        console.log("Adding channel", m);
+      }
     },
     onNewMembership: (m: NewMembershipRecord) => {
       // add server memberships record
@@ -218,14 +227,15 @@ export const runAppView = (
     },
     onNewMessage: (m: NewMessageRecord) => {
       db.prepare(
-        `INSERT INTO messages (uri, channel, server, text, created_at) VALUES (
-          :uri, :channel, :server, :text, :created_at
+        `INSERT INTO messages (uri, channel, server, text, sender, created_at) VALUES (
+          :uri, :channel, :server, :text, :sender, :created_at
         )`,
       ).run({
         uri: m.uri,
         channel: m.commit.record.channel,
         server: m.commit.record.server,
         text: m.commit.record.text,
+        sender: m.did,
         created_at: m.commit.record.createdAt,
       });
 
@@ -262,13 +272,52 @@ interface ServerData {
   name: string;
 }
 
-app.get("/xrpc/chat.tinychat.server.getServers", (c) => {
+const runServerQuery = ({
+  uris,
+  did,
+  db,
+}: {
+  db: Database;
+  uris: string[] | undefined;
+  did: string | undefined;
+}): ServerData[] => {
+  if (uris && uris.length > 0) {
+    return db
+      .prepare(
+        `SELECT * FROM servers WHERE uri IN (${
+          uris
+            .map((u) => `'${u}'`)
+            .join(", ")
+        })`,
+      )
+      .all<ServerData>();
+  } else if (did) {
+    return db.prepare(`SELECT * FROM servers WHERE creator = :did`).all<
+      ServerData
+    >({
+      did,
+    });
+  }
+
+  return db.prepare(`SELECT * FROM servers`).all<ServerData>();
+};
+
+app.get(`/xrpc/${ids.ChatTinychatServerGetServers}`, (c) => {
   const { db } = c.var.ctx;
 
   if (!db) {
     throw new HTTPException(500, { message: "DB not available" });
   }
-  const servers = db.prepare(`SELECT * FROM servers`).all<ServerData>();
+
+  const { did } = c.req.query();
+  const { uris } = c.req.queries();
+
+  console.log(">>>>>>>>>>>>>. getting servers for", uris, did);
+
+  const servers = runServerQuery({ db, uris, did });
+
+  console.log(">>>>>>>>>>>>>. servers", servers);
+
   const r = {
     servers: servers.map((s: ServerData) => ({
       uri: s.uri,
@@ -276,8 +325,87 @@ app.get("/xrpc/chat.tinychat.server.getServers", (c) => {
       name: s.name,
     })),
   };
-  console.log("getServers", r);
   return c.json(r);
 });
 
 "";
+interface ChannelData {
+  name: string;
+  uri: string;
+}
+
+app.get(`/xrpc/${ids.ChatTinychatServerGetChannels}`, (c) => {
+  const { db } = c.var.ctx;
+
+  if (!db) {
+    throw new HTTPException(500, { message: "DB not available" });
+  }
+
+  const { server } = c.req.query();
+
+  const channels = db.prepare(
+    `SELECT name, uri FROM channels WHERE server = :server`,
+  ).all<ChannelData>({
+    server,
+  });
+
+  return c.json({ channels });
+});
+
+"";
+interface Message {
+  uri: string;
+  text: string;
+  sender: string;
+  createdAt: string;
+}
+
+app.get(`/xrpc/${ids.ChatTinychatServerGetMessages}`, (c) => {
+  const { db } = c.var.ctx;
+
+  if (!db) {
+    throw new HTTPException(500, { message: "DB not available" });
+  }
+
+  const { channel } = c.req.query();
+
+  console.log("getMessages >>>>>>>>>>>>>> for channel >>>>>>>>>", channel);
+
+  const messages = db.prepare(
+    `SELECT uri, text, sender, created_at as createdAt FROM messages WHERE channel = :channel`,
+  ).all<Message>({
+    channel,
+  });
+
+  return c.json({ messages });
+});
+
+"";
+
+import { z } from "zod";
+
+app.post(`/xrpc/${ids.ChatTinychatServerSendMessage}`, async (c) => {
+  const agent = await c.var.ctx.agent();
+
+  if (!agent) {
+    throw new HTTPException(401, { message: "Agent not available" });
+  }
+
+  const { server, channel, text } = z.object({
+    channel: z.string(),
+    server: z.string(),
+    text: z.string(),
+  }).parse(await c.req.json());
+
+  await agent.chat.tinychat.core.message.create(
+    { repo: agent.agent.assertDid },
+    {
+      server,
+      channel,
+      text,
+      createdAt: new Date().toISOString(),
+    },
+  );
+
+  return c.json({});
+});

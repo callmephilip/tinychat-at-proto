@@ -9,7 +9,7 @@ env:
   PRODUCTION_DOT_ENV: ${{ secrets.PRODUCTION_DOT_ENV }}
   SERVER_APP_DIRECTORY: ${{ secrets.SERVER_APP_DIRECTORY }}
   DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-  HOST_URL: tinychat.chat
+  HOST_URL: appview.tinychat.chat
 jobs:
   build-and-push:
     name: Build image and push to DO registry

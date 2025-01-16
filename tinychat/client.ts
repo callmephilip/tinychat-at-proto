@@ -70,16 +70,17 @@ app.use(
 );
 
 "";
-import { Landing } from "@tinychat/ui/landing.tsx";
+// import { Landing } from "@tinychat/ui/landing.tsx";
 
-app.get("/", async (c) => {
-  const agent = await c.var.ctx.agent();
+app.get("/", (c) => {
+  // const agent = await c.var.ctx.agent();
 
-  if (agent) {
-    console.log(await agent.chat.tinychat.server.getServers({ uris: [] }));
-  }
+  // if (agent) {
+  //   console.log(await agent.chat.tinychat.server.getServers({ uris: [] }));
+  // }
 
-  return c.html(Landing());
+  // return c.html(Landing());
+  return c.redirect("https://github.com/callmephilip/tinychat");
 });
 
 "";

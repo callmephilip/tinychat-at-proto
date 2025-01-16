@@ -1,6 +1,6 @@
 import { Page } from "@tinychat/ui/page.tsx";
 
-export const landing = () => (
+export const Landing = () => (
   <Page>
     <div className="container relative flex-col h-full items-center justify-center md:grid lg:max-w-none lg:grid-cols-1 lg:px-0">
       <div className="absolute left-4 top-4 z-20 flex items-center text-lg font-medium">

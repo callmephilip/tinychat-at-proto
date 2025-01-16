@@ -35,6 +35,8 @@ export type HonoServer = Hono<{
 export const app = new Hono();
 
 app.use("*", logger());
+
+"";
 app.use(
   "*",
   createMiddleware(async (c, next) => {
@@ -70,6 +72,13 @@ app.use(
     await next();
   }),
 );
+
+"";
+import { Landing } from "@tinychat/ui/landing.tsx";
+
+app.get("/", (c) => c.html(Landing()));
+
+"";
 app.get("/health", (c) => c.json({ status: "ok", t: c.var.ctx.session!.t }));
 app.get("/set-session-t", async (c) => {
   if (!c.var.ctx.session) {
@@ -80,6 +89,10 @@ app.get("/set-session-t", async (c) => {
   await c.var.ctx.session!.save();
   return c.json({ status: "ok", t: c.var.ctx.session!.t });
 });
+
+"";
+import { LoginForm } from "@tinychat/ui/login.tsx";
+
 app.get(
   "/client-metadata.json",
   (c) => c.json(c.var.ctx.oauthClient?.clientMetadata),
@@ -100,6 +113,8 @@ app.get("/oauth/callback", async (c) => {
   await session?.save();
   return c.redirect("/");
 });
+
+app.get("/login", (c) => c.html(LoginForm()));
 
 app.post("/login", async (c) => {
   try {
@@ -125,3 +140,10 @@ app.post("/login", async (c) => {
     return c.json({ error: "Internal server error" }, 500);
   }
 });
+
+"";
+import { Chat } from "@tinychat/ui/chat.tsx";
+
+app.get("/chat", (c) => c.html(Chat({ user: undefined })));
+
+"";

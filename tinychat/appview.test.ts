@@ -33,6 +33,7 @@ export default class ChatServer {
 // moved to static
 const htmxWS = ``;
 import { Hono } from "hono";
+// import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import { upgradeWebSocket } from "hono/deno";
 import { Message } from "@tinychat/ui/message.tsx";
@@ -103,6 +104,7 @@ app.get("/__test", (c) =>
 </body>
 </html>`));
 
+// app.use("/ws", cors());
 app.get(
   "/ws",
   upgradeWebSocket(() => {

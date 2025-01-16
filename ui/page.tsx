@@ -5,8 +5,12 @@ interface PageProps {
   children: any;
 }
 
+// wss://appview.tinychat.chat/ws
+
 export const Page = ({ hideOverflow, htmx, children }: PageProps) => {
-  const htmxAttrs = htmx ? { "hx-ext": "ws", "ws-connect": "/ws" } : {};
+  const htmxAttrs = htmx
+    ? { "hx-ext": "ws", "ws-connect": "wss://appview.tinychat.chat/ws" }
+    : {};
   const bodyClasses = `font-sans antialiased h-dvh flex bg-background ${
     hideOverflow ? "overflow-hidden" : ""
   }`;

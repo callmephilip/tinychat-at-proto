@@ -27,7 +27,7 @@ const tables: Record<string, string> = {
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (server) REFERENCES servers(uri)
 );`,
-  memberships: `CREATE TABLE server_memberships (
+  server_memberships: `CREATE TABLE server_memberships (
   user TEXT NOT NULL,
   server TEXT NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

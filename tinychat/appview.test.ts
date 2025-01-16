@@ -123,7 +123,6 @@ import {
   NewServerRecord,
   startJetstream,
 } from "tinychat/firehose.ts";
-import { getProfile } from "tinychat/bsky.ts";
 
 type AppViewShutdown = () => Promise<void>;
 type AppViewContext = {
@@ -152,26 +151,8 @@ export const runAppView = (
   console.log("Service started");
 
   const shutdownJetstream = startJetstream({
-    onNewServer: async (m: NewServerRecord) => {
-      const creator = m.did;
-      const profile = await getProfile(creator);
-      db.prepare(
-        `
-        INSERT INTO users (did, handle, display_name, avatar, description) VALUES (
-          :did, :handle, :displayName, :avatar, :description
-        ) ON CONFLICT(did) DO UPDATE SET
-          handle = COALESCE(:handle, handle),
-          display_name = COALESCE(:displayName, display_name),
-          avatar = COALESCE(:avatar, avatar),
-          description = COALESCE(:description, description
-        )`,
-      ).run({
-        did: m.did,
-        handle: profile.handle,
-        displayName: profile.displayName,
-        avatar: profile.avatar,
-        description: profile.description,
-      });
+    db,
+    onNewServer: (m: NewServerRecord) => {
       db.prepare(`
       INSERT INTO servers (uri, name, creator) VALUES (
         :uri, :name, :creator

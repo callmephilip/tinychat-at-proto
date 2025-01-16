@@ -35,7 +35,7 @@ const htmxWS = ``;
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { upgradeWebSocket } from "hono/deno";
-// import { message } from "@tinychat/ui/message.tsx";
+import { Message } from "@tinychat/ui/message.tsx";
 import { createMiddleware } from "hono/factory";
 import { TinychatOAuthClient } from "tinychat/oauth.ts";
 import { TinychatAgent } from "tinychat/agent.ts";
@@ -220,10 +220,13 @@ export const runAppView = (
         created_at: m.commit.record.createdAt,
       });
 
+      // grab new message + sender info and broadcast to chat
+      const ms = pullMessagesFromDb({ db, uri: m.uri });
+
       chatServer.broadcast(
         JSON.stringify({
-          data: m.commit.record.text,
-          html: `<div class="message">${m.commit.record.text}</div>`,
+          data: ms[0],
+          html: Message({ message: ms[0] }).toString(),
         }),
       );
     },
@@ -336,29 +339,71 @@ app.get(`/xrpc/${ids.ChatTinychatServerGetChannels}`, (c) => {
 "";
 interface Message {
   uri: string;
+  channel: string;
+  server: string;
   text: string;
-  sender: string;
   createdAt: string;
+  // user
+  did: string;
+  handle: string;
+  displayName: string;
+  avatar?: string;
+  description?: string;
 }
+
+const pullMessagesFromDb = (
+  { db, channel, uri }: { db: Database; channel?: string; uri?: string },
+) => {
+  if (!channel && !uri) {
+    return [];
+  }
+  return (
+    channel
+      ? db
+        .prepare(
+          `
+      SELECT uri, channel, server, text, sender, created_at as createdAt,
+        users.did, users.handle, users.display_name as displayName, users.avatar, users.description
+      FROM messages
+      INNER JOIN users ON messages.sender = users.did
+      WHERE channel = :channel
+    `,
+        )
+        .all<Message>({ channel })
+      : db
+        .prepare(
+          `
+      SELECT uri, channel, server, text, sender, created_at as createdAt,
+        users.did, users.handle, users.display_name as displayName, users.avatar, users.description
+      FROM messages
+      INNER JOIN users ON messages.sender = users.did
+      WHERE uri = :uri
+    `,
+        )
+        .all<Message>({ uri })
+  ).map((m: Message) => ({
+    uri: m.uri,
+    channel: m.channel,
+    server: m.server,
+    text: m.text,
+    createdAt: m.createdAt,
+    sender: {
+      did: m.did,
+      handle: m.handle,
+      displayName: m.displayName,
+      avatar: m.avatar,
+      description: m.description,
+    },
+  }));
+};
 
 app.get(`/xrpc/${ids.ChatTinychatServerGetMessages}`, (c) => {
   const { db } = c.var.ctx;
-
   if (!db) {
     throw new HTTPException(500, { message: "DB not available" });
   }
-
   const { channel } = c.req.query();
-
-  console.log("getMessages >>>>>>>>>>>>>> for channel >>>>>>>>>", channel);
-
-  const messages = db.prepare(
-    `SELECT uri, text, sender, created_at as createdAt FROM messages WHERE channel = :channel`,
-  ).all<Message>({
-    channel,
-  });
-
-  return c.json({ messages });
+  return c.json({ messages: pullMessagesFromDb({ db, channel }) });
 });
 
 "";

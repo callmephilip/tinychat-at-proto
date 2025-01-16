@@ -1,6 +1,8 @@
-export const message = (message: string) => (
+import { MessageView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
+
+export const Message = ({ message }: { message: MessageView }) => (
   <div id="messages" hx-swap-oob="beforeend">
-    {message}
+    {message.text}
   </div>
 );
 

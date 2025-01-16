@@ -292,6 +292,35 @@ export const schemaDict = {
           },
         },
       },
+      actorView: {
+        type: "object",
+        description: "Chat server actor instance view",
+        required: ["did", "handle", "displayName"],
+        properties: {
+          did: {
+            type: "string",
+            format: "did",
+          },
+          handle: {
+            type: "string",
+            format: "handle",
+          },
+          displayName: {
+            type: "string",
+            maxGraphemes: 64,
+            maxLength: 640,
+          },
+          description: {
+            type: "string",
+            maxGraphemes: 256,
+            maxLength: 2560,
+          },
+          avatar: {
+            type: "string",
+            format: "uri",
+          },
+        },
+      },
       messageView: {
         type: "object",
         description: "Message view",
@@ -301,9 +330,17 @@ export const schemaDict = {
             type: "string",
             format: "at-uri",
           },
-          sender: {
+          server: {
             type: "string",
-            format: "did",
+            format: "at-uri",
+          },
+          channel: {
+            type: "string",
+            format: "at-uri",
+          },
+          sender: {
+            type: "ref",
+            ref: "lex:chat.tinychat.server.defs#actorView",
           },
           text: {
             type: "string",

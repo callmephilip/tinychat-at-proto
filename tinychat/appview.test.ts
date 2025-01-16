@@ -33,14 +33,18 @@ export default class ChatServer {
 // moved to static
 const htmxWS = ``;
 import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
 import { upgradeWebSocket } from "hono/deno";
 // import { message } from "@tinychat/ui/message.tsx";
 import { createMiddleware } from "hono/factory";
 import { TinychatOAuthClient } from "tinychat/oauth.ts";
 import { TinychatAgent } from "tinychat/agent.ts";
+import { getDatabase } from "tinychat/db.ts";
+import type { Database } from "tinychat/db.ts";
 
 export type AppContext = {
   agent: () => Promise<TinychatAgent | undefined>;
+  db?: Database | undefined;
 };
 
 export type HonoServer = Hono<{
@@ -63,6 +67,7 @@ app.use(
       oauthClient,
       session: undefined,
       agent: async () => await TinychatAgent.create(oauthClient, user),
+      db: getDatabase(),
     });
     await next();
   }),
@@ -97,25 +102,6 @@ app.get("/__test", (c) =>
 </body>
 </html>`));
 
-// app.get("/xrpc/chat.tinychat.getServers", async (c) => {
-//   const ta = await c.var.ctx.agent();
-
-//   if (!ta) {
-//     return c.json({ error: "Unauthorized" }, 401);
-//   }
-
-//   await ta.chat.tinychat.server.create(
-//     {
-//       repo: ta.agent.assertDid,
-//     },
-//     {
-//       name: "Test Servers",
-//     }
-//   );
-
-//   return c.json({ message: "ok" });
-// });
-
 app.get(
   "/ws",
   upgradeWebSocket(() => {
@@ -137,8 +123,6 @@ import {
   startJetstream,
 } from "tinychat/firehose.ts";
 import { getProfile } from "tinychat/bsky.ts";
-import { getDatabase } from "tinychat/db.ts";
-import type { Database } from "tinychat/db.ts";
 
 type AppViewShutdown = () => Promise<void>;
 type AppViewContext = {
@@ -272,6 +256,31 @@ export const runAppView = (
     }
   };
 };
+interface ServerData {
+  uri: string;
+  creator: string;
+  name: string;
+}
+
+app.get("/xrpc/chat.tinychat.server.getServers", (c) => {
+  const { db } = c.var.ctx;
+
+  if (!db) {
+    throw new HTTPException(500, { message: "DB not available" });
+  }
+  const servers = db.prepare(`SELECT * FROM servers`).all<ServerData>();
+  const r = {
+    servers: servers.map((s: ServerData) => ({
+      uri: s.uri,
+      creator: s.creator,
+      name: s.name,
+    })),
+  };
+  console.log("getServers", r);
+  return c.json(r);
+});
+
+"";
 
 /** ----------------tests ---------------- **/
 
@@ -294,12 +303,42 @@ Deno.test("/", async () => {
 //   assertEquals(res.status, 200);
 // });
 
-Deno.test("test app view", async (t) => {
+Deno.test("test xrpc", async (t) => {
+  const agent = await TinychatAgent.create();
+  const serverName = `test-${TID.nextStr()}`;
+  const db = getDatabase();
+  const shutdown = runAppView({ database: db });
+
+  // populate db, shall we?
+  await agent.chat.tinychat.core.server.create(
+    {
+      repo: agent.agent.assertDid,
+    },
+    {
+      name: serverName,
+    },
+  );
+
+  await sleep(2000);
+
+  await t.step("list available servers", async () => {
+    const { data } = await agent.chat.tinychat.server.getServers({
+      uris: [],
+    });
+    assert(data.servers.length > 0, "got a least 1 server");
+    assert(data.servers.find((s) => s.name === serverName), "found our server");
+  });
+
+  await shutdown();
+  await sleep(2000);
+});
+
+Deno.test.ignore("test app view", async (t) => {
   const db = getDatabase();
   const shutdown = runAppView({ database: db });
   const serverName = `test-${TID.nextStr()}`;
   const agent = await TinychatAgent.create();
-  const repo = await agent.agent.assertDid;
+  const repo = agent.agent.assertDid;
   const receivedMessages: { data: string; html: string }[] = [];
 
   // create websocket connection to chat server

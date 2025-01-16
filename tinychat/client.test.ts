@@ -7,6 +7,7 @@ import { getIronSession, IronSession } from "iron-session";
 import { createMiddleware } from "hono/factory";
 import { TinychatOAuthClient } from "tinychat/oauth.ts";
 import { TinychatAgent } from "tinychat/agent.ts";
+import type { Database } from "tinychat/db.ts";
 
 export type Session = {
   did: string | undefined;
@@ -18,6 +19,7 @@ export type AppContext = {
   session: IronSession<Session> | undefined;
   oauthClient: TinychatOAuthClient | undefined;
   agent: () => Promise<TinychatAgent | undefined>;
+  db?: Database | undefined;
 };
 
 declare module "hono" {
@@ -60,13 +62,7 @@ app.use(
     c.set("ctx", {
       session,
       oauthClient,
-      agent: async () => {
-        if (!session.did) {
-          c.redirect("/login");
-          return;
-        }
-        return await TinychatAgent.create(oauthClient, session.did);
-      },
+      agent: async () => await TinychatAgent.create(oauthClient, session.did),
     });
 
     await next();
@@ -76,7 +72,15 @@ app.use(
 "";
 import { Landing } from "@tinychat/ui/landing.tsx";
 
-app.get("/", (c) => c.html(Landing()));
+app.get("/", async (c) => {
+  const agent = await c.var.ctx.agent();
+
+  if (agent) {
+    console.log(await agent.chat.tinychat.server.getServers({ uris: [] }));
+  }
+
+  return c.html(Landing());
+});
 
 "";
 app.get("/health", (c) => c.json({ status: "ok", t: c.var.ctx.session!.t }));

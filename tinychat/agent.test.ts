@@ -104,33 +104,37 @@ export class TinychatAgent {
       Deno.env.get("TEST_AGENT_PASSWORD"),
     ];
 
+    let fallbackAgent: Agent | AtpAgent;
+
     if (!service || !identifier || !password) {
-      throw new Error(
-        "Missing TEST_AGENT_SERVICE, TEST_AGENT_IDENTIFIER, or TEST_AGENT_PASSWORD",
-      );
+      fallbackAgent = new Agent(`${Deno.env.get("APPVIEW_URL")!}/xrpc`);
+    } else {
+      fallbackAgent = new AtpAgent({ service });
+      // @ts-ignore it's safe, babe
+      await fallbackAgent.login({ identifier, password });
     }
 
-    const testAgent = new AtpAgent({ service });
-    await testAgent.login({ identifier, password });
-
     return new TinychatAgent(
-      testAgent,
+      fallbackAgent,
       new ChatNS(
         new XrpcClient(
           {
             service: Deno.env.get("APPVIEW_URL")!,
-            fetch: (input, init) => {
-              // @ts-ignore input should be URL
-              const u = routeRequest(input, testAgent.dispatchUrl.toString());
+            fetch: async (input, init) => {
+              const u = routeRequest(
+                // @ts-ignore input should be URL
+                input,
+                await getPdsForDid(fallbackAgent.assertDid),
+              );
 
               if (u.toString() !== input.toString()) {
                 // @ts-ignore init can be undefined
-                return testAgent.fetchHandler(u, init);
+                return fallbackAgent.fetchHandler(u, init);
               }
 
               return globalThis.fetch(
                 // @ts-ignore input should be URL
-                routeRequest(input, testAgent.dispatchUrl.toString()),
+                routeRequest(input, fallbackAgent.dispatchUrl.toString()),
                 init,
               );
             },
@@ -138,7 +142,7 @@ export class TinychatAgent {
           lexicons,
         ),
       ),
-      new ComAtprotoNS(testAgent),
+      new ComAtprotoNS(fallbackAgent),
     );
   }
 }

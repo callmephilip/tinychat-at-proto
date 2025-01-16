@@ -263,15 +263,18 @@ export const schemaDict = {
       serverView: {
         type: "object",
         description: "Chat server instance view",
-        required: ["uri", "creator"],
+        required: ["uri", "name", "creator"],
         properties: {
           uri: {
             type: "string",
             format: "at-uri",
           },
+          name: {
+            type: "string",
+          },
           creator: {
             type: "string",
-            format: "at-uri",
+            format: "did",
           },
         },
       },

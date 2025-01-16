@@ -9,6 +9,7 @@ import { CID } from "multiformats/cid";
 /** Chat server instance view */
 export interface ServerView {
   uri: string;
+  name: string;
   creator: string;
   [k: string]: unknown;
 }

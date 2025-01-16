@@ -195,7 +195,7 @@ Deno.test("make sure test client works", async () => {
     ).data.records.length === 1,
   );
 
-  const { records } = await ta.chat.tinychat.server.list({
+  const { records } = await ta.chat.tinychat.core.server.list({
     repo: ta.agent.assertDid,
   });
   assert(records.length !== undefined);

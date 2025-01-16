@@ -26,9 +26,9 @@ export const schemaDict = {
       },
     },
   },
-  ChatTinychatChannel: {
+  ChatTinychatCoreChannel: {
     lexicon: 1,
-    id: "chat.tinychat.channel",
+    id: "chat.tinychat.core.channel",
     defs: {
       main: {
         type: "record",
@@ -55,9 +55,9 @@ export const schemaDict = {
       },
     },
   },
-  ChatTinychatGraphMembership: {
+  ChatTinychatCoreMembership: {
     lexicon: 1,
-    id: "chat.tinychat.graph.membership",
+    id: "chat.tinychat.core.membership",
     defs: {
       main: {
         type: "record",
@@ -71,7 +71,7 @@ export const schemaDict = {
               type: "string",
               format: "at-uri",
               description:
-                "Reference (AT-URI) to the server record (chat.tinychat.server).",
+                "Reference (AT-URI) to the server record (chat.tinychat.core.server).",
             },
             createdAt: {
               type: "string",
@@ -83,9 +83,9 @@ export const schemaDict = {
       },
     },
   },
-  ChatTinychatMessage: {
+  ChatTinychatCoreMessage: {
     lexicon: 1,
-    id: "chat.tinychat.message",
+    id: "chat.tinychat.core.message",
     defs: {
       main: {
         type: "record",
@@ -106,13 +106,13 @@ export const schemaDict = {
               type: "string",
               format: "at-uri",
               description:
-                "Reference (AT-URI) to the server record (chat.tinychat.server).",
+                "Reference (AT-URI) to the server record (chat.tinychat.core.server).",
             },
             channel: {
               type: "string",
               format: "at-uri",
               description:
-                "Reference (AT-URI) to the channel record (chat.tinychat.channel).",
+                "Reference (AT-URI) to the channel record (chat.tinychat.core.channel).",
             },
             facets: {
               type: "array",
@@ -125,7 +125,7 @@ export const schemaDict = {
             },
             reply: {
               type: "ref",
-              ref: "lex:chat.tinychat.message#replyRef",
+              ref: "lex:chat.tinychat.core.message#replyRef",
             },
             createdAt: {
               type: "string",
@@ -147,6 +147,29 @@ export const schemaDict = {
           parent: {
             type: "ref",
             ref: "lex:com.atproto.repo.strongRef",
+          },
+        },
+      },
+    },
+  },
+  ChatTinychatCoreServer: {
+    lexicon: 1,
+    id: "chat.tinychat.core.server",
+    defs: {
+      main: {
+        type: "record",
+        description: "Chat server instance",
+        key: "any",
+        record: {
+          type: "object",
+          required: ["name"],
+          properties: {
+            name: {
+              type: "string",
+              description: "Server name",
+              maxGraphemes: 64,
+              maxLength: 640,
+            },
           },
         },
       },
@@ -233,23 +256,63 @@ export const schemaDict = {
       },
     },
   },
-  ChatTinychatServer: {
+  ChatTinychatServerDefs: {
     lexicon: 1,
-    id: "chat.tinychat.server",
+    id: "chat.tinychat.server.defs",
+    defs: {
+      serverView: {
+        type: "object",
+        description: "Chat server instance view",
+        required: ["uri", "creator"],
+        properties: {
+          uri: {
+            type: "string",
+            format: "at-uri",
+          },
+          creator: {
+            type: "string",
+            format: "at-uri",
+          },
+        },
+      },
+    },
+  },
+  ChatTinychatServerGetServers: {
+    lexicon: 1,
+    id: "chat.tinychat.server.getServers",
     defs: {
       main: {
-        type: "record",
-        description: "Chat server instance",
-        key: "any",
-        record: {
-          type: "object",
-          required: ["name"],
+        type: "query",
+        description: "Gets a list of chat server instances.",
+        parameters: {
+          type: "params",
+          required: ["uris"],
           properties: {
-            name: {
-              type: "string",
-              description: "Server name",
-              maxGraphemes: 64,
-              maxLength: 640,
+            uris: {
+              type: "array",
+              description:
+                "List of server AT-URIs to return hydrated views for.",
+              items: {
+                type: "string",
+                format: "at-uri",
+              },
+              maxLength: 25,
+            },
+          },
+        },
+        output: {
+          encoding: "application/json",
+          schema: {
+            type: "object",
+            required: ["servers"],
+            properties: {
+              servers: {
+                type: "array",
+                items: {
+                  type: "ref",
+                  ref: "lex:chat.tinychat.server.defs#serverView",
+                },
+              },
             },
           },
         },
@@ -4343,11 +4406,13 @@ export const schemas = Object.values(schemaDict);
 export const lexicons: Lexicons = new Lexicons(schemas);
 export const ids = {
   ChatTinychatActorProfile: "chat.tinychat.actor.profile",
-  ChatTinychatChannel: "chat.tinychat.channel",
-  ChatTinychatGraphMembership: "chat.tinychat.graph.membership",
-  ChatTinychatMessage: "chat.tinychat.message",
+  ChatTinychatCoreChannel: "chat.tinychat.core.channel",
+  ChatTinychatCoreMembership: "chat.tinychat.core.membership",
+  ChatTinychatCoreMessage: "chat.tinychat.core.message",
+  ChatTinychatCoreServer: "chat.tinychat.core.server",
   ChatTinychatRichtextFacet: "chat.tinychat.richtext.facet",
-  ChatTinychatServer: "chat.tinychat.server",
+  ChatTinychatServerDefs: "chat.tinychat.server.defs",
+  ChatTinychatServerGetServers: "chat.tinychat.server.getServers",
   ComAtprotoAdminDefs: "com.atproto.admin.defs",
   ComAtprotoAdminDeleteAccount: "com.atproto.admin.deleteAccount",
   ComAtprotoAdminDisableAccountInvites:

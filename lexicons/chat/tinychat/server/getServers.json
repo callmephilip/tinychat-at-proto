@@ -1,0 +1,38 @@
+{
+  "lexicon": 1,
+  "id": "chat.tinychat.server.getServers",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "Gets a list of chat server instances.",
+      "parameters": {
+        "type": "params",
+        "required": ["uris"],
+        "properties": {
+          "uris": {
+            "type": "array",
+            "description": "List of server AT-URIs to return hydrated views for.",
+            "items": { "type": "string", "format": "at-uri" },
+            "maxLength": 25
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["servers"],
+          "properties": {
+            "servers": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "chat.tinychat.server.defs#serverView"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

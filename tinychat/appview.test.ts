@@ -315,7 +315,7 @@ Deno.test("test app view", async (t) => {
   let channel = "no channel yet";
 
   await t.step("create server", async () => {
-    const chatServer = await agent.chat.tinychat.server.create(
+    const chatServer = await agent.chat.tinychat.core.server.create(
       {
         repo,
       },
@@ -325,7 +325,7 @@ Deno.test("test app view", async (t) => {
     );
     server = chatServer.uri;
 
-    await agent.chat.tinychat.graph.membership.create(
+    await agent.chat.tinychat.core.membership.create(
       { repo },
       {
         server,
@@ -350,7 +350,7 @@ Deno.test("test app view", async (t) => {
   });
 
   await t.step("create channel", async () => {
-    const c = await agent.chat.tinychat.channel.create(
+    const c = await agent.chat.tinychat.core.channel.create(
       { repo },
       {
         server,
@@ -369,7 +369,7 @@ Deno.test("test app view", async (t) => {
 
   await t.step("send message", async () => {
     // add message
-    await agent.chat.tinychat.message.create(
+    await agent.chat.tinychat.core.message.create(
       { repo },
       {
         server,
@@ -388,7 +388,7 @@ Deno.test("test app view", async (t) => {
   });
 
   await t.step("create another server", async () => {
-    await agent.chat.tinychat.server.create(
+    await agent.chat.tinychat.core.server.create(
       { repo },
       { name: serverName + "2" },
     );

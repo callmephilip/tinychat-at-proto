@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "chat.tinychat.graph.membership",
+  "id": "chat.tinychat.core.membership",
   "defs": {
     "main": {
       "type": "record",
@@ -13,7 +13,7 @@
           "server": {
             "type": "string",
             "format": "at-uri",
-            "description": "Reference (AT-URI) to the server record (chat.tinychat.server)."
+            "description": "Reference (AT-URI) to the server record (chat.tinychat.core.server)."
           },
           "createdAt": {
             "type": "string",

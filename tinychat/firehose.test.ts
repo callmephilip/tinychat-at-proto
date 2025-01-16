@@ -35,14 +35,14 @@ const makeBaseSchema = <T extends z.ZodTypeAny>(recordSchema: T) =>
 
 const newServerRecordSchema = makeBaseSchema(
   z.object({
-    $type: z.literal(ids.ChatTinychatServer),
+    $type: z.literal(ids.ChatTinychatCoreServer),
     name: z.string(),
   }),
 );
 
 const newChannelRecordSchema = makeBaseSchema(
   z.object({
-    $type: z.literal(ids.ChatTinychatChannel),
+    $type: z.literal(ids.ChatTinychatCoreChannel),
     name: z.string(),
     server: z.string(),
   }),
@@ -50,7 +50,7 @@ const newChannelRecordSchema = makeBaseSchema(
 
 const newMembershipRecordSchema = makeBaseSchema(
   z.object({
-    $type: z.literal(ids.ChatTinychatGraphMembership),
+    $type: z.literal(ids.ChatTinychatCoreMembership),
     createdAt: z.string(),
     server: z.string(),
   }),
@@ -58,7 +58,7 @@ const newMembershipRecordSchema = makeBaseSchema(
 
 const newMessageRecordSchema = makeBaseSchema(
   z.object({
-    $type: z.literal(ids.ChatTinychatMessage),
+    $type: z.literal(ids.ChatTinychatCoreMessage),
     channel: z.string(),
     createdAt: z.string(),
     server: z.string(),
@@ -109,7 +109,7 @@ export function startJetstream(
   });
 
   // handle server updates
-  jetstream.on(ids.ChatTinychatServer, async (event) => {
+  jetstream.on(ids.ChatTinychatCoreServer, async (event) => {
     // we only do creates for now
     if (event.commit.operation !== "create") {
       return;
@@ -118,7 +118,7 @@ export function startJetstream(
   });
 
   // handle membership updates
-  jetstream.on(ids.ChatTinychatGraphMembership, async (event) => {
+  jetstream.on(ids.ChatTinychatCoreMembership, async (event) => {
     // we only do creates for now
     if (event.commit.operation !== "create") {
       return;
@@ -127,7 +127,7 @@ export function startJetstream(
   });
 
   // handle channel updates
-  jetstream.on(ids.ChatTinychatChannel, async (event) => {
+  jetstream.on(ids.ChatTinychatCoreChannel, async (event) => {
     // we only do creates for now
     if (event.commit.operation !== "create") {
       return;
@@ -136,7 +136,7 @@ export function startJetstream(
   });
 
   // handle new message
-  jetstream.on(ids.ChatTinychatMessage, async (event) => {
+  jetstream.on(ids.ChatTinychatCoreMessage, async (event) => {
     // we only do creates for now
     if (event.commit.operation !== "create") {
       return;
@@ -189,21 +189,21 @@ Deno.test("jetstream", async (t) => {
 
   // let's create a new chat server and watch it propagate through the system
 
-  const chatServer = await agent.chat.tinychat.server.create({ repo }, {
+  const chatServer = await agent.chat.tinychat.core.server.create({ repo }, {
     name: serverName,
   });
-  await agent.chat.tinychat.graph.membership.create({ repo }, {
+  await agent.chat.tinychat.core.membership.create({ repo }, {
     server: chatServer.uri,
     createdAt: new Date().toISOString(),
   });
-  const chatChannel = await agent.chat.tinychat.channel.create(
+  const chatChannel = await agent.chat.tinychat.core.channel.create(
     { repo },
     {
       name: "test channel",
       server: chatServer.uri,
     },
   );
-  await agent.chat.tinychat.message.create({
+  await agent.chat.tinychat.core.message.create({
     repo,
   }, {
     channel: chatChannel.uri,

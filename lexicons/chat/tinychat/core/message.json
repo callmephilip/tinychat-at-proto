@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "chat.tinychat.message",
+  "id": "chat.tinychat.core.message",
   "defs": {
     "main": {
       "type": "record",
@@ -19,12 +19,12 @@
           "server": {
             "type": "string",
             "format": "at-uri",
-            "description": "Reference (AT-URI) to the server record (chat.tinychat.server)."
+            "description": "Reference (AT-URI) to the server record (chat.tinychat.core.server)."
           },
           "channel": {
             "type": "string",
             "format": "at-uri",
-            "description": "Reference (AT-URI) to the channel record (chat.tinychat.channel)."
+            "description": "Reference (AT-URI) to the channel record (chat.tinychat.core.channel)."
           },
           "facets": {
             "type": "array",

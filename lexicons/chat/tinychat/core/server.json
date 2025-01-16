@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "chat.tinychat.server",
+  "id": "chat.tinychat.core.server",
   "defs": {
     "main": {
       "type": "record",

@@ -5,11 +5,13 @@ import { FetchHandler, FetchHandlerOptions, XrpcClient } from "@atproto/xrpc";
 import { schemas } from "./lexicons.ts";
 import { CID } from "multiformats/cid";
 import * as ChatTinychatActorProfile from "./types/chat/tinychat/actor/profile.ts";
-import * as ChatTinychatChannel from "./types/chat/tinychat/channel.ts";
-import * as ChatTinychatGraphMembership from "./types/chat/tinychat/graph/membership.ts";
-import * as ChatTinychatMessage from "./types/chat/tinychat/message.ts";
+import * as ChatTinychatCoreChannel from "./types/chat/tinychat/core/channel.ts";
+import * as ChatTinychatCoreMembership from "./types/chat/tinychat/core/membership.ts";
+import * as ChatTinychatCoreMessage from "./types/chat/tinychat/core/message.ts";
+import * as ChatTinychatCoreServer from "./types/chat/tinychat/core/server.ts";
 import * as ChatTinychatRichtextFacet from "./types/chat/tinychat/richtext/facet.ts";
-import * as ChatTinychatServer from "./types/chat/tinychat/server.ts";
+import * as ChatTinychatServerDefs from "./types/chat/tinychat/server/defs.ts";
+import * as ChatTinychatServerGetServers from "./types/chat/tinychat/server/getServers.ts";
 import * as ComAtprotoAdminDefs from "./types/com/atproto/admin/defs.ts";
 import * as ComAtprotoAdminDeleteAccount from "./types/com/atproto/admin/deleteAccount.ts";
 import * as ComAtprotoAdminDisableAccountInvites from "./types/com/atproto/admin/disableAccountInvites.ts";
@@ -93,11 +95,13 @@ import * as ComAtprotoTempFetchLabels from "./types/com/atproto/temp/fetchLabels
 import * as ComAtprotoTempRequestPhoneVerification from "./types/com/atproto/temp/requestPhoneVerification.ts";
 
 export * as ChatTinychatActorProfile from "./types/chat/tinychat/actor/profile.ts";
-export * as ChatTinychatChannel from "./types/chat/tinychat/channel.ts";
-export * as ChatTinychatGraphMembership from "./types/chat/tinychat/graph/membership.ts";
-export * as ChatTinychatMessage from "./types/chat/tinychat/message.ts";
+export * as ChatTinychatCoreChannel from "./types/chat/tinychat/core/channel.ts";
+export * as ChatTinychatCoreMembership from "./types/chat/tinychat/core/membership.ts";
+export * as ChatTinychatCoreMessage from "./types/chat/tinychat/core/message.ts";
+export * as ChatTinychatCoreServer from "./types/chat/tinychat/core/server.ts";
 export * as ChatTinychatRichtextFacet from "./types/chat/tinychat/richtext/facet.ts";
-export * as ChatTinychatServer from "./types/chat/tinychat/server.ts";
+export * as ChatTinychatServerDefs from "./types/chat/tinychat/server/defs.ts";
+export * as ChatTinychatServerGetServers from "./types/chat/tinychat/server/getServers.ts";
 export * as ComAtprotoAdminDefs from "./types/com/atproto/admin/defs.ts";
 export * as ComAtprotoAdminDeleteAccount from "./types/com/atproto/admin/deleteAccount.ts";
 export * as ComAtprotoAdminDisableAccountInvites from "./types/com/atproto/admin/disableAccountInvites.ts";
@@ -218,21 +222,17 @@ export class ChatNS {
 
 export class ChatTinychatNS {
   _client: XrpcClient;
-  channel: ChannelRecord;
-  message: MessageRecord;
-  server: ServerRecord;
   actor: ChatTinychatActorNS;
-  graph: ChatTinychatGraphNS;
+  core: ChatTinychatCoreNS;
   richtext: ChatTinychatRichtextNS;
+  server: ChatTinychatServerNS;
 
   constructor(client: XrpcClient) {
     this._client = client;
     this.actor = new ChatTinychatActorNS(client);
-    this.graph = new ChatTinychatGraphNS(client);
+    this.core = new ChatTinychatCoreNS(client);
     this.richtext = new ChatTinychatRichtextNS(client);
-    this.channel = new ChannelRecord(client);
-    this.message = new MessageRecord(client);
-    this.server = new ServerRecord(client);
+    this.server = new ChatTinychatServerNS(client);
   }
 }
 
@@ -316,86 +316,19 @@ export class ProfileRecord {
   }
 }
 
-export class ChatTinychatGraphNS {
+export class ChatTinychatCoreNS {
   _client: XrpcClient;
+  channel: ChannelRecord;
   membership: MembershipRecord;
+  message: MessageRecord;
+  server: ServerRecord;
 
   constructor(client: XrpcClient) {
     this._client = client;
+    this.channel = new ChannelRecord(client);
     this.membership = new MembershipRecord(client);
-  }
-}
-
-export class MembershipRecord {
-  _client: XrpcClient;
-
-  constructor(client: XrpcClient) {
-    this._client = client;
-  }
-
-  async list(
-    params: Omit<ComAtprotoRepoListRecords.QueryParams, "collection">,
-  ): Promise<{
-    cursor?: string;
-    records: { uri: string; value: ChatTinychatGraphMembership.Record }[];
-  }> {
-    const res = await this._client.call("com.atproto.repo.listRecords", {
-      collection: "chat.tinychat.graph.membership",
-      ...params,
-    });
-    return res.data;
-  }
-
-  async get(
-    params: Omit<ComAtprotoRepoGetRecord.QueryParams, "collection">,
-  ): Promise<{
-    uri: string;
-    cid: string;
-    value: ChatTinychatGraphMembership.Record;
-  }> {
-    const res = await this._client.call("com.atproto.repo.getRecord", {
-      collection: "chat.tinychat.graph.membership",
-      ...params,
-    });
-    return res.data;
-  }
-
-  async create(
-    params: Omit<
-      ComAtprotoRepoCreateRecord.InputSchema,
-      "collection" | "record"
-    >,
-    record: ChatTinychatGraphMembership.Record,
-    headers?: Record<string, string>,
-  ): Promise<{ uri: string; cid: string }> {
-    record.$type = "chat.tinychat.graph.membership";
-    const res = await this._client.call(
-      "com.atproto.repo.createRecord",
-      undefined,
-      { collection: "chat.tinychat.graph.membership", ...params, record },
-      { encoding: "application/json", headers },
-    );
-    return res.data;
-  }
-
-  async delete(
-    params: Omit<ComAtprotoRepoDeleteRecord.InputSchema, "collection">,
-    headers?: Record<string, string>,
-  ): Promise<void> {
-    await this._client.call(
-      "com.atproto.repo.deleteRecord",
-      undefined,
-      { collection: "chat.tinychat.graph.membership", ...params },
-      { headers },
-    );
-  }
-}
-
-export class ChatTinychatRichtextNS {
-  _client: XrpcClient;
-
-  constructor(client: XrpcClient) {
-    this._client = client;
+    this.message = new MessageRecord(client);
+    this.server = new ServerRecord(client);
   }
 }
 
@@ -410,10 +343,10 @@ export class ChannelRecord {
     params: Omit<ComAtprotoRepoListRecords.QueryParams, "collection">,
   ): Promise<{
     cursor?: string;
-    records: { uri: string; value: ChatTinychatChannel.Record }[];
+    records: { uri: string; value: ChatTinychatCoreChannel.Record }[];
   }> {
     const res = await this._client.call("com.atproto.repo.listRecords", {
-      collection: "chat.tinychat.channel",
+      collection: "chat.tinychat.core.channel",
       ...params,
     });
     return res.data;
@@ -421,9 +354,13 @@ export class ChannelRecord {
 
   async get(
     params: Omit<ComAtprotoRepoGetRecord.QueryParams, "collection">,
-  ): Promise<{ uri: string; cid: string; value: ChatTinychatChannel.Record }> {
+  ): Promise<{
+    uri: string;
+    cid: string;
+    value: ChatTinychatCoreChannel.Record;
+  }> {
     const res = await this._client.call("com.atproto.repo.getRecord", {
-      collection: "chat.tinychat.channel",
+      collection: "chat.tinychat.core.channel",
       ...params,
     });
     return res.data;
@@ -434,14 +371,14 @@ export class ChannelRecord {
       ComAtprotoRepoCreateRecord.InputSchema,
       "collection" | "record"
     >,
-    record: ChatTinychatChannel.Record,
+    record: ChatTinychatCoreChannel.Record,
     headers?: Record<string, string>,
   ): Promise<{ uri: string; cid: string }> {
-    record.$type = "chat.tinychat.channel";
+    record.$type = "chat.tinychat.core.channel";
     const res = await this._client.call(
       "com.atproto.repo.createRecord",
       undefined,
-      { collection: "chat.tinychat.channel", ...params, record },
+      { collection: "chat.tinychat.core.channel", ...params, record },
       { encoding: "application/json", headers },
     );
     return res.data;
@@ -454,7 +391,72 @@ export class ChannelRecord {
     await this._client.call(
       "com.atproto.repo.deleteRecord",
       undefined,
-      { collection: "chat.tinychat.channel", ...params },
+      { collection: "chat.tinychat.core.channel", ...params },
+      { headers },
+    );
+  }
+}
+
+export class MembershipRecord {
+  _client: XrpcClient;
+
+  constructor(client: XrpcClient) {
+    this._client = client;
+  }
+
+  async list(
+    params: Omit<ComAtprotoRepoListRecords.QueryParams, "collection">,
+  ): Promise<{
+    cursor?: string;
+    records: { uri: string; value: ChatTinychatCoreMembership.Record }[];
+  }> {
+    const res = await this._client.call("com.atproto.repo.listRecords", {
+      collection: "chat.tinychat.core.membership",
+      ...params,
+    });
+    return res.data;
+  }
+
+  async get(
+    params: Omit<ComAtprotoRepoGetRecord.QueryParams, "collection">,
+  ): Promise<{
+    uri: string;
+    cid: string;
+    value: ChatTinychatCoreMembership.Record;
+  }> {
+    const res = await this._client.call("com.atproto.repo.getRecord", {
+      collection: "chat.tinychat.core.membership",
+      ...params,
+    });
+    return res.data;
+  }
+
+  async create(
+    params: Omit<
+      ComAtprotoRepoCreateRecord.InputSchema,
+      "collection" | "record"
+    >,
+    record: ChatTinychatCoreMembership.Record,
+    headers?: Record<string, string>,
+  ): Promise<{ uri: string; cid: string }> {
+    record.$type = "chat.tinychat.core.membership";
+    const res = await this._client.call(
+      "com.atproto.repo.createRecord",
+      undefined,
+      { collection: "chat.tinychat.core.membership", ...params, record },
+      { encoding: "application/json", headers },
+    );
+    return res.data;
+  }
+
+  async delete(
+    params: Omit<ComAtprotoRepoDeleteRecord.InputSchema, "collection">,
+    headers?: Record<string, string>,
+  ): Promise<void> {
+    await this._client.call(
+      "com.atproto.repo.deleteRecord",
+      undefined,
+      { collection: "chat.tinychat.core.membership", ...params },
       { headers },
     );
   }
@@ -471,10 +473,10 @@ export class MessageRecord {
     params: Omit<ComAtprotoRepoListRecords.QueryParams, "collection">,
   ): Promise<{
     cursor?: string;
-    records: { uri: string; value: ChatTinychatMessage.Record }[];
+    records: { uri: string; value: ChatTinychatCoreMessage.Record }[];
   }> {
     const res = await this._client.call("com.atproto.repo.listRecords", {
-      collection: "chat.tinychat.message",
+      collection: "chat.tinychat.core.message",
       ...params,
     });
     return res.data;
@@ -482,9 +484,13 @@ export class MessageRecord {
 
   async get(
     params: Omit<ComAtprotoRepoGetRecord.QueryParams, "collection">,
-  ): Promise<{ uri: string; cid: string; value: ChatTinychatMessage.Record }> {
+  ): Promise<{
+    uri: string;
+    cid: string;
+    value: ChatTinychatCoreMessage.Record;
+  }> {
     const res = await this._client.call("com.atproto.repo.getRecord", {
-      collection: "chat.tinychat.message",
+      collection: "chat.tinychat.core.message",
       ...params,
     });
     return res.data;
@@ -495,14 +501,14 @@ export class MessageRecord {
       ComAtprotoRepoCreateRecord.InputSchema,
       "collection" | "record"
     >,
-    record: ChatTinychatMessage.Record,
+    record: ChatTinychatCoreMessage.Record,
     headers?: Record<string, string>,
   ): Promise<{ uri: string; cid: string }> {
-    record.$type = "chat.tinychat.message";
+    record.$type = "chat.tinychat.core.message";
     const res = await this._client.call(
       "com.atproto.repo.createRecord",
       undefined,
-      { collection: "chat.tinychat.message", ...params, record },
+      { collection: "chat.tinychat.core.message", ...params, record },
       { encoding: "application/json", headers },
     );
     return res.data;
@@ -515,7 +521,7 @@ export class MessageRecord {
     await this._client.call(
       "com.atproto.repo.deleteRecord",
       undefined,
-      { collection: "chat.tinychat.message", ...params },
+      { collection: "chat.tinychat.core.message", ...params },
       { headers },
     );
   }
@@ -532,10 +538,10 @@ export class ServerRecord {
     params: Omit<ComAtprotoRepoListRecords.QueryParams, "collection">,
   ): Promise<{
     cursor?: string;
-    records: { uri: string; value: ChatTinychatServer.Record }[];
+    records: { uri: string; value: ChatTinychatCoreServer.Record }[];
   }> {
     const res = await this._client.call("com.atproto.repo.listRecords", {
-      collection: "chat.tinychat.server",
+      collection: "chat.tinychat.core.server",
       ...params,
     });
     return res.data;
@@ -543,9 +549,13 @@ export class ServerRecord {
 
   async get(
     params: Omit<ComAtprotoRepoGetRecord.QueryParams, "collection">,
-  ): Promise<{ uri: string; cid: string; value: ChatTinychatServer.Record }> {
+  ): Promise<{
+    uri: string;
+    cid: string;
+    value: ChatTinychatCoreServer.Record;
+  }> {
     const res = await this._client.call("com.atproto.repo.getRecord", {
-      collection: "chat.tinychat.server",
+      collection: "chat.tinychat.core.server",
       ...params,
     });
     return res.data;
@@ -556,14 +566,14 @@ export class ServerRecord {
       ComAtprotoRepoCreateRecord.InputSchema,
       "collection" | "record"
     >,
-    record: ChatTinychatServer.Record,
+    record: ChatTinychatCoreServer.Record,
     headers?: Record<string, string>,
   ): Promise<{ uri: string; cid: string }> {
-    record.$type = "chat.tinychat.server";
+    record.$type = "chat.tinychat.core.server";
     const res = await this._client.call(
       "com.atproto.repo.createRecord",
       undefined,
-      { collection: "chat.tinychat.server", ...params, record },
+      { collection: "chat.tinychat.core.server", ...params, record },
       { encoding: "application/json", headers },
     );
     return res.data;
@@ -576,8 +586,36 @@ export class ServerRecord {
     await this._client.call(
       "com.atproto.repo.deleteRecord",
       undefined,
-      { collection: "chat.tinychat.server", ...params },
+      { collection: "chat.tinychat.core.server", ...params },
       { headers },
+    );
+  }
+}
+
+export class ChatTinychatRichtextNS {
+  _client: XrpcClient;
+
+  constructor(client: XrpcClient) {
+    this._client = client;
+  }
+}
+
+export class ChatTinychatServerNS {
+  _client: XrpcClient;
+
+  constructor(client: XrpcClient) {
+    this._client = client;
+  }
+
+  getServers(
+    params?: ChatTinychatServerGetServers.QueryParams,
+    opts?: ChatTinychatServerGetServers.CallOptions,
+  ): Promise<ChatTinychatServerGetServers.Response> {
+    return this._client.call(
+      "chat.tinychat.server.getServers",
+      params,
+      undefined,
+      opts,
     );
   }
 }

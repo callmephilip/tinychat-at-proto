@@ -14,6 +14,7 @@ import * as ChatTinychatServerDefs from "./types/chat/tinychat/server/defs.ts";
 import * as ChatTinychatServerGetChannels from "./types/chat/tinychat/server/getChannels.ts";
 import * as ChatTinychatServerGetMessages from "./types/chat/tinychat/server/getMessages.ts";
 import * as ChatTinychatServerGetServers from "./types/chat/tinychat/server/getServers.ts";
+import * as ChatTinychatServerJoinServer from "./types/chat/tinychat/server/joinServer.ts";
 import * as ChatTinychatServerSendMessage from "./types/chat/tinychat/server/sendMessage.ts";
 import * as ComAtprotoAdminDefs from "./types/com/atproto/admin/defs.ts";
 import * as ComAtprotoAdminDeleteAccount from "./types/com/atproto/admin/deleteAccount.ts";
@@ -107,6 +108,7 @@ export * as ChatTinychatServerDefs from "./types/chat/tinychat/server/defs.ts";
 export * as ChatTinychatServerGetChannels from "./types/chat/tinychat/server/getChannels.ts";
 export * as ChatTinychatServerGetMessages from "./types/chat/tinychat/server/getMessages.ts";
 export * as ChatTinychatServerGetServers from "./types/chat/tinychat/server/getServers.ts";
+export * as ChatTinychatServerJoinServer from "./types/chat/tinychat/server/joinServer.ts";
 export * as ChatTinychatServerSendMessage from "./types/chat/tinychat/server/sendMessage.ts";
 export * as ComAtprotoAdminDefs from "./types/com/atproto/admin/defs.ts";
 export * as ComAtprotoAdminDeleteAccount from "./types/com/atproto/admin/deleteAccount.ts";
@@ -645,6 +647,18 @@ export class ChatTinychatServerNS {
       "chat.tinychat.server.getServers",
       params,
       undefined,
+      opts,
+    );
+  }
+
+  joinServer(
+    data?: ChatTinychatServerJoinServer.InputSchema,
+    opts?: ChatTinychatServerJoinServer.CallOptions,
+  ): Promise<ChatTinychatServerJoinServer.Response> {
+    return this._client.call(
+      "chat.tinychat.server.joinServer",
+      opts?.qp,
+      data,
       opts,
     );
   }

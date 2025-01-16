@@ -390,3 +390,28 @@ app.post(`/xrpc/${ids.ChatTinychatServerSendMessage}`, async (c) => {
 
   return c.json({});
 });
+
+"";
+app.post(`/xrpc/${ids.ChatTinychatServerJoinServer}`, async (c) => {
+  const agent = await c.var.ctx.agent();
+
+  if (!agent) {
+    throw new HTTPException(401, { message: "Agent not available" });
+  }
+
+  const { server } = z
+    .object({
+      server: z.string(),
+    })
+    .parse(await c.req.json());
+
+  await agent.chat.tinychat.core.membership.create(
+    { repo: agent.agent.assertDid },
+    {
+      server,
+      createdAt: new Date().toISOString(),
+    },
+  );
+
+  return c.json({});
+});

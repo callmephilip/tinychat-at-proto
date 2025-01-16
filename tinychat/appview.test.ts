@@ -391,6 +391,31 @@ app.post(`/xrpc/${ids.ChatTinychatServerSendMessage}`, async (c) => {
   return c.json({});
 });
 
+"";
+app.post(`/xrpc/${ids.ChatTinychatServerJoinServer}`, async (c) => {
+  const agent = await c.var.ctx.agent();
+
+  if (!agent) {
+    throw new HTTPException(401, { message: "Agent not available" });
+  }
+
+  const { server } = z
+    .object({
+      server: z.string(),
+    })
+    .parse(await c.req.json());
+
+  await agent.chat.tinychat.core.membership.create(
+    { repo: agent.agent.assertDid },
+    {
+      server,
+      createdAt: new Date().toISOString(),
+    },
+  );
+
+  return c.json({});
+});
+
 /** ----------------tests ---------------- **/
 
 import { TID } from "@atproto/common";
@@ -531,6 +556,14 @@ Deno.test("test xrpc", async (t) => {
       messages.find((m) => m.text === "message via xrpc"),
       "found our new xrpc message",
     );
+  });
+
+  // join a server
+
+  await t.step("join a server", async () => {
+    await agent.chat.tinychat.server.joinServer({
+      server: chatServer.uri,
+    });
   });
 
   await shutdown();

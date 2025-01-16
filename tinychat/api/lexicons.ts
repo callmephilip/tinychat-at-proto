@@ -438,6 +438,37 @@ export const schemaDict = {
       },
     },
   },
+  ChatTinychatServerJoinServer: {
+    lexicon: 1,
+    id: "chat.tinychat.server.joinServer",
+    defs: {
+      main: {
+        type: "procedure",
+        description: "User joins server.",
+        input: {
+          encoding: "application/json",
+          schema: {
+            type: "object",
+            required: ["server"],
+            properties: {
+              server: {
+                type: "string",
+                format: "at-uri",
+                description: "Server AT-URI.",
+              },
+            },
+          },
+        },
+        output: {
+          encoding: "application/json",
+          schema: {
+            type: "object",
+            properties: {},
+          },
+        },
+      },
+    },
+  },
   ChatTinychatServerSendMessage: {
     lexicon: 1,
     id: "chat.tinychat.server.sendMessage",
@@ -4575,6 +4606,7 @@ export const ids = {
   ChatTinychatServerGetChannels: "chat.tinychat.server.getChannels",
   ChatTinychatServerGetMessages: "chat.tinychat.server.getMessages",
   ChatTinychatServerGetServers: "chat.tinychat.server.getServers",
+  ChatTinychatServerJoinServer: "chat.tinychat.server.joinServer",
   ChatTinychatServerSendMessage: "chat.tinychat.server.sendMessage",
   ComAtprotoAdminDefs: "com.atproto.admin.defs",
   ComAtprotoAdminDeleteAccount: "com.atproto.admin.deleteAccount",

@@ -68,12 +68,17 @@ app.use(
       oauthClient,
       agent: () => getAgent(),
       user: async () => {
-        const a = await getAgent();
-        const d = a &&
-          (await a.chat.tinychat.actor.getProfile({
-            actor: a.agent.assertDid,
-          }));
-        return d && d.data;
+        try {
+          const a = await getAgent();
+          const d = a &&
+            (await a.chat.tinychat.actor.getProfile({
+              actor: a.agent.assertDid,
+            }));
+          return d && d.data;
+        } catch (e) {
+          console.error("get user failed with", e);
+          return undefined;
+        }
       },
     });
 

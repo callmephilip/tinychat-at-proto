@@ -59,6 +59,8 @@ app.use(
       },
     });
 
+    console.log(">>>>>>> client middleware session is", session);
+
     const oauthClient = new TinychatOAuthClient();
     const getAgent = async () =>
       await TinychatAgent.create(oauthClient, session.did);

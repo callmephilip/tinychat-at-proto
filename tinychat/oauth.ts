@@ -111,13 +111,16 @@ export class TinychatOAuthClient extends OAuthClient {
         // A store for saving session data.
         // @ts-ignore yolo
         async set(sub: string, session: NodeSavedSession) {
+          console.log("storing session", sub, session);
           await storage.set(sub, JSON.stringify(session));
         },
         async get(sub: string): Promise<NodeSavedSession | undefined> {
           const v = await storage.get(sub);
+          console.log("retrieved session", sub, v);
           return Promise.resolve(v && JSON.parse(v));
         },
         async del(sub: string) {
+          console.log("deleting session", sub);
           await storage.del(sub);
         },
       }),

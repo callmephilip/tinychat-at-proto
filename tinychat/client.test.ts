@@ -120,9 +120,10 @@ app.get("/oauth/callback", async (c) => {
   const { session: oauthSession } = await oauthClient.callback(
     params,
   );
+  console.log("oauth callback: oauthSession", oauthSession);
   session!.did = oauthSession.did;
   await session?.save();
-  return c.redirect("/");
+  return c.redirect("/chat");
 });
 
 app.get("/login", (c) => c.html(LoginForm()));

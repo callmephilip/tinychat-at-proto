@@ -228,7 +228,7 @@ export const runAppView = (
       chatServer.broadcast(
         JSON.stringify({
           data: ms[0],
-          html: Message({ message: ms[0] }).toString(),
+          html: Message({ message: ms[0], oob: true }).toString(),
         }),
       );
     },

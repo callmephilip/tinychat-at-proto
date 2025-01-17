@@ -1,20 +1,18 @@
-interface PageProps {
+import { PropsWithChildren } from "hono/jsx";
+import { getNotificationsWsUrl } from "tinychat/config.ts";
+
+type PageProps = PropsWithChildren<{
   hideOverflow?: boolean;
   htmx?: boolean;
-  // deno-lint-ignore no-explicit-any
-  children: any;
-}
-
-// wss://appview.tinychat.chat/ws
+}>;
 
 export const Page = ({ hideOverflow, htmx, children }: PageProps) => {
   const htmxAttrs = htmx
-    ? { "hx-ext": "ws", "ws-connect": "wss://appview.tinychat.chat/ws" }
+    ? { "hx-ext": "ws", "ws-connect": getNotificationsWsUrl }
     : {};
   const bodyClasses = `font-sans antialiased h-dvh flex bg-background ${
     hideOverflow ? "overflow-hidden" : ""
   }`;
-  // overflow-hidden
   return (
     <html lang="en">
       <head>

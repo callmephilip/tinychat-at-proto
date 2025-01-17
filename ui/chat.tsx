@@ -74,34 +74,30 @@ export const Chat = () => {
                     <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                   </svg>
                   <strong>random</strong>
-                </a>
-                {" "}
+                </a>{" "}
               </div>
             </div>
           </div>
         </div>
-        <div hx-get="/stats" hx-trigger="every 2s" class="px-3 py-2 border-t">
-          {" "}
+        <div class="px-3 py-2 border-t">
+          {/* hx-get="/stats" hx-trigger="every 2s" */}
           <div class="flex items-center space-x-2">
-            <span class="w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full">
-            </span>{" "}
+            <span class="w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"></span>{" "}
             <div class="text-xs text-muted-foreground">
               1 connections, 3460 users, 25648 messages
             </div>
           </div>
         </div>
         {/* Profile */}
-        {user
-          ? (
-            <button class="flex items-center px-4 mx-4 fixed bottom-6">
-              <img src={user.avatar} class="w-10 h-10 mr-3" />
-              <div class="text-sm">
-                <div class="font-bold">{user.displayName}</div>
-                <div class="text-xs font-bold text-green-400">Online</div>
-              </div>
-            </button>
-          )
-          : null}
+        {user ? (
+          <button class="flex items-center px-4 mx-4 fixed bottom-6">
+            <img src={user.avatar} class="w-10 h-10 mr-3" />
+            <div class="text-sm">
+              <div class="font-bold">{user.displayName}</div>
+              <div class="text-xs font-bold text-green-400">Online</div>
+            </div>
+          </button>
+        ) : null}
       </div>
       {/* Main */}
 
@@ -114,8 +110,7 @@ export const Chat = () => {
           ws-send="true"
           hx-vals='{"cmd": "ping", "d": {"cid": 1}}'
           class="hidden"
-        >
-        </div>
+        ></div>
         <div class="border-b flex md:px-6 py-2 items-center flex-none">
           <div class="flex flex-row items-center">
             <h3 class="text-grey-darkest font-extrabold">#general</h3>
@@ -126,18 +121,14 @@ export const Chat = () => {
           class="scroller px-6 py-4 flex-1 flex flex-col-reverse overflow-y-scroll"
         >
           {/* style="padding-top: 60px; padding-bottom: 130px;" if is_mobile else "" */}
-          {
-            /*
+          {/*
             lazy load the first batch of messages
             <div hx-trigger="load" hx-get="/c/messages/{cid}"></div>
-            */
-          }
+            */}
         </div>
         <div class="pb-6 px-4 flex-none">
-          {
-            /* style="position: fixed; bottom: 0; width: 100%; background-color:
-          white;" if is_mobile else "" */
-          }
+          {/* style="position: fixed; bottom: 0; width: 100%; background-color:
+          white;" if is_mobile else "" */}
           {user ? <Composer /> : null}
         </div>
       </div>

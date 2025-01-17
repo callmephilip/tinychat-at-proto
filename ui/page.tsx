@@ -8,7 +8,7 @@ type PageProps = PropsWithChildren<{
 
 export const Page = ({ hideOverflow, htmx, children }: PageProps) => {
   const htmxAttrs = htmx
-    ? { "hx-ext": "ws", "ws-connect": getNotificationsWsUrl }
+    ? { "hx-ext": "ws", "ws-connect": getNotificationsWsUrl() }
     : {};
   const bodyClasses = `font-sans antialiased h-dvh flex bg-background ${
     hideOverflow ? "overflow-hidden" : ""

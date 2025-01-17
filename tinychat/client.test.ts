@@ -156,14 +156,15 @@ app.post("/login", async (c) => {
 });
 
 "";
-import { ChatPage } from "@tinychat/ui/pages/chat.tsx";
+// import { ChatPage } from "@tinychat/ui/pages/chat.tsx";
 
-app.get("/chat", async (c) =>
-  c.html(
-    ChatPage({
-      user: await c.var.ctx.user(),
-    }),
-  ));
+// app.get("/chat", async (c) =>
+//   c.html(
+//     ChatPage({
+//       user: await c.var.ctx.user(),
+//     })
+//   )
+// );
 
 "";
 

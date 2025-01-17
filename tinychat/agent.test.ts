@@ -60,6 +60,9 @@ export class TinychatAgent {
     did?: string | undefined,
   ): Promise<TinychatAgent> {
     if (oauthClient && did) {
+      console.log(
+        "tinychat agent: got did and oauthclient - creating regular authenticated agent",
+      );
       const agent = new Agent(await oauthClient.restore(did));
       return new TinychatAgent(
         agent,
@@ -107,8 +110,14 @@ export class TinychatAgent {
     let fallbackAgent: Agent | AtpAgent;
 
     if (!service || !identifier || !password) {
+      console.log(
+        "tinychat agent: missing service, identifier or password - creating fallback agent with appview url",
+      );
       fallbackAgent = new Agent(`${Deno.env.get("APPVIEW_URL")!}/xrpc`);
     } else {
+      console.log(
+        "tinychat agent: got service, identifier and password - creating fallback agent and logging in using test user",
+      );
       fallbackAgent = new AtpAgent({ service });
       // @ts-ignore it's safe, babe
       await fallbackAgent.login({ identifier, password });
@@ -121,10 +130,15 @@ export class TinychatAgent {
           {
             service: Deno.env.get("APPVIEW_URL")!,
             fetch: async (input, init) => {
+              // fallbackAgent.dispatchUrl.toString();
+              const alternativeServiceUrl = fallbackAgent.did
+                ? await getPdsForDid(fallbackAgent.assertDid)
+                : "https://public.api.bsky.app";
+
               const u = routeRequest(
                 // @ts-ignore input should be URL
                 input,
-                await getPdsForDid(fallbackAgent.assertDid),
+                alternativeServiceUrl,
               );
 
               if (u.toString() !== input.toString()) {
@@ -133,8 +147,8 @@ export class TinychatAgent {
               }
 
               return globalThis.fetch(
-                // @ts-ignore input should be URL
-                routeRequest(input, fallbackAgent.dispatchUrl.toString()),
+                // routeRequest(input, alternativeServiceUrl),
+                input,
                 init,
               );
             },

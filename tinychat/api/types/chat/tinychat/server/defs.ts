@@ -12,6 +12,7 @@ export interface ServerView {
   uri: string;
   name: string;
   creator: string;
+  channels?: ChannelView[];
   [k: string]: unknown;
 }
 

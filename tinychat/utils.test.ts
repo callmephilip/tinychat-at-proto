@@ -35,6 +35,9 @@ export async function assertWithWait<T>(
   await sleep(delay);
   assert((await fn()) === expected);
 }
+export const shortIdFromAtUri = (atUri: string) => {
+  return atUri.split("/").pop();
+};
 
 /** ----------------tests ---------------- **/
 
@@ -92,4 +95,13 @@ Deno.test("processFile", async () => {
 });
 Deno.test("assertWithWait", async () => {
   await assertWithWait(() => Promise.resolve(2), 2, 5000);
+});
+
+Deno.test("shortIdFromAtUri", () => {
+  assertEquals(
+    shortIdFromAtUri(
+      "at://did:plc:ubdeopbbkbgedccgbum7dhsh/chat.tinychat.server/3lfu4indvy72b",
+    ),
+    "3lfu4indvy72b",
+  );
 });

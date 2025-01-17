@@ -9,7 +9,14 @@
       "properties": {
         "uri": { "type": "string", "format": "at-uri" },
         "name": { "type": "string" },
-        "creator": { "type": "string", "format": "did" }
+        "creator": { "type": "string", "format": "did" },
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "#channelView"
+          }
+        }
       }
     },
     "channelView": {

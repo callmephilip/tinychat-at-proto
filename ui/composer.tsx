@@ -1,23 +1,29 @@
+import { shortIdFromAtUri } from "tinychat/utils.ts";
+import { useServer } from "@tinychat/ui/context/server.tsx";
+
 export const Composer = () => {
+  const { server, currentChannel } = useServer();
   return (
     <>
       <form
         enctype="multipart/form-data"
-        hx-post="/messages/send/1"
+        hx-post="/messages/send"
         hx-swap="afterbegin"
-        hx-target="#channel-1"
+        hx-target={`#channel-${shortIdFromAtUri(currentChannel?.uri!)}`}
         id="f-1"
         class="w-full"
         name="f-1"
       >
         {" "}
         <input
-          type="hidden"
+          type="text"
           autofocus
           id="msg"
           class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           name="msg"
         />
+        <input type="hidden" name="channel" value={currentChannel?.uri} />
+        <input type="hidden" name="server" value={server?.uri} />
         <div
           id="editor-container"
           class="editor-container editor-container_classic-editor flex flex-col rounded-lg border-2 border-grey overflow-hidden"

@@ -1,9 +1,12 @@
+import { shortIdFromAtUri } from "tinychat/utils.ts";
 import { Page } from "@tinychat/ui/page.tsx";
 import { Composer } from "@tinychat/ui/composer.tsx";
 import { useAuth } from "./context/auth.tsx";
+import { useServer } from "./context/server.tsx";
 
 export const Chat = () => {
   const { user } = useAuth();
+  const { server, currentChannel } = useServer();
   console.log(">>>>>>>>> user  inside chat is", user);
   return (
     <Page hideOverflow htmx>
@@ -14,68 +17,41 @@ export const Chat = () => {
             <h1 class="text-l font-bold">👨‍🏭 tinychat</h1>
           </div>
           <div id="channels">
+            <strong>{server?.name}</strong>
             <div class="px-3 py-2">
-              <h2 class="mb-2 px-4 text-lg font-semibold tracking-tight">
-                Groups
-              </h2>
               <div class=" px-1">
-                <a
-                  href="#"
-                  hx-get="/c/1"
-                  hx-push-url="true"
-                  data-testid="nav-to-channel-1"
-                  hx-target="#main"
-                  class="w-full justify-start inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 rounded-md px-3 bg-primary text-primary-foreground hover:bg-primary/90"
-                  style="justify-content: flex-start !important;"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    height="24"
-                    width="24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    class="mr-2 h-4 w-4"
+                {(server?.channels || []).map((channel) => (
+                  <a
+                    keys={channel.uri}
+                    href="#"
+                    hx-get="/c/1"
+                    hx-push-url="true"
+                    data-testid="nav-to-channel-1"
+                    hx-target="#main"
+                    class="w-full justify-start inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 rounded-md px-3 bg-primary text-primary-foreground hover:bg-primary/90"
+                    style="justify-content: flex-start !important;"
                   >
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                  </svg>{" "}
-                  <div>general</div>
-                </a>
-                <a
-                  href="#"
-                  hx-get="/c/2"
-                  hx-push-url="true"
-                  data-testid="nav-to-channel-2"
-                  hx-target="#main"
-                  class="w-full justify-start inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 rounded-md px-3 hover:bg-accent hover:text-accent-foreground has-unread-messages"
-                  style="justify-content: flex-start !important;"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    height="24"
-                    width="24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    class="mr-2 h-4 w-4"
-                  >
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                  </svg>
-                  <strong>random</strong>
-                </a>
-                {" "}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      height="24"
+                      width="24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="mr-2 h-4 w-4"
+                    >
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2">
+                      </path>
+                      <circle cx="9" cy="7" r="4"></circle>
+                      <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>{" "}
+                    <div>{channel.name}</div>
+                  </a>
+                ))}
               </div>
             </div>
           </div>
@@ -118,11 +94,15 @@ export const Chat = () => {
         </div>
         <div class="border-b flex md:px-6 py-2 items-center flex-none">
           <div class="flex flex-row items-center">
-            <h3 class="text-grey-darkest font-extrabold">#general</h3>
+            <h3 class="text-grey-darkest font-extrabold">
+              {`#${currentChannel?.name}`}
+            </h3>
           </div>
         </div>
         <div
-          id="messages"
+          id={`channel-${
+            currentChannel?.uri && shortIdFromAtUri(currentChannel.uri)
+          }`}
           class="scroller px-6 py-4 flex-1 flex flex-col-reverse overflow-y-scroll"
         >
           {/* style="padding-top: 60px; padding-bottom: 130px;" if is_mobile else "" */}

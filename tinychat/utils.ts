@@ -35,3 +35,6 @@ export async function assertWithWait<T>(
   await sleep(delay);
   assert((await fn()) === expected);
 }
+export const shortIdFromAtUri = (atUri: string) => {
+  return atUri.split("/").pop();
+};

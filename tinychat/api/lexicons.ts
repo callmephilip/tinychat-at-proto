@@ -317,6 +317,13 @@ export const schemaDict = {
             type: "string",
             format: "did",
           },
+          channels: {
+            type: "array",
+            items: {
+              type: "ref",
+              ref: "lex:chat.tinychat.server.defs#channelView",
+            },
+          },
         },
       },
       channelView: {

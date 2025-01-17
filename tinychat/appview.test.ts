@@ -240,6 +240,10 @@ interface ServerData {
   uri: string;
   creator: string;
   name: string;
+  channels: {
+    uri: string;
+    name: string;
+  }[];
 }
 
 const runServerQuery = ({
@@ -251,25 +255,33 @@ const runServerQuery = ({
   uris: string[] | undefined;
   did: string | undefined;
 }): ServerData[] => {
+  const sql = (where: string = "") =>
+    db.prepare(`SELECT 
+      s.uri,
+      s.name,
+      s.creator,
+      json_group_array(
+        json_object(
+          'uri', c.uri,
+          'name', c.name
+        )
+      ) as channels
+    FROM servers s
+    INNER JOIN channels c ON c.server = s.uri
+    ${where ? `WHERE ${where}` : ""}
+    GROUP BY s.uri, s.name, s.creator`);
+
   if (uris && uris.length > 0) {
-    return db
-      .prepare(
-        `SELECT * FROM servers WHERE uri IN (${
-          uris
-            .map((u) => `'${u}'`)
-            .join(", ")
-        })`,
-      )
-      .all<ServerData>();
-  } else if (did) {
-    return db.prepare(`SELECT * FROM servers WHERE creator = :did`).all<
+    return sql(`s.uri IN (${uris.map((u) => `'${u}'`).join(", ")})`).all<
       ServerData
-    >({
+    >();
+  } else if (did) {
+    return sql(`s.creator = :did`).all<ServerData>({
       did,
     });
   }
 
-  return db.prepare(`SELECT * FROM servers`).all<ServerData>();
+  return sql().all<ServerData>();
 };
 
 app.get(`/xrpc/${ids.ChatTinychatServerGetServers}`, (c) => {
@@ -288,14 +300,14 @@ app.get(`/xrpc/${ids.ChatTinychatServerGetServers}`, (c) => {
 
   console.log(">>>>>>>>>>>>>. servers", servers);
 
-  const r = {
-    servers: servers.map((s: ServerData) => ({
-      uri: s.uri,
-      creator: s.creator,
-      name: s.name,
-    })),
-  };
-  return c.json(r);
+  // const r = {
+  //   servers: servers.map((s: ServerData) => ({
+  //     uri: s.uri,
+  //     creator: s.creator,
+  //     name: s.name,
+  //   })),
+  // };
+  return c.json({ servers });
 });
 
 "";
@@ -494,6 +506,14 @@ Deno.test("test xrpc", async (t) => {
     name: "general",
   });
 
+  await agent.chat.tinychat.core.channel.create(
+    { repo },
+    {
+      server: anotherChatServer.uri,
+      name: "general",
+    },
+  );
+
   await agent.chat.tinychat.core.message.create(
     { repo },
     {
@@ -535,11 +555,11 @@ Deno.test("test xrpc", async (t) => {
     });
     assert(data1.servers.length === 2, "got 2 servers for specific URIs");
     assert(
-      data1.servers.find((s: ServerData) => s.name === serverName),
+      data1.servers.find((s) => s.name === serverName),
       "found our server",
     );
     assert(
-      data1.servers.find((s: ServerData) => s.name === anotherServerName),
+      data1.servers.find((s) => s.name === anotherServerName),
       "found another server",
     );
   });
@@ -550,11 +570,11 @@ Deno.test("test xrpc", async (t) => {
     });
     assert(data.servers.length === 2, "got 2 server for the user");
     assert(
-      data.servers.find((s: ServerData) => s.name === serverName),
+      data.servers.find((s) => s.name === serverName),
       "found our server",
     );
     assert(
-      data.servers.find((s: ServerData) => s.name === anotherServerName),
+      data.servers.find((s) => s.name === anotherServerName),
       "found another server",
     );
   });

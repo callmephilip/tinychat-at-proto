@@ -28,10 +28,6 @@ export default class ChatServer {
     }
   }
 }
-// patch HTMX WS extension to allow content inspection and modification
-
-// moved to static
-const htmxWS = ``;
 import { Hono } from "hono";
 // import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
@@ -42,10 +38,13 @@ import { TinychatOAuthClient } from "tinychat/oauth.ts";
 import { TinychatAgent } from "tinychat/agent.ts";
 import { getDatabase } from "tinychat/db.ts";
 import type { Database } from "tinychat/db.ts";
+import { ActorView } from "tinychat/api/types/chat/tinychat/actor/defs.ts";
 import { ids } from "tinychat/api/lexicons.ts";
+import { getProfile } from "tinychat/bsky.ts";
 
 export type AppContext = {
   agent: () => Promise<TinychatAgent | undefined>;
+  user: () => Promise<ActorView | undefined>;
   db?: Database | undefined;
 };
 
@@ -69,6 +68,7 @@ app.use(
       oauthClient,
       session: undefined,
       agent: async () => await TinychatAgent.create(oauthClient, user),
+      user: async () => await Promise.resolve(undefined),
       db: getDatabase(),
     });
     await next();
@@ -76,33 +76,6 @@ app.use(
 );
 
 app.get("/", (c) => c.redirect("https://github.com/callmephilip/tinychat"));
-
-app.get("/__test", (c) =>
-  c.html(`<!DOCTYPE html>
-<html>
-<head>
-    <title>HTMX Chat</title>
-    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-    <script>${htmxWS}</script>
-    <style>
-        .chat-container { max-width: 600px; margin: 20px auto; }
-        .messages { height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
-        .message { margin: 5px 0; padding: 5px; border-radius: 5px; background: #f0f0f0; }
-        .input-form { display: flex; gap: 10px; }
-        input { flex-grow: 1; padding: 5px; }
-    </style>
-</head>
-<body>
-    <div class="chat-container" hx-ext="ws" ws-connect="/ws">
-        <div id="messages" class="messages">
-        </div>
-        <form class="input-form" ws-send>
-            <input type="text" name="message" placeholder="Type a message..." autocomplete="off">
-            <button type="submit">Send</button>
-        </form>
-    </div>
-</body>
-</html>`));
 
 // app.use("/ws", cors());
 app.get(
@@ -252,6 +225,17 @@ export const runAppView = (
     }
   };
 };
+app.get(`/xrpc/${ids.ChatTinychatActorGetProfile}`, async (c) => {
+  const { db } = c.var.ctx;
+  if (!db) {
+    throw new HTTPException(500, { message: "DB not available" });
+  }
+  const { actor } = c.req.query();
+  console.log(">>>>>>>>>>>>>. getting profile for actor", actor);
+  return c.json(await getProfile(actor));
+});
+
+"";
 interface ServerData {
   uri: string;
   creator: string;
@@ -521,6 +505,13 @@ Deno.test("test xrpc", async (t) => {
   );
 
   await sleep(1000);
+
+  await t.step("get profile", async () => {
+    const { data } = await agent.chat.tinychat.actor.getProfile({
+      actor: repo,
+    });
+    assert(data.did === repo, "got the right profile");
+  });
 
   await t.step("list available servers", async () => {
     const { data } = await agent.chat.tinychat.server.getServers();

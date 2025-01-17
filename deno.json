@@ -8,6 +8,7 @@
     "runnbs": "deno run --allow-read --allow-env --allow-run jsr:@jurassic/jurassic/runnbs",
     "dev:client": "deno run --unstable-kv --watch --env-file --allow-all client.tsx",
     "dev:appview": "deno run --watch --env-file --allow-all appview.ts",
+    "dev": "deno run --unstable-kv --watch --env-file --allow-all dev.ts",
     "generate:lexicons": "lex gen-api --yes tinychat/api lexicons/**/* && deno task unslopify",
     "unslopify": "deno run --unstable-sloppy-imports --allow-read --allow-write ./bin/unslopify.ts ./tinychat/api"
   },

@@ -4,23 +4,64 @@
 import { LexiconDoc, Lexicons } from "@atproto/lexicon";
 
 export const schemaDict = {
-  ChatTinychatActorProfile: {
+  ChatTinychatActorDefs: {
     lexicon: 1,
-    id: "chat.tinychat.actor.profile",
+    id: "chat.tinychat.actor.defs",
+    defs: {
+      actorView: {
+        type: "object",
+        description: "Chat server actor instance view",
+        required: ["did", "handle", "displayName"],
+        properties: {
+          did: {
+            type: "string",
+            format: "did",
+          },
+          handle: {
+            type: "string",
+            format: "handle",
+          },
+          displayName: {
+            type: "string",
+            maxGraphemes: 64,
+            maxLength: 640,
+          },
+          description: {
+            type: "string",
+            maxGraphemes: 256,
+            maxLength: 2560,
+          },
+          avatar: {
+            type: "string",
+            format: "uri",
+          },
+        },
+      },
+    },
+  },
+  ChatTinychatActorGetProfile: {
+    lexicon: 1,
+    id: "chat.tinychat.actor.getProfile",
     defs: {
       main: {
-        type: "record",
-        description: "Person's or org's profile on tinychat",
-        key: "literal:self",
-        record: {
-          type: "object",
+        type: "query",
+        description: "Get profile view of an actor. Does not require auth",
+        parameters: {
+          type: "params",
+          required: ["actor"],
           properties: {
-            handle: {
+            actor: {
               type: "string",
-              description: "Account handle",
-              maxGraphemes: 64,
-              maxLength: 640,
+              format: "at-identifier",
+              description: "Handle or DID of account to fetch profile of.",
             },
+          },
+        },
+        output: {
+          encoding: "application/json",
+          schema: {
+            type: "ref",
+            ref: "lex:chat.tinychat.actor.defs#actorView",
           },
         },
       },
@@ -292,35 +333,6 @@ export const schemaDict = {
           },
         },
       },
-      actorView: {
-        type: "object",
-        description: "Chat server actor instance view",
-        required: ["did", "handle", "displayName"],
-        properties: {
-          did: {
-            type: "string",
-            format: "did",
-          },
-          handle: {
-            type: "string",
-            format: "handle",
-          },
-          displayName: {
-            type: "string",
-            maxGraphemes: 64,
-            maxLength: 640,
-          },
-          description: {
-            type: "string",
-            maxGraphemes: 256,
-            maxLength: 2560,
-          },
-          avatar: {
-            type: "string",
-            format: "uri",
-          },
-        },
-      },
       messageView: {
         type: "object",
         description: "Message view",
@@ -340,7 +352,7 @@ export const schemaDict = {
           },
           sender: {
             type: "ref",
-            ref: "lex:chat.tinychat.server.defs#actorView",
+            ref: "lex:chat.tinychat.actor.defs#actorView",
           },
           text: {
             type: "string",
@@ -4633,7 +4645,8 @@ export const schemaDict = {
 export const schemas = Object.values(schemaDict);
 export const lexicons: Lexicons = new Lexicons(schemas);
 export const ids = {
-  ChatTinychatActorProfile: "chat.tinychat.actor.profile",
+  ChatTinychatActorDefs: "chat.tinychat.actor.defs",
+  ChatTinychatActorGetProfile: "chat.tinychat.actor.getProfile",
   ChatTinychatCoreChannel: "chat.tinychat.core.channel",
   ChatTinychatCoreMembership: "chat.tinychat.core.membership",
   ChatTinychatCoreMessage: "chat.tinychat.core.message",

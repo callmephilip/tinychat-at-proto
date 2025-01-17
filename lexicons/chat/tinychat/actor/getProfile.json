@@ -1,0 +1,28 @@
+{
+  "lexicon": 1,
+  "id": "chat.tinychat.actor.getProfile",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "Get profile view of an actor. Does not require auth",
+      "parameters": {
+        "type": "params",
+        "required": ["actor"],
+        "properties": {
+          "actor": {
+            "type": "string",
+            "format": "at-identifier",
+            "description": "Handle or DID of account to fetch profile of."
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "ref",
+          "ref": "chat.tinychat.actor.defs#actorView"
+        }
+      }
+    }
+  }
+}

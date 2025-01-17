@@ -1,11 +1,10 @@
 import { Page } from "@tinychat/ui/page.tsx";
 import { Composer } from "@tinychat/ui/composer.tsx";
+import { useAuth } from "./context/auth.tsx";
 
-interface User {
-  name: string;
-}
-
-export const Chat = ({ user }: { user?: User | undefined }) => {
+export const Chat = () => {
+  const { user } = useAuth();
+  console.log(">>>>>>>>> user  inside chat is", user);
   return (
     <Page hideOverflow htmx>
       {/* Sidebar  */}
@@ -91,6 +90,18 @@ export const Chat = ({ user }: { user?: User | undefined }) => {
             </div>
           </div>
         </div>
+        {/* Profile */}
+        {user
+          ? (
+            <button class="flex items-center px-4 mx-4 fixed bottom-6">
+              <img src={user.avatar} class="w-10 h-10 mr-3" />
+              <div class="text-sm">
+                <div class="font-bold">{user.displayName}</div>
+                <div class="text-xs font-bold text-green-400">Online</div>
+              </div>
+            </button>
+          )
+          : null}
       </div>
       {/* Main */}
 
@@ -111,20 +122,24 @@ export const Chat = ({ user }: { user?: User | undefined }) => {
           </div>
         </div>
         <div
-          id="channel-1"
+          id="messages"
           class="scroller px-6 py-4 flex-1 flex flex-col-reverse overflow-y-scroll"
         >
-          <div
-            hx-get="/c/messages/1?c=MTczMjc0ODYxMjg4NS1wcmV2"
-            hx-indicator=".messages-loading"
-            hx-trigger="intersect once"
-            hx-swap="beforeend show:#chat-message-25569:top"
-            hx-target="#channel-1"
-            class="messages-loading htmx-indicator"
-          >
-          </div>
+          {/* style="padding-top: 60px; padding-bottom: 130px;" if is_mobile else "" */}
+          {
+            /*
+            lazy load the first batch of messages
+            <div hx-trigger="load" hx-get="/c/messages/{cid}"></div>
+            */
+          }
         </div>
-        <div class="pb-6 px-4 flex-none">{user ? <Composer /> : null}</div>
+        <div class="pb-6 px-4 flex-none">
+          {
+            /* style="position: fixed; bottom: 0; width: 100%; background-color:
+          white;" if is_mobile else "" */
+          }
+          {user ? <Composer /> : null}
+        </div>
       </div>
     </Page>
   );

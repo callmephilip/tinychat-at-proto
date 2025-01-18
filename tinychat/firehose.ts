@@ -22,6 +22,7 @@ const makeBaseSchema = <T extends z.ZodTypeAny>(recordSchema: T) =>
   z
     .object({
       did: z.string(),
+      time_us: z.number(),
       commit: baseCommitSchema.extend({
         record: recordSchema,
       }),
@@ -169,6 +170,7 @@ export function startJetstream(
     if (event.commit.operation !== "create") {
       return;
     }
+    console.log("New message >>>>>>>>>>>>>>>>>>>>", event);
     await syncUser(event.did);
     onNewMessage(newMessageRecordSchema.parse(event));
   });

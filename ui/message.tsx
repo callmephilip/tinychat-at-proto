@@ -10,20 +10,21 @@ interface MessageProps {
 export const Message = ({ message, oob = false }: MessageProps) => {
   const Wrapper = oob
     ? ({ children }: PropsWithChildren) => (
-        <div
-          id={`channel-${shortIdFromAtUri(message.channel!)}`}
-          hx-swap-oob="beforeend"
-        >
-          {children}
-        </div>
-      )
+      <div
+        id={`channel-${shortIdFromAtUri(message.channel!)}`}
+        hx-swap-oob="beforeend"
+      >
+        {children}
+      </div>
+    )
     : ({ children }: PropsWithChildren) => <>{children}</>;
 
-  const avatar =
-    message.sender.avatar ||
-    `https://ui-avatars.com/api/?name=${encodeURI(
-      message.sender.displayName
-    )}&background=random&size=256`;
+  const avatar = message.sender.avatar ||
+    `https://ui-avatars.com/api/?name=${
+      encodeURI(
+        message.sender.displayName,
+      )
+    }&background=random&size=256`;
   return (
     <Wrapper>
       <div
@@ -39,7 +40,8 @@ export const Message = ({ message, oob = false }: MessageProps) => {
               class="pl-2 text-grey text-xs"
             >
               {message.createdAt}
-            </span>{" "}
+            </span>
+            {" "}
           </div>
           <div class="leading-relaxed">
             <p>{message.text}</p>

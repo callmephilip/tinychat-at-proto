@@ -42,6 +42,7 @@ const tables: Record<string, string> = {
   text TEXT NOT NULL,
   sender TEXT NOT NULL,
   created_at DATETIME NOT NULL,
+  time_us TEXT NOT NULL,
   FOREIGN KEY (channel) REFERENCES channels(uri),
   FOREIGN KEY (server) REFERENCES servers(uri)
   FOREIGN KEY (sender) REFERENCES users(did)

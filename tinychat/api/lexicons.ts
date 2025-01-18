@@ -419,12 +419,22 @@ export const schemaDict = {
         description: "Gets a list of of messages for a given channel.",
         parameters: {
           type: "params",
-          required: ["channel"],
+          required: ["channel", "limit"],
           properties: {
             channel: {
               type: "string",
               format: "at-uri",
               description: "Channel AT-URI to return messages for.",
+            },
+            limit: {
+              type: "integer",
+              default: 10,
+              description: "Maximum number of messages to return",
+            },
+            cursor: {
+              type: "string",
+              description:
+                "Cursor for pagination. Pagination goes backwards - from more recent messages to older ones",
             },
           },
         },
@@ -440,6 +450,10 @@ export const schemaDict = {
                   type: "ref",
                   ref: "lex:chat.tinychat.server.defs#messageView",
                 },
+              },
+              cursor: {
+                type: "string",
+                description: "Cursor for pagination",
               },
             },
           },

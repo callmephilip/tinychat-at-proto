@@ -36,12 +36,19 @@ export default class ChatServer {
       }
     }
   }
+
+  public broadcastFn(fn: (client: ChatServerClient) => string) {
+    for (const client of this.connectedClients.values()) {
+      client.ws.send(fn(client));
+    }
+  }
 }
 import { Hono } from "hono";
 // import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import { upgradeWebSocket } from "hono/deno";
 import { Message } from "@tinychat/ui/message.tsx";
+import { Channel } from "@tinychat/ui/channel.tsx";
 import { createMiddleware } from "hono/factory";
 import { TinychatOAuthClient } from "tinychat/oauth.ts";
 import { TinychatAgent } from "tinychat/agent.ts";
@@ -203,14 +210,26 @@ export const runAppView = (
 
       // grab new message + sender info and broadcast to chat
       const { messages } = pullMessagesFromDb({ db, uri: m.uri, limit: 1 });
+      const msgHTML = Message({ message: messages[0], oob: true }).toString();
+      // chatServer.broadcast(
+      //   JSON.stringify({
+      //     data: ,
+      //     html: ,
+      //   }),
+      //   (c: ChatServerClient) =>
+      // );
 
-      chatServer.broadcast(
-        JSON.stringify({
-          data: messages[0],
-          html: Message({ message: messages[0], oob: true }).toString(),
-        }),
-        (c: ChatServerClient) => c.did !== m.did,
-      );
+      chatServer.broadcastFn((c: ChatServerClient) => {
+        const channels = messaging.getChannels({
+          server: m.commit.record.server,
+          viewer: c.did,
+        });
+        return JSON.stringify({
+          data: { message: messages[0], channels },
+          html: (c.did !== m.did ? msgHTML : "") +
+            channels.map((channel) => Channel({ channel }).toString()).join(""),
+        });
+      });
     },
   });
 
@@ -323,14 +342,20 @@ interface ChannelData {
   uri: string;
 }
 
-app.get(`/xrpc/${ids.ChatTinychatServerGetChannels}`, (c) => {
+app.get(`/xrpc/${ids.ChatTinychatServerGetChannels}`, async (c) => {
   const { db } = c.var.ctx;
+  const agent = await c.var.ctx.agent();
 
   if (!db) {
     throw new HTTPException(500, { message: "DB not available" });
   }
   const { server } = c.req.query();
-  return c.json({ channels: new Messaging(db).getChannels({ server }) });
+  return c.json({
+    channels: new Messaging(db).getChannels({
+      server,
+      viewer: agent?.agent?.did,
+    }),
+  });
 });
 
 "";
@@ -532,3 +557,5 @@ app.post(`/xrpc/${ids.ChatTinychatServerJoinServer}`, async (c) => {
 
   return c.json({});
 });
+
+"";

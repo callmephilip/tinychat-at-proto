@@ -36,12 +36,19 @@ export default class ChatServer {
       }
     }
   }
+
+  public broadcastFn(fn: (client: ChatServerClient) => string) {
+    for (const client of this.connectedClients.values()) {
+      client.ws.send(fn(client));
+    }
+  }
 }
 import { Hono } from "hono";
 // import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import { upgradeWebSocket } from "hono/deno";
 import { Message } from "@tinychat/ui/message.tsx";
+import { Channel } from "@tinychat/ui/channel.tsx";
 import { createMiddleware } from "hono/factory";
 import { TinychatOAuthClient } from "tinychat/oauth.ts";
 import { TinychatAgent } from "tinychat/agent.ts";
@@ -203,14 +210,26 @@ export const runAppView = (
 
       // grab new message + sender info and broadcast to chat
       const { messages } = pullMessagesFromDb({ db, uri: m.uri, limit: 1 });
+      const msgHTML = Message({ message: messages[0], oob: true }).toString();
+      // chatServer.broadcast(
+      //   JSON.stringify({
+      //     data: ,
+      //     html: ,
+      //   }),
+      //   (c: ChatServerClient) =>
+      // );
 
-      chatServer.broadcast(
-        JSON.stringify({
-          data: messages[0],
-          html: Message({ message: messages[0], oob: true }).toString(),
-        }),
-        (c: ChatServerClient) => c.did !== m.did,
-      );
+      chatServer.broadcastFn((c: ChatServerClient) => {
+        const channels = messaging.getChannels({
+          server: m.commit.record.server,
+          viewer: c.did,
+        });
+        return JSON.stringify({
+          data: { message: messages[0], channels },
+          html: (c.did !== m.did ? msgHTML : "") +
+            channels.map((channel) => Channel({ channel }).toString()).join(""),
+        });
+      });
     },
   });
 
@@ -323,14 +342,20 @@ interface ChannelData {
   uri: string;
 }
 
-app.get(`/xrpc/${ids.ChatTinychatServerGetChannels}`, (c) => {
+app.get(`/xrpc/${ids.ChatTinychatServerGetChannels}`, async (c) => {
   const { db } = c.var.ctx;
+  const agent = await c.var.ctx.agent();
 
   if (!db) {
     throw new HTTPException(500, { message: "DB not available" });
   }
   const { server } = c.req.query();
-  return c.json({ channels: new Messaging(db).getChannels({ server }) });
+  return c.json({
+    channels: new Messaging(db).getChannels({
+      server,
+      viewer: agent?.agent?.did,
+    }),
+  });
 });
 
 "";
@@ -533,6 +558,8 @@ app.post(`/xrpc/${ids.ChatTinychatServerJoinServer}`, async (c) => {
   return c.json({});
 });
 
+"";
+
 /** ----------------tests ---------------- **/
 
 import { TID } from "@atproto/common";
@@ -716,6 +743,7 @@ Deno.test("test app view", async (t) => {
   // create websocket connection to chat server
   const clientWS = new WebSocket("ws://localhost:8001/ws?did=hello");
   clientWS.onmessage = (event) => {
+    console.log(">>>>>>>>>>>>>>>>> received message >>>>>>>>>>>>>", event.data);
     receivedMessages.push(JSON.parse(event.data));
   };
 
@@ -816,18 +844,28 @@ Deno.test("test app view", async (t) => {
     assert(receivedMessages.length === 1, "got one message");
     z.object({
       data: z.object({
-        uri: z.string(),
-        channel: z.string(),
-        server: z.string(),
-        text: z.string(),
-        createdAt: z.string(),
-        sender: z.object({
-          did: z.string(),
-          handle: z.string(),
-          displayName: z.string(),
-          avatar: z.string().nullable(),
-          description: z.string().nullable(),
+        message: z.object({
+          uri: z.string(),
+          channel: z.string(),
+          server: z.string(),
+          text: z.string(),
+          createdAt: z.string(),
+          sender: z.object({
+            did: z.string(),
+            handle: z.string(),
+            displayName: z.string(),
+            avatar: z.string().nullable(),
+            description: z.string().nullable(),
+          }),
         }),
+        channels: z.array(
+          z.object({
+            uri: z.string(),
+            name: z.string(),
+            latestMessageReceivedTime: z.string().optional(),
+            lastMessageReadTime: z.string().optional(),
+          }),
+        ),
       }),
       html: z.string(),
     }).parse(receivedMessages[0]);
@@ -876,6 +914,8 @@ Deno.test("test app view", async (t) => {
       cursor: data.cursor,
       limit: 1,
     });
+
+    // should get 1 message for
 
     assert(data2.messages.length === 1, "got 1 message");
     assert(

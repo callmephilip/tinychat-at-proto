@@ -319,16 +319,8 @@ app.get(`/xrpc/${ids.ChatTinychatServerGetChannels}`, (c) => {
   if (!db) {
     throw new HTTPException(500, { message: "DB not available" });
   }
-
   const { server } = c.req.query();
-
-  const channels = db.prepare(
-    `SELECT name, uri FROM channels WHERE server = :server`,
-  ).all<ChannelData>({
-    server,
-  });
-
-  return c.json({ channels });
+  return c.json({ channels: new Messaging(db).getChannels({ server }) });
 });
 
 "";

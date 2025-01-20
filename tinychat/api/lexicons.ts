@@ -338,6 +338,12 @@ export const schemaDict = {
           name: {
             type: "string",
           },
+          latestMessageReceivedTime: {
+            type: "string",
+          },
+          lastMessageReadTime: {
+            type: "string",
+          },
         },
       },
       messageView: {

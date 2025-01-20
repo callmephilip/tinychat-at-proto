@@ -32,6 +32,8 @@ export function validateServerView(v: unknown): ValidationResult {
 export interface ChannelView {
   uri: string;
   name: string;
+  latestMessageReceivedTime?: string;
+  lastMessageReadTime?: string;
   [k: string]: unknown;
 }
 

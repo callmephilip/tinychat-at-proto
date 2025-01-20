@@ -25,7 +25,9 @@
       "required": ["uri", "name"],
       "properties": {
         "uri": { "type": "string", "format": "at-uri" },
-        "name": { "type": "string" }
+        "name": { "type": "string" },
+        "latestMessageReceivedTime": { "type": "string" },
+        "lastMessageReadTime": { "type": "string" }
       }
     },
     "messageView": {

@@ -24,6 +24,7 @@ const tables: Record<string, string> = {
   uri TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   server TEXT NOT NULL,
+  latest_message_received_time_us TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (server) REFERENCES servers(uri)
 );`,
@@ -46,7 +47,8 @@ const tables: Record<string, string> = {
   FOREIGN KEY (channel) REFERENCES channels(uri),
   FOREIGN KEY (server) REFERENCES servers(uri)
   FOREIGN KEY (sender) REFERENCES users(did)
-);`,
+);
+`,
   read_receipts: `CREATE TABLE read_receipts (
   channel TEXT NOT NULL,
   user TEXT NOT NULL,
@@ -77,6 +79,30 @@ export const getDatabase = (
       __db && __db.prepare(tables[table]).run();
     }
   });
+
+  // create triggers and etc
+  __db
+    .prepare(
+      `
+    CREATE TRIGGER update_channel_latest_message
+    AFTER INSERT ON messages
+    BEGIN
+      UPDATE channels
+      SET latest_message_received_time_us = NEW.time_us
+      WHERE uri = NEW.channel AND (latest_message_received_time_us IS NULL OR NEW.time_us > latest_message_received_time_us);
+    END;`,
+    )
+    .run();
+
+  __db
+    .prepare(
+      `CREATE VIEW channel_view AS
+       SELECT c.*, sm.user, COALESCE(rr.time_us, NULL) as last_message_read_time
+       FROM channels c
+       JOIN server_memberships sm ON sm.server = c.server
+       LEFT JOIN read_receipts rr ON rr.channel = c.uri AND rr.user = sm.user;`,
+    )
+    .run();
 
   return __db;
 };

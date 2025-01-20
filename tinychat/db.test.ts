@@ -81,10 +81,12 @@ export const getDatabase = (
   });
 
   // create triggers and etc
+  __db.prepare(`DROP TRIGGER IF EXISTS update_channel_latest_message;`).run();
+  __db.prepare(`DROP VIEW IF EXISTS channel_view;`).run();
+
   __db
     .prepare(
-      `
-    CREATE TRIGGER update_channel_latest_message
+      `CREATE TRIGGER update_channel_latest_message
     AFTER INSERT ON messages
     BEGIN
       UPDATE channels

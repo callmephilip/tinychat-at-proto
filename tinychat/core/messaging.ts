@@ -4,8 +4,20 @@ import type { Database } from "tinychat/db.ts";
 import { Record as Message } from "tinychat/api/types/chat/tinychat/core/message.ts";
 import { ChannelView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
 
+const get_time_us = (): string => `${new Date().getTime() * 1000}`;
+
 export class Messaging {
   constructor(protected db: Database) {}
+
+  public markAllMessagesAsRead(
+    { channel, user }: { channel: string; user: string },
+  ) {
+    this.db
+      .prepare(
+        `INSERT OR REPLACE INTO read_receipts (channel, user, time_us) VALUES (:channel, :user, :time)`,
+      )
+      .run({ channel, user, time: get_time_us() });
+  }
 
   public getChannels(
     { server, viewer }: { server: string; viewer?: string | undefined },
@@ -20,7 +32,6 @@ export class Messaging {
         uri: string;
         name: string;
         latest_message_received_time_us: string | null;
-        user: "did:1";
         last_message_read_time: string | null;
       }>(Object.assign({ server }, viewer ? { viewer } : {}))
       .map((rec) => ({
@@ -55,8 +66,6 @@ export class Messaging {
   }
 }
 import { getDatabase } from "tinychat/db.ts";
-
-const get_time_us = (): string => `${new Date().getTime() * 1000}`;
 
 class TestMessaging extends Messaging {
   constructor() {

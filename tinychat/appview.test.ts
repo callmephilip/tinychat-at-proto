@@ -455,20 +455,50 @@ app.post(`/xrpc/${ids.ChatTinychatServerSendMessage}`, async (c) => {
     text: z.string(),
   }).parse(await c.req.json());
 
-  await agent.chat.tinychat.core.message.create(
+  const createdAt = new Date().toISOString();
+  const d = await agent.chat.tinychat.core.message.create(
     { repo: agent.agent.assertDid },
     {
       server,
       channel,
       text,
-      createdAt: new Date().toISOString(),
+      createdAt,
     },
   );
 
+  return c.json({
+    message: {
+      uri: d.uri,
+      channel,
+      server,
+      text,
+      createdAt,
+      sender: await getProfile(agent.agent.assertDid),
+    },
+  });
+});
+
+"";
+app.post(`/xrpc/${ids.ChatTinychatServerMarkAllMessagesAsRead}`, async (c) => {
+  const { db } = c.var.ctx;
+  const agent = await c.var.ctx.agent();
+
+  if (!agent) {
+    throw new HTTPException(401, { message: "Agent not available" });
+  }
+
+  const { channel } = z.object({ channel: z.string() }).parse(
+    await c.req.json(),
+  );
+  new Messaging(db!).markAllMessagesAsRead({
+    channel,
+    user: agent.agent.assertDid,
+  });
   return c.json({});
 });
 
 "";
+
 app.post(`/xrpc/${ids.ChatTinychatServerJoinServer}`, async (c) => {
   const agent = await c.var.ctx.agent();
 
@@ -842,6 +872,12 @@ Deno.test("test app view", async (t) => {
       data2.messages[0].text === "cursor test message",
       "got previous cursor message",
     );
+  });
+
+  await t.step("mark all messages as read in a channel", async () => {
+    await agent.chat.tinychat.server.markAllMessagesAsRead({
+      channel,
+    });
   });
 
   // clean up and shutdown

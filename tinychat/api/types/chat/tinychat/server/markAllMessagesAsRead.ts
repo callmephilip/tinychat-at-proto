@@ -6,22 +6,16 @@ import { BlobRef, ValidationResult } from "@atproto/lexicon";
 import { hasProp, isObj } from "../../../../util.ts";
 import { lexicons } from "../../../../lexicons.ts";
 import { CID } from "multiformats/cid";
-import * as ChatTinychatServerDefs from "./defs.ts";
 
 export interface QueryParams {}
 
 export interface InputSchema {
-  /** Channel AT-URI to return messages for. */
+  /** Channel AT-URI. */
   channel: string;
-  /** Server AT-URI to return messages for. */
-  server: string;
-  /** Message content. */
-  text: string;
   [k: string]: unknown;
 }
 
 export interface OutputSchema {
-  message: ChatTinychatServerDefs.MessageView;
   [k: string]: unknown;
 }
 

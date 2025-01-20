@@ -1,0 +1,31 @@
+{
+  "lexicon": 1,
+  "id": "chat.tinychat.server.markAllMessagesAsRead",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "Mark all messages as read in specific channel. Requires authentication.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["channel"],
+          "properties": {
+            "channel": {
+              "type": "string",
+              "format": "at-uri",
+              "description": "Channel AT-URI."
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "properties": {}
+        }
+      }
+    }
+  }
+}

@@ -16,6 +16,7 @@ import * as ChatTinychatServerGetChannels from "./types/chat/tinychat/server/get
 import * as ChatTinychatServerGetMessages from "./types/chat/tinychat/server/getMessages.ts";
 import * as ChatTinychatServerGetServers from "./types/chat/tinychat/server/getServers.ts";
 import * as ChatTinychatServerJoinServer from "./types/chat/tinychat/server/joinServer.ts";
+import * as ChatTinychatServerMarkAllMessagesAsRead from "./types/chat/tinychat/server/markAllMessagesAsRead.ts";
 import * as ChatTinychatServerSendMessage from "./types/chat/tinychat/server/sendMessage.ts";
 import * as ComAtprotoAdminDefs from "./types/com/atproto/admin/defs.ts";
 import * as ComAtprotoAdminDeleteAccount from "./types/com/atproto/admin/deleteAccount.ts";
@@ -111,6 +112,7 @@ export * as ChatTinychatServerGetChannels from "./types/chat/tinychat/server/get
 export * as ChatTinychatServerGetMessages from "./types/chat/tinychat/server/getMessages.ts";
 export * as ChatTinychatServerGetServers from "./types/chat/tinychat/server/getServers.ts";
 export * as ChatTinychatServerJoinServer from "./types/chat/tinychat/server/joinServer.ts";
+export * as ChatTinychatServerMarkAllMessagesAsRead from "./types/chat/tinychat/server/markAllMessagesAsRead.ts";
 export * as ChatTinychatServerSendMessage from "./types/chat/tinychat/server/sendMessage.ts";
 export * as ComAtprotoAdminDefs from "./types/com/atproto/admin/defs.ts";
 export * as ComAtprotoAdminDeleteAccount from "./types/com/atproto/admin/deleteAccount.ts";
@@ -599,6 +601,18 @@ export class ChatTinychatServerNS {
   ): Promise<ChatTinychatServerJoinServer.Response> {
     return this._client.call(
       "chat.tinychat.server.joinServer",
+      opts?.qp,
+      data,
+      opts,
+    );
+  }
+
+  markAllMessagesAsRead(
+    data?: ChatTinychatServerMarkAllMessagesAsRead.InputSchema,
+    opts?: ChatTinychatServerMarkAllMessagesAsRead.CallOptions,
+  ): Promise<ChatTinychatServerMarkAllMessagesAsRead.Response> {
+    return this._client.call(
+      "chat.tinychat.server.markAllMessagesAsRead",
       opts?.qp,
       data,
       opts,

@@ -545,6 +545,38 @@ export const schemaDict = {
       },
     },
   },
+  ChatTinychatServerMarkAllMessagesAsRead: {
+    lexicon: 1,
+    id: "chat.tinychat.server.markAllMessagesAsRead",
+    defs: {
+      main: {
+        type: "procedure",
+        description:
+          "Mark all messages as read in specific channel. Requires authentication.",
+        input: {
+          encoding: "application/json",
+          schema: {
+            type: "object",
+            required: ["channel"],
+            properties: {
+              channel: {
+                type: "string",
+                format: "at-uri",
+                description: "Channel AT-URI.",
+              },
+            },
+          },
+        },
+        output: {
+          encoding: "application/json",
+          schema: {
+            type: "object",
+            properties: {},
+          },
+        },
+      },
+    },
+  },
   ChatTinychatServerSendMessage: {
     lexicon: 1,
     id: "chat.tinychat.server.sendMessage",
@@ -580,7 +612,13 @@ export const schemaDict = {
           encoding: "application/json",
           schema: {
             type: "object",
-            properties: {},
+            required: ["message"],
+            properties: {
+              message: {
+                type: "ref",
+                ref: "lex:chat.tinychat.server.defs#messageView",
+              },
+            },
           },
         },
       },
@@ -4684,6 +4722,8 @@ export const ids = {
   ChatTinychatServerGetMessages: "chat.tinychat.server.getMessages",
   ChatTinychatServerGetServers: "chat.tinychat.server.getServers",
   ChatTinychatServerJoinServer: "chat.tinychat.server.joinServer",
+  ChatTinychatServerMarkAllMessagesAsRead:
+    "chat.tinychat.server.markAllMessagesAsRead",
   ChatTinychatServerSendMessage: "chat.tinychat.server.sendMessage",
   ComAtprotoAdminDefs: "com.atproto.admin.defs",
   ComAtprotoAdminDeleteAccount: "com.atproto.admin.deleteAccount",

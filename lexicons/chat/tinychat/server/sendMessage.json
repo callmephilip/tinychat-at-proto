@@ -32,7 +32,13 @@
         "encoding": "application/json",
         "schema": {
           "type": "object",
-          "properties": {}
+          "required": ["message"],
+          "properties": {
+            "message": {
+              "type": "ref",
+              "ref": "chat.tinychat.server.defs#messageView"
+            }
+          }
         }
       }
     }

@@ -71,12 +71,12 @@ app.get("/chat/:server?", async (c) => {
 app.post("/messages/send", async (c) => {
   const agent = await c.var.ctx.agent();
   const data = await c.req.formData();
-  await agent?.chat.tinychat.server.sendMessage({
+  const d = await agent?.chat.tinychat.server.sendMessage({
     channel: data.get("channel")!.toString(),
     text: data.get("msg")!.toString(),
     server: data.get("server")!.toString(),
   });
-  return c.html("ok");
+  return c.html(Message({ message: d?.data.message!, oob: false }).toString());
 });
 
 app.get("/messages/list/:channel", async (c) => {

@@ -2,17 +2,24 @@
 
 // based on https://docs.deno.com/examples/chat_app_tutorial/
 
-export default class ChatServer {
-  private connectedClients = new Map<string, WebSocket>();
+interface ChatServerClient {
+  ws: WebSocket;
+  did?: string | undefined;
+}
 
-  public handleConnection(ws: WebSocket) {
-    const id = `${Math.random() * 100000}`;
+type BroadcastFilter = (client: ChatServerClient) => boolean;
+
+export default class ChatServer {
+  private connectedClients = new Map<string, ChatServerClient>();
+
+  public handleConnection(ws: WebSocket, additionalData: object) {
+    const id = `${Math.random() * 100000000}`;
 
     ws.onclose = () => {
       this.clientDisconnected(id);
     };
 
-    this.connectedClients.set(id, ws);
+    this.connectedClients.set(id, Object.assign({ ws }, additionalData));
     console.log(">>>>>>> connectedClients", this.connectedClients.size);
   }
 
@@ -21,10 +28,12 @@ export default class ChatServer {
     console.log(`Client ${id} disconnected`);
   }
 
-  public broadcast(message: string) {
+  public broadcast(message: string, filter?: BroadcastFilter | undefined) {
     for (const client of this.connectedClients.values()) {
       console.log(">>>>>>> sending message to", client);
-      client.send(message);
+      if (!filter || filter(client)) {
+        client.ws.send(message);
+      }
     }
   }
 }
@@ -82,13 +91,13 @@ app.get("/", (c) => c.redirect("https://github.com/callmephilip/tinychat"));
 // app.use("/ws", cors());
 app.get(
   "/ws",
-  upgradeWebSocket(() => {
+  upgradeWebSocket((c) => {
     return {
       onOpen: (_, ws) => {
         if (!ws.raw) {
           return;
         }
-        chatServer.handleConnection(ws.raw);
+        chatServer.handleConnection(ws.raw, c.req.query());
       },
     };
   }),
@@ -200,6 +209,7 @@ export const runAppView = (
           data: messages[0],
           html: Message({ message: messages[0], oob: true }).toString(),
         }),
+        (c: ChatServerClient) => c.did !== m.did,
       );
     },
   });

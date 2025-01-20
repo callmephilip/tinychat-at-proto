@@ -10,26 +10,25 @@ interface MessageProps {
 export const Message = ({ message, oob = false }: MessageProps) => {
   const Wrapper = oob
     ? ({ children }: PropsWithChildren) => (
-      <div
-        id={`channel-${shortIdFromAtUri(message.channel!)}`}
-        hx-swap="scroll:bottom"
-        hx-swap-oob="afterbegin"
-      >
-        {children}
-      </div>
-    )
+        <div
+          id={`channel-${shortIdFromAtUri(message.channel!)}`}
+          hx-swap="scroll:bottom"
+          hx-swap-oob="afterbegin"
+        >
+          {children}
+        </div>
+      )
     : ({ children }: PropsWithChildren) => <>{children}</>;
 
-  const avatar = message.sender.avatar ||
-    `https://ui-avatars.com/api/?name=${
-      encodeURI(
-        message.sender.displayName,
-      )
-    }&background=random&size=256`;
+  const avatar =
+    message.sender.avatar ||
+    `https://ui-avatars.com/api/?name=${encodeURI(
+      message.sender.displayName
+    )}&background=random&size=256`;
   return (
     <Wrapper>
       <div
-        id={`chat-message-${message.uri}`}
+        id={`chat-message-${shortIdFromAtUri(message.uri)}`}
         class="chat-message flex items-start mb-4 text-sm"
       >
         <img src={avatar} class="w-10 h-10 rounded mr-3" />{" "}
@@ -41,8 +40,7 @@ export const Message = ({ message, oob = false }: MessageProps) => {
               class="pl-2 text-grey text-xs"
             >
               {message.createdAt}
-            </span>
-            {" "}
+            </span>{" "}
           </div>
           <div class="leading-relaxed">
             <p>{message.text}</p>

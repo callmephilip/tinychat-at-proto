@@ -42,6 +42,7 @@ import { ActorView } from "tinychat/api/types/chat/tinychat/actor/defs.ts";
 import { MessageView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
 import { ids } from "tinychat/api/lexicons.ts";
 import { getProfile } from "tinychat/bsky.ts";
+import { Messaging } from "tinychat/core/messaging.ts";
 
 export type AppContext = {
   agent: () => Promise<TinychatAgent | undefined>;
@@ -109,6 +110,7 @@ export const runAppView = (
   { database }: AppViewContext = {},
 ): AppViewShutdown => {
   const db = database || getDatabase();
+  const messaging = new Messaging(db);
   console.log("Starting appview with db", db);
 
   // Cleanup function
@@ -183,18 +185,11 @@ export const runAppView = (
       }
     },
     onNewMessage: (m: NewMessageRecord) => {
-      db.prepare(
-        `INSERT INTO messages (uri, channel, server, text, sender, created_at, time_us) VALUES (
-          :uri, :channel, :server, :text, :sender, :createdAt, :timeUs
-        )`,
-      ).run({
+      messaging.receiveMessage({
+        m: m.commit.record,
         uri: m.uri,
-        channel: m.commit.record.channel,
-        server: m.commit.record.server,
-        text: m.commit.record.text,
         sender: m.did,
-        createdAt: m.commit.record.createdAt,
-        timeUs: m.time_us,
+        time_us: `${m.time_us}`,
       });
 
       // grab new message + sender info and broadcast to chat

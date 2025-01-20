@@ -47,6 +47,14 @@ const tables: Record<string, string> = {
   FOREIGN KEY (server) REFERENCES servers(uri)
   FOREIGN KEY (sender) REFERENCES users(did)
 );`,
+  read_receipts: `CREATE TABLE read_receipts (
+  channel TEXT NOT NULL,
+  user TEXT NOT NULL,
+  time_us TEXT NOT NULL,
+  PRIMARY KEY (user, channel),
+  FOREIGN KEY (channel) REFERENCES channels(uri),
+  FOREIGN KEY (user) REFERENCES users(did)
+);`,
 };
 
 let __db: Database | null = null;

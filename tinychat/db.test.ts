@@ -47,6 +47,14 @@ const tables: Record<string, string> = {
   FOREIGN KEY (server) REFERENCES servers(uri)
   FOREIGN KEY (sender) REFERENCES users(did)
 );`,
+  read_receipts: `CREATE TABLE read_receipts (
+  channel TEXT NOT NULL,
+  user TEXT NOT NULL,
+  time_us TEXT NOT NULL,
+  PRIMARY KEY (user, channel),
+  FOREIGN KEY (channel) REFERENCES channels(uri),
+  FOREIGN KEY (user) REFERENCES users(did)
+);`,
 };
 
 let __db: Database | null = null;
@@ -84,12 +92,16 @@ Deno.test("getDatabase", () => {
     .all<{
       name: string;
     }>();
-  assert(ts.length === 5);
-  assert(ts.some((t) => t.name === "users"));
-  assert(ts.some((t) => t.name === "servers"));
-  assert(ts.some((t) => t.name === "channels"));
-  assert(ts.some((t) => t.name === "server_memberships"));
-  assert(ts.some((t) => t.name === "messages"));
+  assert(ts.length === 6, "got 6 tables");
+  assert(ts.some((t) => t.name === "users"), "got users table");
+  assert(ts.some((t) => t.name === "servers"), "got servers table");
+  assert(ts.some((t) => t.name === "channels"), "got channels table");
+  assert(
+    ts.some((t) => t.name === "server_memberships"),
+    "got server_memberships table",
+  );
+  assert(ts.some((t) => t.name === "messages"), "got messages table");
+  assert(ts.some((t) => t.name === "read_receipts"), "got read_receipts table");
 });
 
 Deno.test("test keys for memberships", () => {

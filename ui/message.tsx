@@ -12,7 +12,8 @@ export const Message = ({ message, oob = false }: MessageProps) => {
     ? ({ children }: PropsWithChildren) => (
       <div
         id={`channel-${shortIdFromAtUri(message.channel!)}`}
-        hx-swap-oob="beforeend"
+        hx-swap="scroll:bottom"
+        hx-swap-oob="afterbegin"
       >
         {children}
       </div>

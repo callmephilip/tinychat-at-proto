@@ -106,6 +106,7 @@ export const Chat = () => {
           class="scroller px-6 py-4 flex-1 flex flex-col-reverse overflow-y-scroll"
         >
           {/* style="padding-top: 60px; padding-bottom: 130px;" if is_mobile else "" */}
+          {/* Lazy load first batch of messages */}
           <div
             hx-trigger="load"
             hx-get={`/messages/list/${
@@ -113,8 +114,8 @@ export const Chat = () => {
                 currentChannel?.uri!,
               )
             }`}
-          >
-          </div>
+            hx-swap="outerHTML"
+          />
         </div>
         <div class="pb-6 px-4 flex-none">
           {

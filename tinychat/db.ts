@@ -99,7 +99,7 @@ export const getDatabase = (
   __db
     .prepare(
       `CREATE VIEW channel_view AS
-       SELECT c.*, sm.user, COALESCE(rr.time_us, NULL) as last_message_read_time
+       SELECT c.*, sm.user, COALESCE(rr.time_us, NULL) as last_message_read_time_us
        FROM channels c
        JOIN server_memberships sm ON sm.server = c.server
        LEFT JOIN read_receipts rr ON rr.channel = c.uri AND rr.user = sm.user;`,

@@ -32,13 +32,13 @@ export class Messaging {
         uri: string;
         name: string;
         latest_message_received_time_us: string | null;
-        last_message_read_time: string | null;
+        last_message_read_time_us: string | null;
       }>(Object.assign({ server }, viewer ? { viewer } : {}))
       .map((rec) => ({
         uri: rec.uri,
         name: rec.name,
-        lastMessageReadTime: rec.last_message_read_time || undefined,
-        latestMessageReceivedTimeUs: rec.latest_message_received_time_us ||
+        lastMessageReadTime: rec.last_message_read_time_us || undefined,
+        latestMessageReceivedTime: rec.latest_message_received_time_us ||
           undefined,
       }));
   }

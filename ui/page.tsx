@@ -1,14 +1,19 @@
 import { PropsWithChildren } from "hono/jsx";
 import { getNotificationsWsUrl } from "tinychat/config.ts";
+import { ActorView } from "tinychat/api/types/chat/tinychat/actor/defs.ts";
 
 type PageProps = PropsWithChildren<{
   hideOverflow?: boolean;
   htmx?: boolean;
+  user?: ActorView | undefined;
 }>;
 
-export const Page = ({ hideOverflow, htmx, children }: PageProps) => {
+export const Page = ({ hideOverflow, htmx, user, children }: PageProps) => {
   const htmxAttrs = htmx
-    ? { "hx-ext": "ws", "ws-connect": getNotificationsWsUrl() }
+    ? {
+      "hx-ext": "ws",
+      "ws-connect": getNotificationsWsUrl({ user }),
+    }
     : {};
   const bodyClasses = `font-sans antialiased h-dvh flex bg-background ${
     hideOverflow ? "overflow-hidden" : ""

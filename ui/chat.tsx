@@ -9,7 +9,7 @@ export const Chat = () => {
   const { server, currentChannel } = useServer();
   console.log(">>>>>>>>> user  inside chat is", user);
   return (
-    <Page hideOverflow htmx>
+    <Page user={user} hideOverflow htmx>
       {/* Sidebar  */}
       <div class="flex-none md:w-64 block overflow-hidden">
         <div class="space-y-4">

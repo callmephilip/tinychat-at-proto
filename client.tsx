@@ -1,6 +1,7 @@
 import { serveStatic } from "hono/deno";
 import { app } from "tinychat/client.ts";
 import { ChatPage } from "@tinychat/ui/pages/chat.tsx";
+import { Message } from "@tinychat/ui/message.tsx";
 import { sleep } from "tinychat/utils.ts";
 
 // reset env vars - if we want to test oauth properly
@@ -76,6 +77,26 @@ app.post("/messages/send", async (c) => {
     server: data.get("server")!.toString(),
   });
   return c.html("ok");
+});
+
+app.get("/messages/list/:channel", async (c) => {
+  const { channel } = c.req.param();
+  const agent = await c.var.ctx.agent();
+  const d = await agent?.chat.tinychat.server.getMessages({
+    channel,
+    limit: 40,
+  });
+
+  // load_previous = Div(
+  //       cls="messages-loading htmx-indicator", hx_get=f"/c/messages/{cid}?c={prev_cursor}", hx_indicator=".messages-loading",
+  //       hx_trigger="intersect once", hx_target=f"#channel-{cid}", hx_swap=f"beforeend show:#chat-message-{msgs[-1].id}:top"
+  //   ) if len(msgs) == settings.message_history_page_size else None
+
+  return c.html(
+    (d?.data.messages || [])
+      .map((message) => Message({ message, oob: false }).toString())
+      .join(""),
+  );
 });
 
 Deno.serve(

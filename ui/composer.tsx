@@ -1,6 +1,8 @@
 import { shortIdFromAtUri } from "tinychat/utils.ts";
 import { useServer } from "@tinychat/ui/context/server.tsx";
 
+// emojis per tutti - https://github.com/missive/emoji-mart
+
 export const Composer = () => {
   const { server, currentChannel } = useServer();
   return (
@@ -24,8 +26,7 @@ export const Composer = () => {
         />
         <input type="hidden" name="channel" value={currentChannel?.uri} />
         <input type="hidden" name="server" value={server?.uri} />
-        {
-          /* <div
+        {/* <div
           id="editor-container"
           class="editor-container editor-container_classic-editor flex flex-col rounded-lg border-2 border-grey overflow-hidden"
         >
@@ -57,11 +58,9 @@ export const Composer = () => {
               </svg>
             </button>{" "}
           </div>
-        </div> */
-        }
+        </div> */}
       </form>
-      {
-        /* <form
+      {/* <form
         enctype="multipart/form-data"
         hx-post="/upload"
         hx-swap="beforeend"
@@ -78,8 +77,7 @@ export const Composer = () => {
           style="display: none"
           name="file"
         />
-      </form> */
-      }
+      </form> */}
     </>
   );
 };

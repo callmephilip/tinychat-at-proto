@@ -18,3 +18,26 @@ window.tc = {
     });
   },
 };
+
+// re https://github.com/bigskysoftware/htmx/issues/183#issuecomment-2594701369
+document.addEventListener("DOMContentLoaded", function () {
+  document.body.addEventListener(
+    "mousedown",
+    function (event) {
+      const anchor = event.target.closest("a");
+      const isButtonOrInput =
+        event.target.tagName === "BUTTON" || event.target.tagName === "INPUT";
+
+      if (
+        (anchor &&
+          (anchor.hasAttribute("hx-get") || anchor.hasAttribute("hx-post"))) ||
+        isButtonOrInput
+      ) {
+        if (event.button > 0) {
+          event.stopImmediatePropagation();
+        }
+      }
+    },
+    true
+  );
+});

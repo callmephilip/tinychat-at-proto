@@ -8,14 +8,16 @@ import { Chat } from "@tinychat/ui/chat.tsx";
 export const ChatPage = ({
   auth,
   server,
+  noShell,
 }: {
   auth: AuthContext;
   server: ServerContext;
+  noShell?: boolean;
 }) => {
   return (
     <AppAuthContext.Provider value={auth}>
       <AppServerContext.Provider value={server}>
-        <Chat />
+        <Chat noShell={noShell} />
       </AppServerContext.Provider>
     </AppAuthContext.Provider>
   );

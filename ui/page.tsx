@@ -31,7 +31,7 @@ export const Page = ({ hideOverflow, htmx, user, children }: PageProps) => {
       </head>
       <body {...htmxAttrs} className={bodyClasses}>
         {children}
-        <script src="/static/composer.js" />
+        <script src="/static/tc.js" />
       </body>
     </html>
   );

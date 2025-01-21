@@ -12,6 +12,7 @@ export const Composer = () => {
         hx-post="/messages/send"
         hx-swap="afterbegin"
         hx-target={`#channel-${shortIdFromAtUri(currentChannel?.uri!)}`}
+        data-channel={currentChannel?.uri}
         id="f-1"
         class="w-full"
         name="f-1"
@@ -26,7 +27,8 @@ export const Composer = () => {
         />
         <input type="hidden" name="channel" value={currentChannel?.uri} />
         <input type="hidden" name="server" value={server?.uri} />
-        {/* <div
+        {
+          /* <div
           id="editor-container"
           class="editor-container editor-container_classic-editor flex flex-col rounded-lg border-2 border-grey overflow-hidden"
         >
@@ -58,9 +60,11 @@ export const Composer = () => {
               </svg>
             </button>{" "}
           </div>
-        </div> */}
+        </div> */
+        }
       </form>
-      {/* <form
+      {
+        /* <form
         enctype="multipart/form-data"
         hx-post="/upload"
         hx-swap="beforeend"
@@ -77,7 +81,9 @@ export const Composer = () => {
           style="display: none"
           name="file"
         />
-      </form> */}
+      </form> */
+      }
+      <script src="/static/composer.js" />
     </>
   );
 };

@@ -12,7 +12,7 @@ export interface ServerView {
   uri: string;
   name: string;
   creator: string;
-  channels?: ChannelView[];
+  channels: ChannelView[];
   [k: string]: unknown;
 }
 
@@ -32,6 +32,7 @@ export function validateServerView(v: unknown): ValidationResult {
 export interface ChannelView {
   uri: string;
   name: string;
+  server: string;
   latestMessageReceivedTime?: string;
   lastMessageReadTime?: string;
   [k: string]: unknown;

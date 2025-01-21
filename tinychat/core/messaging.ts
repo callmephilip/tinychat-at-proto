@@ -3,8 +3,13 @@
 import type { Database } from "tinychat/db.ts";
 import { Record as Message } from "tinychat/api/types/chat/tinychat/core/message.ts";
 import { ChannelView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
+import { ServerView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
 
 const get_time_us = (): string => `${new Date().getTime() * 1000}`;
+
+const cleanupChannelView = (view: ChannelView) => {
+  return Object.fromEntries(Object.entries(view).filter(([, v]) => v !== null));
+};
 
 export class Messaging {
   constructor(protected db: Database) {}
@@ -19,6 +24,73 @@ export class Messaging {
       .run({ channel, user, time: get_time_us() });
   }
 
+  public getServers(
+    { uris, did, viewer }: {
+      uris?: string[] | undefined;
+      did?: string | undefined;
+      viewer?: string | undefined;
+    },
+  ): ServerView[] {
+    const sql = (where: string = "") => {
+      const w = [viewer ? `c.user = '${viewer}'` : "", where].filter((q) => q)
+        .join(" AND ").trim();
+      const s = !viewer
+        ? `SELECT 
+        s.uri,
+        s.name,
+        s.creator,
+        json_group_array(
+          json_object(
+            'uri', c.uri,
+            'name', c.name,
+            'server', c.server,
+            'latestMessageReceivedTime', c.latest_message_received_time_us
+          )
+        ) as channels
+        FROM servers s
+        INNER JOIN channels c ON c.server = s.uri
+        ${w ? `WHERE ${w}` : ""}
+        GROUP BY s.uri`
+        : `SELECT 
+        s.uri,
+        s.name,
+        s.creator,
+        json_group_array(
+          json_object(
+            'uri', c.uri,
+            'name', c.name,
+            'server', c.server,
+            'lastMessageReadTime', c.last_message_read_time_us,
+            'latestMessageReceivedTime', c.latest_message_received_time_us
+          )
+        ) as channels
+        FROM servers s
+        INNER JOIN channel_view c ON c.server = s.uri
+        ${w ? `WHERE ${w}` : ""}
+        GROUP BY s.uri`;
+      return this.db.prepare(s);
+    };
+
+    let results: ServerView[] = [];
+    if (uris && uris.length > 0) {
+      results = sql(`s.uri IN (${uris.map((u) => `'${u}'`).join(", ")})`).all<
+        ServerView
+      >();
+    } else if (did) {
+      results = sql(`s.creator = :did`).all<ServerView>({
+        did,
+      });
+    } else {
+      results = sql().all<ServerView>();
+    }
+
+    return results.map((rec) =>
+      Object.assign(rec, {
+        channels: (rec.channels || []).map(cleanupChannelView),
+      })
+    );
+  }
+
   public getChannels(
     { server, viewer }: { server: string; viewer?: string | undefined },
   ): ChannelView[] {
@@ -31,12 +103,14 @@ export class Messaging {
       .all<{
         uri: string;
         name: string;
+        server: string;
         latest_message_received_time_us: string | null;
         last_message_read_time_us: string | null;
       }>(Object.assign({ server }, viewer ? { viewer } : {}))
       .map((rec) => ({
         uri: rec.uri,
         name: rec.name,
+        server: rec.server,
         lastMessageReadTime: rec.last_message_read_time_us || undefined,
         latestMessageReceivedTime: rec.latest_message_received_time_us ||
           undefined,
@@ -159,6 +233,55 @@ class TestMessaging extends Messaging {
           server: "at://server-1",
         });
     });
+
+    // set up another chat server
+    service.db
+      .prepare(
+        `
+      INSERT INTO servers (uri, name, creator) VALUES (
+        :uri, :name, :creator
+      )
+    `,
+      )
+      .run({
+        uri: "at://server-2",
+        name: "Test Server 2",
+        creator: "did:1",
+      });
+
+    // create memberships for both users
+    [1, 2].forEach((i) => {
+      service.db
+        .prepare(
+          `
+        INSERT INTO server_memberships (user, server) VALUES (
+          :user, :server
+        )
+      `,
+        )
+        .run({
+          user: `did:${i}`,
+          server: "at://server-2",
+        });
+    });
+
+    // setup channels
+    [1, 2].forEach((i) => {
+      service.db
+        .prepare(
+          `
+        INSERT INTO channels (uri, name, server) VALUES (
+          :uri, :name, :server
+        )
+      `,
+        )
+        .run({
+          uri: `at://channel-server-2-${i}`,
+          name: `channel server 2 ${i}`,
+          server: "at://server-2",
+        });
+    });
+
     return service;
   }
 }

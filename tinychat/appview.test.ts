@@ -39,7 +39,11 @@ export default class ChatServer {
 
   public broadcastFn(fn: (client: ChatServerClient) => string) {
     for (const client of this.connectedClients.values()) {
-      client.ws.send(fn(client));
+      try {
+        client.ws.send(fn(client));
+      } catch (e) {
+        console.error("Error broadcasting to client", client, "error is:", e);
+      }
     }
   }
 }
@@ -262,56 +266,9 @@ app.get(`/xrpc/${ids.ChatTinychatActorGetProfile}`, async (c) => {
 });
 
 "";
-interface ServerData {
-  uri: string;
-  creator: string;
-  name: string;
-  channels: {
-    uri: string;
-    name: string;
-  }[];
-}
-
-const runServerQuery = ({
-  uris,
-  did,
-  db,
-}: {
-  db: Database;
-  uris: string[] | undefined;
-  did: string | undefined;
-}): ServerData[] => {
-  const sql = (where: string = "") =>
-    db.prepare(`SELECT 
-      s.uri,
-      s.name,
-      s.creator,
-      json_group_array(
-        json_object(
-          'uri', c.uri,
-          'name', c.name
-        )
-      ) as channels
-    FROM servers s
-    INNER JOIN channels c ON c.server = s.uri
-    ${where ? `WHERE ${where}` : ""}
-    GROUP BY s.uri, s.name, s.creator`);
-
-  if (uris && uris.length > 0) {
-    return sql(`s.uri IN (${uris.map((u) => `'${u}'`).join(", ")})`).all<
-      ServerData
-    >();
-  } else if (did) {
-    return sql(`s.creator = :did`).all<ServerData>({
-      did,
-    });
-  }
-
-  return sql().all<ServerData>();
-};
-
-app.get(`/xrpc/${ids.ChatTinychatServerGetServers}`, (c) => {
+app.get(`/xrpc/${ids.ChatTinychatServerGetServers}`, async (c) => {
   const { db } = c.var.ctx;
+  const agent = await c.var.ctx.agent();
 
   if (!db) {
     throw new HTTPException(500, { message: "DB not available" });
@@ -322,7 +279,11 @@ app.get(`/xrpc/${ids.ChatTinychatServerGetServers}`, (c) => {
 
   console.log(">>>>>>>>>>>>>. getting servers for", uris, did);
 
-  const servers = runServerQuery({ db, uris, did });
+  const servers = new Messaging(db!).getServers({
+    uris,
+    did,
+    viewer: agent?.agent.did,
+  });
 
   console.log(">>>>>>>>>>>>>. servers", servers);
 
@@ -636,6 +597,9 @@ Deno.test("test xrpc", async (t) => {
 
   await t.step("list available servers", async () => {
     const { data } = await agent.chat.tinychat.server.getServers();
+
+    console.log(">>>>>>>>>>>>>>>>> DA SERVERs are", data.servers);
+
     assert(data.servers.length > 0, "got a least 1 server");
     assert(data.servers.find((s) => s.name === serverName), "found our server");
     assert(
@@ -654,6 +618,9 @@ Deno.test("test xrpc", async (t) => {
     const { data: data1 } = await agent.chat.tinychat.server.getServers({
       uris: [chatServer.uri, anotherChatServer.uri],
     });
+
+    console.log(">>>>>>>>>> new batch of servers found", data1.servers);
+
     assert(data1.servers.length === 2, "got 2 servers for specific URIs");
     assert(
       data1.servers.find((s) => s.name === serverName),

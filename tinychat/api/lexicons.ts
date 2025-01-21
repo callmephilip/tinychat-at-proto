@@ -304,7 +304,7 @@ export const schemaDict = {
       serverView: {
         type: "object",
         description: "Chat server instance view",
-        required: ["uri", "name", "creator"],
+        required: ["uri", "name", "creator", "channels"],
         properties: {
           uri: {
             type: "string",
@@ -329,7 +329,7 @@ export const schemaDict = {
       channelView: {
         type: "object",
         description: "Chat server channel instance view",
-        required: ["uri", "name"],
+        required: ["uri", "name", "server"],
         properties: {
           uri: {
             type: "string",
@@ -337,6 +337,10 @@ export const schemaDict = {
           },
           name: {
             type: "string",
+          },
+          server: {
+            type: "string",
+            format: "at-uri",
           },
           latestMessageReceivedTime: {
             type: "string",

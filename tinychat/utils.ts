@@ -38,3 +38,20 @@ export async function assertWithWait<T>(
 export const shortIdFromAtUri = (atUri: string) => {
   return atUri.split("/").pop();
 };
+import { ids } from "tinychat/api/lexicons.ts";
+
+export const serverAtURIFromUrl = (url: string) => {
+  const parts = url.split("?")[0].split("/chat")[1].replace(/^\//ig, "").split(
+    "/",
+  );
+  return `at://did:plc:${parts[0]}/${ids.ChatTinychatCoreServer}/${parts[1]}`;
+};
+
+export const urlFromServerAtURI = (atUri: string) => {
+  const parts = atUri.split(ids.ChatTinychatCoreServer);
+  //@ts-ignore yolo
+  const did = parts[0].split(":").pop().replace("/", "");
+  //@ts-ignore yolo
+  const rkey = parts[1].replace("/", "");
+  return `/chat/${did}/${rkey}`;
+};

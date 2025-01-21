@@ -38,6 +38,23 @@ export async function assertWithWait<T>(
 export const shortIdFromAtUri = (atUri: string) => {
   return atUri.split("/").pop();
 };
+import { ids } from "tinychat/api/lexicons.ts";
+
+export const serverAtURIFromUrl = (url: string) => {
+  const parts = url.split("?")[0].split("/chat")[1].replace(/^\//ig, "").split(
+    "/",
+  );
+  return `at://did:plc:${parts[0]}/${ids.ChatTinychatCoreServer}/${parts[1]}`;
+};
+
+export const urlFromServerAtURI = (atUri: string) => {
+  const parts = atUri.split(ids.ChatTinychatCoreServer);
+  //@ts-ignore yolo
+  const did = parts[0].split(":").pop().replace("/", "");
+  //@ts-ignore yolo
+  const rkey = parts[1].replace("/", "");
+  return `/chat/${did}/${rkey}`;
+};
 
 /** ----------------tests ---------------- **/
 
@@ -103,5 +120,29 @@ Deno.test("shortIdFromAtUri", () => {
       "at://did:plc:ubdeopbbkbgedccgbum7dhsh/chat.tinychat.server/3lfu4indvy72b",
     ),
     "3lfu4indvy72b",
+  );
+});
+
+Deno.test("serverAtURIFromUrl", () => {
+  assertEquals(
+    serverAtURIFromUrl(
+      "https://tinychat.ngrok.app/chat/ubdeopbbkbgedccgbum7dhsh/3lgawfvbbtx2b",
+    ),
+    "at://did:plc:ubdeopbbkbgedccgbum7dhsh/chat.tinychat.core.server/3lgawfvbbtx2b",
+  );
+  assertEquals(
+    serverAtURIFromUrl(
+      "https://tinychat.ngrok.app/chat/ubdeopbbkbgedccgbum7dhsh/3lgawfvbbtx2b?a=1&b=2",
+    ),
+    "at://did:plc:ubdeopbbkbgedccgbum7dhsh/chat.tinychat.core.server/3lgawfvbbtx2b",
+  );
+});
+
+Deno.test("urlFromServerAtURI", () => {
+  assertEquals(
+    urlFromServerAtURI(
+      "at://did:plc:ubdeopbbkbgedccgbum7dhsh/chat.tinychat.core.server/3lgawfvbbtx2b",
+    ),
+    "/chat/ubdeopbbkbgedccgbum7dhsh/3lgawfvbbtx2b",
   );
 });

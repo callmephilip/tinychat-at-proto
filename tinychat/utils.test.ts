@@ -39,6 +39,7 @@ export const shortIdFromAtUri = (atUri: string) => {
   return atUri.split("/").pop();
 };
 import { ids } from "tinychat/api/lexicons.ts";
+import { ChannelView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
 
 export const serverAtURIFromUrl = (url: string) => {
   const parts = url.split("?")[0].split("/chat")[1].replace(/^\//ig, "").split(
@@ -54,6 +55,25 @@ export const urlFromServerAtURI = (atUri: string) => {
   //@ts-ignore yolo
   const rkey = parts[1].replace("/", "");
   return `/chat/${did}/${rkey}`;
+};
+
+export const urlForChannelMessageList = (channel: ChannelView) => {
+  return urlFromServerAtURI(channel.server).replace("/chat", "/messages/list") +
+    "/" + channel.id;
+};
+
+export const parseURLForChannelMessageList = (
+  url: string,
+): { server: string; channel: string } => {
+  const parts = url.replace("/messages/list/", "").split("/");
+  // "/messages/list/ubdeopbbkbgedccgbum7dhsh/3lgawfvbbtx2b/abc";
+  console.log(parts);
+  return {
+    server: `at://did:plc:${parts[0]}/${ids.ChatTinychatCoreServer}/${
+      parts[1]
+    }`,
+    channel: parts[2],
+  };
 };
 
 /** ----------------tests ---------------- **/
@@ -144,5 +164,30 @@ Deno.test("urlFromServerAtURI", () => {
       "at://did:plc:ubdeopbbkbgedccgbum7dhsh/chat.tinychat.core.server/3lgawfvbbtx2b",
     ),
     "/chat/ubdeopbbkbgedccgbum7dhsh/3lgawfvbbtx2b",
+  );
+});
+
+Deno.test("urlForChannelMessageList", () => {
+  assertEquals(
+    urlForChannelMessageList({
+      id: "abc",
+      server:
+        "at://did:plc:ubdeopbbkbgedccgbum7dhsh/chat.tinychat.core.server/3lgawfvbbtx2b",
+      name: "foo",
+    }),
+    "/messages/list/ubdeopbbkbgedccgbum7dhsh/3lgawfvbbtx2b/abc",
+  );
+});
+
+Deno.test("parseURLForChannelMessageList", () => {
+  assertEquals(
+    parseURLForChannelMessageList(
+      "/messages/list/ubdeopbbkbgedccgbum7dhsh/3lgawfvbbtx2b/abc",
+    ),
+    {
+      server:
+        "at://did:plc:ubdeopbbkbgedccgbum7dhsh/chat.tinychat.core.server/3lgawfvbbtx2b",
+      channel: "abc",
+    },
   );
 });

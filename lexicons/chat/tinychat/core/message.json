@@ -23,8 +23,8 @@
           },
           "channel": {
             "type": "string",
-            "format": "at-uri",
-            "description": "Reference (AT-URI) to the channel record (chat.tinychat.core.channel)."
+            "format": "tid",
+            "description": "Reference (tid) to the channel within server record."
           },
           "facets": {
             "type": "array",

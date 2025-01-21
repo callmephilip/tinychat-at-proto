@@ -1,5 +1,4 @@
 import { ChannelView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
-import { shortIdFromAtUri } from "tinychat/utils.ts";
 import { urlFromServerAtURI } from "tinychat/utils.ts";
 
 const hasUnreadMessages = (channel: ChannelView): boolean => {
@@ -16,11 +15,10 @@ const hasUnreadMessages = (channel: ChannelView): boolean => {
 
 // channel as it appears in the sidebar
 export const Channel = ({ channel }: { channel: ChannelView }) => {
-  const href = urlFromServerAtURI(channel.server) + "?ch=" +
-    shortIdFromAtUri(channel.uri);
+  const href = urlFromServerAtURI(channel.server) + "?ch=" + channel.id;
   return (
     <a
-      id={`nav-channel-${shortIdFromAtUri(channel.uri)}`}
+      id={`nav-channel-${channel.id}`}
       href={href}
       hx-get={href}
       hx-push-url="true"

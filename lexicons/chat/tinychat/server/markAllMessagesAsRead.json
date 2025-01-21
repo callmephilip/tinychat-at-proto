@@ -13,8 +13,13 @@
           "properties": {
             "channel": {
               "type": "string",
+              "format": "tid",
+              "description": "Channel id."
+            },
+            "server": {
+              "type": "string",
               "format": "at-uri",
-              "description": "Channel AT-URI."
+              "description": "Server AT-URI."
             }
           }
         }

@@ -13,8 +13,8 @@
           "properties": {
             "channel": {
               "type": "string",
-              "format": "at-uri",
-              "description": "Channel AT-URI to return messages for."
+              "format": "tid",
+              "description": "Channel id to return messages for."
             },
             "server": {
               "type": "string",

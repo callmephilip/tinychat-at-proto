@@ -40,14 +40,10 @@ const newServerRecordSchema = makeBaseSchema(
   z.object({
     $type: z.literal(ids.ChatTinychatCoreServer),
     name: z.string(),
-  }),
-);
-
-const newChannelRecordSchema = makeBaseSchema(
-  z.object({
-    $type: z.literal(ids.ChatTinychatCoreChannel),
-    name: z.string(),
-    server: z.string(),
+    channels: z.array(z.object({
+      id: z.string(),
+      name: z.string(),
+    })).min(1),
   }),
 );
 
@@ -70,7 +66,6 @@ const newMessageRecordSchema = makeBaseSchema(
 );
 
 export type NewServerRecord = z.infer<typeof newServerRecordSchema>;
-export type NewChannelRecord = z.infer<typeof newChannelRecordSchema>;
 export type NewMembershipRecord = z.infer<typeof newMembershipRecordSchema>;
 export type NewMessageRecord = z.infer<typeof newMessageRecordSchema>;
 
@@ -85,14 +80,12 @@ type JetstreamCleanup = () => void;
 type JetstreamConfig = {
   db: Database;
   onNewServer: (m: NewServerRecord) => void;
-  onNewChannel: (m: NewChannelRecord) => void;
   onNewMembership: (m: NewMembershipRecord) => void;
   onNewMessage: (m: NewMessageRecord) => void;
 };
 
 export function startJetstream(
-  { onNewServer, onNewMembership, onNewChannel, onNewMessage, db }:
-    JetstreamConfig,
+  { onNewServer, onNewMembership, onNewMessage, db }: JetstreamConfig,
 ): JetstreamCleanup {
   console.log("Starting jetstream");
 
@@ -154,16 +147,6 @@ export function startJetstream(
     onNewMembership(newMembershipRecordSchema.parse(event));
   });
 
-  // handle channel updates
-  jetstream.on(ids.ChatTinychatCoreChannel, async (event) => {
-    // we only do creates for now
-    if (event.commit.operation !== "create") {
-      return;
-    }
-    await syncUser(event.did);
-    onNewChannel(newChannelRecordSchema.parse(event));
-  });
-
   // handle new message
   jetstream.on(ids.ChatTinychatCoreMessage, async (event) => {
     // we only do creates for now
@@ -198,15 +181,11 @@ import { getDatabase } from "tinychat/db.ts";
 Deno.test("jetstream", async (t) => {
   const servers: NewServerRecord[] = [];
   const memberships: NewMembershipRecord[] = [];
-  const channels: NewChannelRecord[] = [];
   const messages: NewMessageRecord[] = [];
   const cleanup = startJetstream({
     db: getDatabase(),
     onNewServer: (m: NewServerRecord) => {
       servers.push(m);
-    },
-    onNewChannel: (m: NewChannelRecord) => {
-      channels.push(m);
     },
     onNewMembership: (m: NewMembershipRecord) => {
       memberships.push(m);
@@ -216,6 +195,7 @@ Deno.test("jetstream", async (t) => {
     },
   });
   const serverName = `test-${TID.nextStr()}`;
+  const channelId = TID.nextStr();
   const agent = await TinychatAgent.create();
   const repo = await agent.agent.assertDid;
 
@@ -223,22 +203,18 @@ Deno.test("jetstream", async (t) => {
 
   const chatServer = await agent.chat.tinychat.core.server.create({ repo }, {
     name: serverName,
+    channels: [
+      { id: channelId, name: "test channel" },
+    ],
   });
   await agent.chat.tinychat.core.membership.create({ repo }, {
     server: chatServer.uri,
     createdAt: new Date().toISOString(),
   });
-  const chatChannel = await agent.chat.tinychat.core.channel.create(
-    { repo },
-    {
-      name: "test channel",
-      server: chatServer.uri,
-    },
-  );
   await agent.chat.tinychat.core.message.create({
     repo,
   }, {
-    channel: chatChannel.uri,
+    channel: channelId,
     server: chatServer.uri,
     text: "Hello world",
     createdAt: new Date().toISOString(),
@@ -249,20 +225,18 @@ Deno.test("jetstream", async (t) => {
   await t.step("spot check jetstream updates", () => {
     assert(servers.length > 0);
     assert(servers.some((s) => s.commit.record.name === serverName));
-    assert(memberships.length > 0);
-    assert(memberships.some((m) => m.commit.record.server === chatServer.uri));
-    assert(channels.length > 0);
     assert(
-      channels.some((c) =>
-        c.commit.record.name === "test channel" &&
-        c.commit.record.server === chatServer.uri
+      servers.some((s) =>
+        s.commit.record.channels.some((c) => c.id === channelId)
       ),
     );
+    assert(memberships.length > 0);
+    assert(memberships.some((m) => m.commit.record.server === chatServer.uri));
     assert(messages.length > 0);
     assert(
       messages.some((m) =>
         m.commit.record.text === "Hello world" &&
-        m.commit.record.channel === chatChannel.uri
+        m.commit.record.channel === channelId
       ),
     );
   });

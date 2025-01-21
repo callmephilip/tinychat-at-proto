@@ -13,7 +13,7 @@ export interface Record {
   text: string;
   /** Reference (AT-URI) to the server record (chat.tinychat.core.server). */
   server: string;
-  /** Reference (AT-URI) to the channel record (chat.tinychat.core.channel). */
+  /** Reference (tid) to the channel within server record. */
   channel: string;
   /** Annotations of text (mentions, URLs, hashtags, etc) */
   facets?: ChatTinychatRichtextFacet.Main[];

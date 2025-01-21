@@ -11,7 +11,7 @@ import * as ChatTinychatServerDefs from "./defs.ts";
 export interface QueryParams {}
 
 export interface InputSchema {
-  /** Channel AT-URI to return messages for. */
+  /** Channel id to return messages for. */
   channel: string;
   /** Server AT-URI to return messages for. */
   server: string;

@@ -40,14 +40,10 @@ const newServerRecordSchema = makeBaseSchema(
   z.object({
     $type: z.literal(ids.ChatTinychatCoreServer),
     name: z.string(),
-  }),
-);
-
-const newChannelRecordSchema = makeBaseSchema(
-  z.object({
-    $type: z.literal(ids.ChatTinychatCoreChannel),
-    name: z.string(),
-    server: z.string(),
+    channels: z.array(z.object({
+      id: z.string(),
+      name: z.string(),
+    })).min(1),
   }),
 );
 
@@ -70,7 +66,6 @@ const newMessageRecordSchema = makeBaseSchema(
 );
 
 export type NewServerRecord = z.infer<typeof newServerRecordSchema>;
-export type NewChannelRecord = z.infer<typeof newChannelRecordSchema>;
 export type NewMembershipRecord = z.infer<typeof newMembershipRecordSchema>;
 export type NewMessageRecord = z.infer<typeof newMessageRecordSchema>;
 
@@ -85,14 +80,12 @@ type JetstreamCleanup = () => void;
 type JetstreamConfig = {
   db: Database;
   onNewServer: (m: NewServerRecord) => void;
-  onNewChannel: (m: NewChannelRecord) => void;
   onNewMembership: (m: NewMembershipRecord) => void;
   onNewMessage: (m: NewMessageRecord) => void;
 };
 
 export function startJetstream(
-  { onNewServer, onNewMembership, onNewChannel, onNewMessage, db }:
-    JetstreamConfig,
+  { onNewServer, onNewMembership, onNewMessage, db }: JetstreamConfig,
 ): JetstreamCleanup {
   console.log("Starting jetstream");
 
@@ -152,16 +145,6 @@ export function startJetstream(
     }
     await syncUser(event.did);
     onNewMembership(newMembershipRecordSchema.parse(event));
-  });
-
-  // handle channel updates
-  jetstream.on(ids.ChatTinychatCoreChannel, async (event) => {
-    // we only do creates for now
-    if (event.commit.operation !== "create") {
-      return;
-    }
-    await syncUser(event.did);
-    onNewChannel(newChannelRecordSchema.parse(event));
   });
 
   // handle new message

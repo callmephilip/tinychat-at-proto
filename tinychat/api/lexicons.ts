@@ -67,35 +67,6 @@ export const schemaDict = {
       },
     },
   },
-  ChatTinychatCoreChannel: {
-    lexicon: 1,
-    id: "chat.tinychat.core.channel",
-    defs: {
-      main: {
-        type: "record",
-        description: "Chat channel that is part of chat server",
-        key: "any",
-        record: {
-          type: "object",
-          required: ["name", "server"],
-          properties: {
-            name: {
-              type: "string",
-              description: "Channel name",
-              maxGraphemes: 64,
-              maxLength: 640,
-            },
-            server: {
-              type: "string",
-              format: "at-uri",
-              description:
-                "Reference (AT-URI) to the server record (chat.tinychat.server).",
-            },
-          },
-        },
-      },
-    },
-  },
   ChatTinychatCoreMembership: {
     lexicon: 1,
     id: "chat.tinychat.core.membership",
@@ -151,9 +122,9 @@ export const schemaDict = {
             },
             channel: {
               type: "string",
-              format: "at-uri",
+              format: "tid",
               description:
-                "Reference (AT-URI) to the channel record (chat.tinychat.core.channel).",
+                "Reference (tid) to the channel within server record.",
             },
             facets: {
               type: "array",
@@ -203,7 +174,7 @@ export const schemaDict = {
         key: "any",
         record: {
           type: "object",
-          required: ["name"],
+          required: ["name", "channels"],
           properties: {
             name: {
               type: "string",
@@ -211,6 +182,32 @@ export const schemaDict = {
               maxGraphemes: 64,
               maxLength: 640,
             },
+            channels: {
+              type: "array",
+              description: "Channels on this server",
+              minLength: 1,
+              maxLength: 100,
+              items: {
+                type: "ref",
+                ref: "lex:chat.tinychat.core.server#channelRef",
+              },
+            },
+          },
+        },
+      },
+      channelRef: {
+        type: "object",
+        required: ["id", "name"],
+        properties: {
+          id: {
+            type: "string",
+            format: "tid",
+          },
+          name: {
+            type: "string",
+            description: "Channel name",
+            maxGraphemes: 64,
+            maxLength: 640,
           },
         },
       },
@@ -319,6 +316,7 @@ export const schemaDict = {
           },
           channels: {
             type: "array",
+            minLength: 1,
             items: {
               type: "ref",
               ref: "lex:chat.tinychat.server.defs#channelView",
@@ -329,11 +327,11 @@ export const schemaDict = {
       channelView: {
         type: "object",
         description: "Chat server channel instance view",
-        required: ["uri", "name", "server"],
+        required: ["id", "name", "server"],
         properties: {
-          uri: {
+          id: {
             type: "string",
-            format: "at-uri",
+            format: "tid",
           },
           name: {
             type: "string",
@@ -365,7 +363,7 @@ export const schemaDict = {
           },
           channel: {
             type: "string",
-            format: "at-uri",
+            format: "tid",
           },
           sender: {
             type: "ref",
@@ -382,44 +380,6 @@ export const schemaDict = {
       },
     },
   },
-  ChatTinychatServerGetChannels: {
-    lexicon: 1,
-    id: "chat.tinychat.server.getChannels",
-    defs: {
-      main: {
-        type: "query",
-        description:
-          "Gets a list of channels for a given chat server instance.",
-        parameters: {
-          type: "params",
-          required: ["server"],
-          properties: {
-            server: {
-              type: "string",
-              format: "at-uri",
-              description: "Server AT-URI to return channels for.",
-            },
-          },
-        },
-        output: {
-          encoding: "application/json",
-          schema: {
-            type: "object",
-            required: ["channels"],
-            properties: {
-              channels: {
-                type: "array",
-                items: {
-                  type: "ref",
-                  ref: "lex:chat.tinychat.server.defs#channelView",
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
   ChatTinychatServerGetMessages: {
     lexicon: 1,
     id: "chat.tinychat.server.getMessages",
@@ -429,12 +389,17 @@ export const schemaDict = {
         description: "Gets a list of of messages for a given channel.",
         parameters: {
           type: "params",
-          required: ["channel", "limit"],
+          required: ["server", "channel", "limit"],
           properties: {
-            channel: {
+            server: {
               type: "string",
               format: "at-uri",
-              description: "Channel AT-URI to return messages for.",
+              description: "Server AT-URI",
+            },
+            channel: {
+              type: "string",
+              format: "tid",
+              description: "Channel id",
             },
             limit: {
               type: "integer",
@@ -565,8 +530,13 @@ export const schemaDict = {
             properties: {
               channel: {
                 type: "string",
+                format: "tid",
+                description: "Channel id.",
+              },
+              server: {
+                type: "string",
                 format: "at-uri",
-                description: "Channel AT-URI.",
+                description: "Server AT-URI.",
               },
             },
           },
@@ -597,8 +567,8 @@ export const schemaDict = {
             properties: {
               channel: {
                 type: "string",
-                format: "at-uri",
-                description: "Channel AT-URI to return messages for.",
+                format: "tid",
+                description: "Channel id to return messages for.",
               },
               server: {
                 type: "string",
@@ -4716,13 +4686,11 @@ export const lexicons: Lexicons = new Lexicons(schemas);
 export const ids = {
   ChatTinychatActorDefs: "chat.tinychat.actor.defs",
   ChatTinychatActorGetProfile: "chat.tinychat.actor.getProfile",
-  ChatTinychatCoreChannel: "chat.tinychat.core.channel",
   ChatTinychatCoreMembership: "chat.tinychat.core.membership",
   ChatTinychatCoreMessage: "chat.tinychat.core.message",
   ChatTinychatCoreServer: "chat.tinychat.core.server",
   ChatTinychatRichtextFacet: "chat.tinychat.richtext.facet",
   ChatTinychatServerDefs: "chat.tinychat.server.defs",
-  ChatTinychatServerGetChannels: "chat.tinychat.server.getChannels",
   ChatTinychatServerGetMessages: "chat.tinychat.server.getMessages",
   ChatTinychatServerGetServers: "chat.tinychat.server.getServers",
   ChatTinychatServerJoinServer: "chat.tinychat.server.joinServer",

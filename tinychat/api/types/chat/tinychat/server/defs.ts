@@ -30,7 +30,7 @@ export function validateServerView(v: unknown): ValidationResult {
 
 /** Chat server channel instance view */
 export interface ChannelView {
-  uri: string;
+  id: string;
   name: string;
   server: string;
   latestMessageReceivedTime?: string;

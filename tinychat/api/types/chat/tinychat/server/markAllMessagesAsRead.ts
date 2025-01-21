@@ -10,8 +10,10 @@ import { CID } from "multiformats/cid";
 export interface QueryParams {}
 
 export interface InputSchema {
-  /** Channel AT-URI. */
+  /** Channel id. */
   channel: string;
+  /** Server AT-URI. */
+  server?: string;
   [k: string]: unknown;
 }
 

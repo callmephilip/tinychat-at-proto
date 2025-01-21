@@ -6,13 +6,11 @@ import { schemas } from "./lexicons.ts";
 import { CID } from "multiformats/cid";
 import * as ChatTinychatActorDefs from "./types/chat/tinychat/actor/defs.ts";
 import * as ChatTinychatActorGetProfile from "./types/chat/tinychat/actor/getProfile.ts";
-import * as ChatTinychatCoreChannel from "./types/chat/tinychat/core/channel.ts";
 import * as ChatTinychatCoreMembership from "./types/chat/tinychat/core/membership.ts";
 import * as ChatTinychatCoreMessage from "./types/chat/tinychat/core/message.ts";
 import * as ChatTinychatCoreServer from "./types/chat/tinychat/core/server.ts";
 import * as ChatTinychatRichtextFacet from "./types/chat/tinychat/richtext/facet.ts";
 import * as ChatTinychatServerDefs from "./types/chat/tinychat/server/defs.ts";
-import * as ChatTinychatServerGetChannels from "./types/chat/tinychat/server/getChannels.ts";
 import * as ChatTinychatServerGetMessages from "./types/chat/tinychat/server/getMessages.ts";
 import * as ChatTinychatServerGetServers from "./types/chat/tinychat/server/getServers.ts";
 import * as ChatTinychatServerJoinServer from "./types/chat/tinychat/server/joinServer.ts";
@@ -102,13 +100,11 @@ import * as ComAtprotoTempRequestPhoneVerification from "./types/com/atproto/tem
 
 export * as ChatTinychatActorDefs from "./types/chat/tinychat/actor/defs.ts";
 export * as ChatTinychatActorGetProfile from "./types/chat/tinychat/actor/getProfile.ts";
-export * as ChatTinychatCoreChannel from "./types/chat/tinychat/core/channel.ts";
 export * as ChatTinychatCoreMembership from "./types/chat/tinychat/core/membership.ts";
 export * as ChatTinychatCoreMessage from "./types/chat/tinychat/core/message.ts";
 export * as ChatTinychatCoreServer from "./types/chat/tinychat/core/server.ts";
 export * as ChatTinychatRichtextFacet from "./types/chat/tinychat/richtext/facet.ts";
 export * as ChatTinychatServerDefs from "./types/chat/tinychat/server/defs.ts";
-export * as ChatTinychatServerGetChannels from "./types/chat/tinychat/server/getChannels.ts";
 export * as ChatTinychatServerGetMessages from "./types/chat/tinychat/server/getMessages.ts";
 export * as ChatTinychatServerGetServers from "./types/chat/tinychat/server/getServers.ts";
 export * as ChatTinychatServerJoinServer from "./types/chat/tinychat/server/joinServer.ts";
@@ -270,82 +266,15 @@ export class ChatTinychatActorNS {
 
 export class ChatTinychatCoreNS {
   _client: XrpcClient;
-  channel: ChannelRecord;
   membership: MembershipRecord;
   message: MessageRecord;
   server: ServerRecord;
 
   constructor(client: XrpcClient) {
     this._client = client;
-    this.channel = new ChannelRecord(client);
     this.membership = new MembershipRecord(client);
     this.message = new MessageRecord(client);
     this.server = new ServerRecord(client);
-  }
-}
-
-export class ChannelRecord {
-  _client: XrpcClient;
-
-  constructor(client: XrpcClient) {
-    this._client = client;
-  }
-
-  async list(
-    params: Omit<ComAtprotoRepoListRecords.QueryParams, "collection">,
-  ): Promise<{
-    cursor?: string;
-    records: { uri: string; value: ChatTinychatCoreChannel.Record }[];
-  }> {
-    const res = await this._client.call("com.atproto.repo.listRecords", {
-      collection: "chat.tinychat.core.channel",
-      ...params,
-    });
-    return res.data;
-  }
-
-  async get(
-    params: Omit<ComAtprotoRepoGetRecord.QueryParams, "collection">,
-  ): Promise<{
-    uri: string;
-    cid: string;
-    value: ChatTinychatCoreChannel.Record;
-  }> {
-    const res = await this._client.call("com.atproto.repo.getRecord", {
-      collection: "chat.tinychat.core.channel",
-      ...params,
-    });
-    return res.data;
-  }
-
-  async create(
-    params: Omit<
-      ComAtprotoRepoCreateRecord.InputSchema,
-      "collection" | "record"
-    >,
-    record: ChatTinychatCoreChannel.Record,
-    headers?: Record<string, string>,
-  ): Promise<{ uri: string; cid: string }> {
-    record.$type = "chat.tinychat.core.channel";
-    const res = await this._client.call(
-      "com.atproto.repo.createRecord",
-      undefined,
-      { collection: "chat.tinychat.core.channel", ...params, record },
-      { encoding: "application/json", headers },
-    );
-    return res.data;
-  }
-
-  async delete(
-    params: Omit<ComAtprotoRepoDeleteRecord.InputSchema, "collection">,
-    headers?: Record<string, string>,
-  ): Promise<void> {
-    await this._client.call(
-      "com.atproto.repo.deleteRecord",
-      undefined,
-      { collection: "chat.tinychat.core.channel", ...params },
-      { headers },
-    );
   }
 }
 
@@ -557,18 +486,6 @@ export class ChatTinychatServerNS {
 
   constructor(client: XrpcClient) {
     this._client = client;
-  }
-
-  getChannels(
-    params?: ChatTinychatServerGetChannels.QueryParams,
-    opts?: ChatTinychatServerGetChannels.CallOptions,
-  ): Promise<ChatTinychatServerGetChannels.Response> {
-    return this._client.call(
-      "chat.tinychat.server.getChannels",
-      params,
-      undefined,
-      opts,
-    );
   }
 
   getMessages(

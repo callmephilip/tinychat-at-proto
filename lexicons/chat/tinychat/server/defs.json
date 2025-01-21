@@ -12,6 +12,7 @@
         "creator": { "type": "string", "format": "did" },
         "channels": {
           "type": "array",
+          "minLength": 1,
           "items": {
             "type": "ref",
             "ref": "#channelView"
@@ -22,9 +23,9 @@
     "channelView": {
       "type": "object",
       "description": "Chat server channel instance view",
-      "required": ["uri", "name", "server"],
+      "required": ["id", "name", "server"],
       "properties": {
-        "uri": { "type": "string", "format": "at-uri" },
+        "id": { "type": "string", "format": "tid" },
         "name": { "type": "string" },
         "server": { "type": "string", "format": "at-uri" },
         "latestMessageReceivedTime": { "type": "string" },
@@ -43,7 +44,7 @@
         },
         "channel": {
           "type": "string",
-          "format": "at-uri"
+          "format": "tid"
         },
         "sender": {
           "type": "ref",

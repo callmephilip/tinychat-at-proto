@@ -1,9 +1,9 @@
-import { shortIdFromAtUri } from "tinychat/utils.ts";
 import { Page } from "@tinychat/ui/page.tsx";
 import { Composer } from "@tinychat/ui/composer.tsx";
 import { Channel } from "@tinychat/ui/channel.tsx";
 import { useAuth } from "./context/auth.tsx";
 import { useServer } from "./context/server.tsx";
+import { urlForChannelMessageList } from "tinychat/utils.ts";
 
 export const Chat = ({ noShell }: { noShell?: boolean }) => {
   const { user } = useAuth();
@@ -14,7 +14,8 @@ export const Chat = ({ noShell }: { noShell?: boolean }) => {
     <div
       id="main"
       class="flex-1 flex flex-col bg-white overflow-hidden md:border-l"
-      data-current-channel={currentChannel?.uri}
+      data-current-channel={currentChannel?.id}
+      data-current-server={server?.uri}
       {...events}
     >
       {
@@ -33,16 +34,14 @@ export const Chat = ({ noShell }: { noShell?: boolean }) => {
         </div>
       </div>
       <div
-        id={`channel-${
-          currentChannel?.uri && shortIdFromAtUri(currentChannel.uri)
-        }`}
+        id={`channel-${currentChannel?.id}`}
         class="scroller px-6 py-4 flex-1 flex flex-col-reverse overflow-y-scroll"
       >
         {/* style="padding-top: 60px; padding-bottom: 130px;" if is_mobile else "" */}
         {/* Lazy load first batch of messages */}
         <div
           hx-trigger="load"
-          hx-get={`/messages/list/${encodeURIComponent(currentChannel?.uri!)}`}
+          hx-get={urlForChannelMessageList(currentChannel!)}
           hx-swap="outerHTML"
         />
       </div>
@@ -62,7 +61,7 @@ export const Chat = ({ noShell }: { noShell?: boolean }) => {
       <div class="px-3 py-2">
         <div class=" px-1">
           {(server?.channels || []).map((channel) => (
-            <Channel key={channel.uri} channel={channel} />
+            <Channel key={channel.id} channel={channel} />
           ))}
         </div>
       </div>

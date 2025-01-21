@@ -15,13 +15,17 @@ export class Messaging {
   constructor(protected db: Database) {}
 
   public markAllMessagesAsRead(
-    { channel, user }: { channel: string; user: string },
+    { channel, server, user }: {
+      channel: string;
+      server: string;
+      user: string;
+    },
   ) {
     this.db
       .prepare(
-        `INSERT OR REPLACE INTO read_receipts (channel, user, time_us) VALUES (:channel, :user, :time)`,
+        `INSERT OR REPLACE INTO read_receipts (channel, server, user, time_us) VALUES (:channel, :server, :user, :time)`,
       )
-      .run({ channel, user, time: get_time_us() });
+      .run({ channel, user, server, time: get_time_us() });
   }
 
   public getServers(
@@ -41,7 +45,7 @@ export class Messaging {
         s.creator,
         json_group_array(
           json_object(
-            'uri', c.uri,
+            'id', c.id,
             'name', c.name,
             'server', c.server,
             'latestMessageReceivedTime', c.latest_message_received_time_us
@@ -57,7 +61,7 @@ export class Messaging {
         s.creator,
         json_group_array(
           json_object(
-            'uri', c.uri,
+            'id', c.id,
             'name', c.name,
             'server', c.server,
             'lastMessageReadTime', c.last_message_read_time_us,
@@ -91,32 +95,6 @@ export class Messaging {
     );
   }
 
-  public getChannels(
-    { server, viewer }: { server: string; viewer?: string | undefined },
-  ): ChannelView[] {
-    let base = "SELECT * FROM channel_view WHERE server = :server";
-    if (viewer) {
-      base += " AND user = :viewer";
-    }
-    return this.db
-      .prepare(base)
-      .all<{
-        uri: string;
-        name: string;
-        server: string;
-        latest_message_received_time_us: string | null;
-        last_message_read_time_us: string | null;
-      }>(Object.assign({ server }, viewer ? { viewer } : {}))
-      .map((rec) => ({
-        uri: rec.uri,
-        name: rec.name,
-        server: rec.server,
-        lastMessageReadTime: rec.last_message_read_time_us || undefined,
-        latestMessageReceivedTime: rec.latest_message_received_time_us ||
-          undefined,
-      }));
-  }
-
   public receiveMessage(
     { m, uri, sender, time_us }: {
       m: Message;
@@ -140,6 +118,7 @@ export class Messaging {
   }
 }
 import { getDatabase } from "tinychat/db.ts";
+import { TID } from "@atproto/common";
 
 class TestMessaging extends Messaging {
   constructor() {
@@ -149,13 +128,13 @@ class TestMessaging extends Messaging {
   public static server: string = "at://server-1";
   public static user1: string = "did:1";
   public static user2: string = "did:2";
-  public static channel1: string = "at://channel-1";
-  public static channel2: string = "at://channel-2";
+  public static channel1: string = TID.nextStr();
+  public static channel2: string = TID.nextStr();
 
   public user1MessagesChannel1(text: string) {
     this.receiveMessage({
       m: {
-        channel: "at://channel-1",
+        channel: TestMessaging.channel1,
         server: "at://server-1",
         text,
         createdAt: new Date().toISOString(),
@@ -218,18 +197,18 @@ class TestMessaging extends Messaging {
     });
 
     // setup channels
-    [1, 2].forEach((i) => {
+    [TestMessaging.channel1, TestMessaging.channel2].forEach((c) => {
       service.db
         .prepare(
           `
-        INSERT INTO channels (uri, name, server) VALUES (
-          :uri, :name, :server
+        INSERT INTO channels (id, name, server) VALUES (
+          :id, :name, :server
         )
       `,
         )
         .run({
-          uri: `at://channel-${i}`,
-          name: `channel ${i}`,
+          id: c,
+          name: `channel ${c}`,
           server: "at://server-1",
         });
     });
@@ -270,13 +249,13 @@ class TestMessaging extends Messaging {
       service.db
         .prepare(
           `
-        INSERT INTO channels (uri, name, server) VALUES (
-          :uri, :name, :server
+        INSERT INTO channels (id, name, server) VALUES (
+          :id, :name, :server
         )
       `,
         )
         .run({
-          uri: `at://channel-server-2-${i}`,
+          id: TID.nextStr(),
           name: `channel server 2 ${i}`,
           server: "at://server-2",
         });
@@ -294,14 +273,14 @@ import { assert, assertEquals } from "asserts";
 Deno.test("cleanup ChnanelView", () => {
   assertEquals(
     cleanupChannelView({
-      uri: "at://channel-1",
+      id: "channel-1",
       name: "channel 1",
       server: "at://server-1",
       latestMessageReceivedTime: "123456789",
       lastMessageReadTime: "123456789",
     }),
     {
-      uri: "at://channel-1",
+      id: "channel-1",
       name: "channel 1",
       server: "at://server-1",
       latestMessageReceivedTime: "123456789",
@@ -310,7 +289,7 @@ Deno.test("cleanup ChnanelView", () => {
   );
   assertEquals(
     cleanupChannelView({
-      uri: "at://channel-1",
+      id: "channel-1",
       name: "channel 1",
       server: "at://server-1",
       // @ts-ignore testing
@@ -319,35 +298,11 @@ Deno.test("cleanup ChnanelView", () => {
       lastMessageReadTime: null,
     }),
     {
-      uri: "at://channel-1",
+      id: "channel-1",
       server: "at://server-1",
       name: "channel 1",
     },
   );
-});
-
-Deno.test("test channel tracks last message received", () => {
-  const messaging = TestMessaging.setup();
-  messaging.user1MessagesChannel1("hello world");
-
-  [undefined, TestMessaging.user2].forEach((viewer) => {
-    const channels = messaging.getChannels({
-      server: TestMessaging.server,
-      viewer,
-    });
-
-    assert(
-      channels.find((c) => c.uri === TestMessaging.channel1)
-        ?.latestMessageReceivedTime,
-      "channel 1 has last message received time set",
-    );
-
-    assert(
-      !channels.find((c) => c.uri === TestMessaging.channel2)
-        ?.latestMessageReceivedTime,
-      "channel 2 does NOT have last message received time set",
-    );
-  });
 });
 
 Deno.test("get servers includes channel message ts info", () => {
@@ -360,9 +315,9 @@ Deno.test("get servers includes channel message ts info", () => {
     uris: [TestMessaging.server],
   });
 
-  assertEquals(servers.length, 1);
+  assertEquals(servers.length, 1, "got 1 server");
   assertEquals(servers[0].channels.length, 2, "got 2 channels");
-  assert(servers[0].channels[0].uri === TestMessaging.channel1);
+  assert(servers[0].channels[0].id === TestMessaging.channel1);
   assert(
     servers[0].channels[0].latestMessageReceivedTime,
     "channel 1 has last message received time set",
@@ -385,7 +340,7 @@ Deno.test("get servers includes channel message ts info", () => {
 
   assertEquals(servers.length, 1);
   assertEquals(servers[0].channels.length, 2, "got 2 channels");
-  assert(servers[0].channels[0].uri === TestMessaging.channel1);
+  assert(servers[0].channels[0].id === TestMessaging.channel1);
   assert(
     servers[0].channels[0].latestMessageReceivedTime,
     "channel 1 has last message received time set",
@@ -398,6 +353,7 @@ Deno.test("get servers includes channel message ts info", () => {
   // mark all messages as read and recheck
 
   messaging.markAllMessagesAsRead({
+    server: TestMessaging.server,
     channel: TestMessaging.channel1,
     user: TestMessaging.user2,
   });
@@ -409,48 +365,9 @@ Deno.test("get servers includes channel message ts info", () => {
 
   assertEquals(servers.length, 1);
   assertEquals(servers[0].channels.length, 2, "got 2 channels");
-  assert(servers[0].channels[0].uri === TestMessaging.channel1);
+  assert(servers[0].channels[0].id === TestMessaging.channel1);
   assert(
     servers[0].channels[0].lastMessageReadTime,
     "last message read time data is set after marking all messages as read",
   );
-});
-
-Deno.test("test mark all messages as read", () => {
-  const messaging = TestMessaging.setup();
-  messaging.user1MessagesChannel1("hello world");
-
-  const channel1ForUser2 = messaging
-    .getChannels({
-      server: TestMessaging.server,
-      viewer: TestMessaging.user2,
-    })
-    .find((c) => c.uri === TestMessaging.channel1);
-
-  assert(channel1ForUser2, "got channel 1 for user 2 info");
-  assert(
-    !channel1ForUser2.lastMessageReadTime,
-    "last message read time is not set",
-  );
-
-  messaging.markAllMessagesAsRead({
-    channel: TestMessaging.channel1,
-    user: TestMessaging.user2,
-  });
-
-  assert(
-    messaging
-      .getChannels({
-        server: TestMessaging.server,
-        viewer: TestMessaging.user2,
-      })
-      .find((c) => c.uri === TestMessaging.channel1)!.lastMessageReadTime,
-    "last message read time is set",
-  );
-
-  // make sure we can mark all messages as read multiple times
-  messaging.markAllMessagesAsRead({
-    channel: TestMessaging.channel1,
-    user: TestMessaging.user2,
-  });
 });

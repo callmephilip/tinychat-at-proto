@@ -48,7 +48,7 @@ export default class ChatServer {
   }
 }
 import { Hono } from "hono";
-// import { cors } from "hono/cors";
+import { z } from "zod";
 import { HTTPException } from "hono/http-exception";
 import { upgradeWebSocket } from "hono/deno";
 import { Message } from "@tinychat/ui/message.tsx";
@@ -114,7 +114,6 @@ app.get(
   }),
 );
 import {
-  NewChannelRecord,
   NewMembershipRecord,
   NewMessageRecord,
   NewServerRecord,
@@ -151,41 +150,36 @@ export const runAppView = (
   const shutdownJetstream = startJetstream({
     db,
     onNewServer: (m: NewServerRecord) => {
-      db.prepare(`
-      INSERT INTO servers (uri, name, creator) VALUES (
-        :uri, :name, :creator
-      )`).run({
-        uri: m.uri,
-        name: m.commit.record.name,
-        creator: m.did,
-      });
-      db.prepare(
-        `INSERT INTO server_memberships (user, server) VALUES (
+      const createServer = db.prepare(`
+        INSERT INTO servers (uri, name, creator) VALUES (
+          :uri, :name, :creator
+        )`);
+      const createMembership = db
+        .prepare(
+          `INSERT INTO server_memberships (user, server) VALUES (
           :creator, :server
         ) ON CONFLICT(user, server) DO NOTHING`,
-      ).run({
-        creator: m.did,
-        server: m.uri,
-      });
-    },
-    onNewChannel: (m: NewChannelRecord) => {
-      try {
-        db.prepare(
-          `INSERT INTO channels (uri, name, server) VALUES (
-          :uri, :name, :server
-        ) ON CONFLICT(uri) DO NOTHING`,
-        ).run({
+        );
+      const createChannel = db
+        .prepare(
+          `INSERT INTO channels (id, name, server) VALUES (:id, :name, :server) ON CONFLICT(id, server) DO NOTHING`,
+        );
+
+      db.transaction(() => {
+        createServer.run({
           uri: m.uri,
           name: m.commit.record.name,
-          server: m.commit.record.server,
+          creator: m.did,
         });
-      } catch (e) {
-        console.error(
-          ">>>>>>>>>>>>>>>>> ERRR >>>>>>>>>>>>>>>>>Error adding channel",
-          e,
-        );
-        console.log("Adding channel", m);
-      }
+        createMembership.run({ creator: m.did, server: m.uri });
+        for (const channel of m.commit.record.channels) {
+          createChannel.run({
+            id: channel.id,
+            name: channel.name,
+            server: m.uri,
+          });
+        }
+      })();
     },
     onNewMembership: (m: NewMembershipRecord) => {
       // add server memberships record
@@ -224,10 +218,11 @@ export const runAppView = (
       // );
 
       chatServer.broadcastFn((c: ChatServerClient) => {
-        const channels = messaging.getChannels({
-          server: m.commit.record.server,
+        const servers = messaging.getServers({
+          uris: [m.commit.record.server],
           viewer: c.did,
         });
+        const channels = servers.length !== 0 ? servers[0].channels : [];
         return JSON.stringify({
           data: { message: messages[0], channels },
           html: (c.did !== m.did ? msgHTML : "") +
@@ -298,28 +293,6 @@ app.get(`/xrpc/${ids.ChatTinychatServerGetServers}`, async (c) => {
 });
 
 "";
-interface ChannelData {
-  name: string;
-  uri: string;
-}
-
-app.get(`/xrpc/${ids.ChatTinychatServerGetChannels}`, async (c) => {
-  const { db } = c.var.ctx;
-  const agent = await c.var.ctx.agent();
-
-  if (!db) {
-    throw new HTTPException(500, { message: "DB not available" });
-  }
-  const { server } = c.req.query();
-  return c.json({
-    channels: new Messaging(db).getChannels({
-      server,
-      viewer: agent?.agent?.did,
-    }),
-  });
-});
-
-"";
 interface Message {
   uri: string;
   channel: string;
@@ -337,12 +310,14 @@ interface Message {
 
 const pullMessagesFromDb = ({
   db,
+  server,
   channel,
   uri,
   cursor,
   limit,
 }: {
   db: Database;
+  server?: string;
   channel?: string;
   uri?: string;
   cursor?: string;
@@ -358,7 +333,7 @@ const pullMessagesFromDb = ({
   }
 
   const messages = (
-    channel
+    channel && server
       ? db
         .prepare(
           `
@@ -366,13 +341,15 @@ const pullMessagesFromDb = ({
         users.did, users.handle, users.display_name as displayName, users.avatar, users.description
       FROM messages
       INNER JOIN users ON messages.sender = users.did
-      WHERE channel = :channel ${cursor ? `AND time_us < :cursor` : ""}
+      WHERE channel = :channel AND server = :server ${
+            cursor ? `AND time_us < :cursor` : ""
+          }
       ORDER BY time_us DESC
       LIMIT :limit
     `,
         )
         .all<Message>(
-          Object.assign({ channel, limit }, cursor ? { cursor } : {}),
+          Object.assign({ server, channel, limit }, cursor ? { cursor } : {}),
         )
       : db
         .prepare(
@@ -416,7 +393,7 @@ app.get(`/xrpc/${ids.ChatTinychatServerGetMessages}`, (c) => {
   if (!db) {
     throw new HTTPException(500, { message: "DB not available" });
   }
-  const { channel, cursor, limit } = c.req.query();
+  const { channel, server, cursor, limit } = c.req.query();
   console.log(
     ">>>>>>>>>>>>>. getting messages for channel",
     channel,
@@ -428,6 +405,7 @@ app.get(`/xrpc/${ids.ChatTinychatServerGetMessages}`, (c) => {
     pullMessagesFromDb({
       db,
       channel,
+      server,
       cursor,
       limit: limit ? parseInt(limit) : 10,
     }),
@@ -435,8 +413,6 @@ app.get(`/xrpc/${ids.ChatTinychatServerGetMessages}`, (c) => {
 });
 
 "";
-
-import { z } from "zod";
 
 app.post(`/xrpc/${ids.ChatTinychatServerSendMessage}`, async (c) => {
   const agent = await c.var.ctx.agent();
@@ -483,11 +459,13 @@ app.post(`/xrpc/${ids.ChatTinychatServerMarkAllMessagesAsRead}`, async (c) => {
     throw new HTTPException(401, { message: "Agent not available" });
   }
 
-  const { channel } = z.object({ channel: z.string() }).parse(
-    await c.req.json(),
-  );
+  const { channel, server } = z.object({
+    server: z.string(),
+    channel: z.string(),
+  }).parse(await c.req.json());
   new Messaging(db!).markAllMessagesAsRead({
     channel,
+    server,
     user: agent.agent.assertDid,
   });
   return c.json({});
@@ -542,6 +520,7 @@ Deno.test("test xrpc", async (t) => {
   const anotherServerName = `test-${TID.nextStr()}`;
   const db = getDatabase({ reset: true });
   const shutdown = runAppView({ database: db });
+  const channelId = TID.nextStr();
 
   // populate db, shall we?
   const chatServer = await agent.chat.tinychat.core.server.create(
@@ -550,6 +529,10 @@ Deno.test("test xrpc", async (t) => {
     },
     {
       name: serverName,
+      channels: [{
+        name: "general",
+        id: channelId,
+      }],
     },
   );
   const anotherChatServer = await agent.chat.tinychat.core.server.create(
@@ -558,29 +541,20 @@ Deno.test("test xrpc", async (t) => {
     },
     {
       name: anotherServerName,
+      channels: [{
+        name: "general",
+        id: TID.nextStr(),
+      }],
     },
   );
 
   await sleep(4000);
 
-  const channel = await agent.chat.tinychat.core.channel.create({ repo }, {
-    server: chatServer.uri,
-    name: "general",
-  });
-
-  await agent.chat.tinychat.core.channel.create(
-    { repo },
-    {
-      server: anotherChatServer.uri,
-      name: "general",
-    },
-  );
-
   await agent.chat.tinychat.core.message.create(
     { repo },
     {
       server: chatServer.uri,
-      channel: channel.uri,
+      channel: channelId,
       text: "hello",
       createdAt: new Date().toISOString(),
     },
@@ -597,9 +571,6 @@ Deno.test("test xrpc", async (t) => {
 
   await t.step("list available servers", async () => {
     const { data } = await agent.chat.tinychat.server.getServers();
-
-    console.log(">>>>>>>>>>>>>>>>> DA SERVERs are", data.servers);
-
     assert(data.servers.length > 0, "got a least 1 server");
     assert(data.servers.find((s) => s.name === serverName), "found our server");
     assert(
@@ -618,8 +589,6 @@ Deno.test("test xrpc", async (t) => {
     const { data: data1 } = await agent.chat.tinychat.server.getServers({
       uris: [chatServer.uri, anotherChatServer.uri],
     });
-
-    console.log(">>>>>>>>>> new batch of servers found", data1.servers);
 
     assert(data1.servers.length === 2, "got 2 servers for specific URIs");
     assert(
@@ -647,25 +616,14 @@ Deno.test("test xrpc", async (t) => {
     );
   });
 
-  await t.step("list available channels", async () => {
-    const { data } = await agent.chat.tinychat.server.getChannels({
-      server: chatServer.uri,
-    });
-    assert(data.channels.length > 0, "got a least 1 channel");
-    assert(
-      data.channels.find((c) => c.name === "general"),
-      "found our channel",
-    );
-  });
-
   await t.step("list messages", async () => {
     const { data } = await agent.chat.tinychat.server.getMessages({
-      channel: channel.uri,
+      server: chatServer.uri,
+      channel: channelId,
       limit: 10,
     });
     assert(data.messages.length > 0, "got a least 1 message");
     assert(data.messages.find((m) => m.text === "hello"), "found our message");
-    console.log(">>>>>>>>>>>>>>>>> messages cursor", data.cursor);
     assert(typeof data.cursor === "string", "got a cursor for messages");
   });
 
@@ -674,7 +632,7 @@ Deno.test("test xrpc", async (t) => {
   await t.step("send message via xrpc", async () => {
     await agent.chat.tinychat.server.sendMessage({
       server: chatServer.uri,
-      channel: channel.uri,
+      channel: channelId,
       text: "message via xrpc",
     });
     await sleep(2000);
@@ -718,7 +676,7 @@ Deno.test("test app view", async (t) => {
   // should see new elements synced with the db
 
   let server = "no server yet";
-  let channel = "no channel yet";
+  const channel = TID.nextStr();
 
   await t.step("create server", async () => {
     const chatServer = await agent.chat.tinychat.core.server.create(
@@ -727,6 +685,10 @@ Deno.test("test app view", async (t) => {
       },
       {
         name: serverName,
+        channels: [{
+          name: "general",
+          id: channel,
+        }],
       },
     );
     server = chatServer.uri;
@@ -740,37 +702,6 @@ Deno.test("test app view", async (t) => {
     );
 
     await sleep(2000);
-
-    assert(
-      db.prepare(`SELECT * FROM users`).all().length === 1,
-      "user added to the db",
-    );
-    assert(
-      db.prepare(`SELECT * FROM servers`).all().length === 1,
-      "server added to the db",
-    );
-    assert(
-      db.prepare(`SELECT * FROM server_memberships`).all().length === 1,
-      "server membership added to the db",
-    );
-  });
-
-  await t.step("create channel", async () => {
-    const c = await agent.chat.tinychat.core.channel.create(
-      { repo },
-      {
-        server,
-        name: "general",
-      },
-    );
-    channel = c.uri;
-
-    await sleep(2000);
-
-    assert(
-      db.prepare(`SELECT * FROM channels`).all().length === 1,
-      "channel added to the db",
-    );
   });
 
   await t.step("send message", async () => {
@@ -790,20 +721,6 @@ Deno.test("test app view", async (t) => {
     assert(
       db.prepare(`SELECT * FROM messages`).all().length === 1,
       "message added to the db",
-    );
-  });
-
-  await t.step("create another server", async () => {
-    await agent.chat.tinychat.core.server.create(
-      { repo },
-      { name: serverName + "2" },
-    );
-
-    await sleep(2000);
-
-    assert(
-      db.prepare(`SELECT * FROM servers`).all().length === 2,
-      "expecting 2 servers",
     );
   });
 
@@ -827,7 +744,7 @@ Deno.test("test app view", async (t) => {
         }),
         channels: z.array(
           z.object({
-            uri: z.string(),
+            id: z.string(),
             name: z.string(),
             latestMessageReceivedTime: z.string().optional(),
             lastMessageReadTime: z.string().optional(),
@@ -864,6 +781,7 @@ Deno.test("test app view", async (t) => {
 
     const { data } = await agent.chat.tinychat.server.getMessages({
       channel,
+      server,
       limit: 1,
     });
 
@@ -878,6 +796,7 @@ Deno.test("test app view", async (t) => {
 
     const { data: data2 } = await agent.chat.tinychat.server.getMessages({
       channel,
+      server,
       cursor: data.cursor,
       limit: 1,
     });
@@ -893,6 +812,7 @@ Deno.test("test app view", async (t) => {
 
   await t.step("mark all messages as read in a channel", async () => {
     await agent.chat.tinychat.server.markAllMessagesAsRead({
+      server,
       channel,
     });
   });

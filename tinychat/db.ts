@@ -21,11 +21,12 @@ const tables: Record<string, string> = {
       FOREIGN KEY (creator) REFERENCES users(did)
     );`,
   channels: `CREATE TABLE channels (
-  uri TEXT PRIMARY KEY,
+  id TEXT,
   name TEXT NOT NULL,
   server TEXT NOT NULL,
   latest_message_received_time_us TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id, server),
   FOREIGN KEY (server) REFERENCES servers(uri)
 );`,
   server_memberships: `CREATE TABLE server_memberships (
@@ -44,17 +45,18 @@ const tables: Record<string, string> = {
   sender TEXT NOT NULL,
   created_at DATETIME NOT NULL,
   time_us TEXT NOT NULL,
-  FOREIGN KEY (channel) REFERENCES channels(uri),
+  FOREIGN KEY (channel, server) REFERENCES channels(id, server),
   FOREIGN KEY (server) REFERENCES servers(uri)
   FOREIGN KEY (sender) REFERENCES users(did)
 );
 `,
   read_receipts: `CREATE TABLE read_receipts (
   channel TEXT NOT NULL,
+  server TEXT NOT NULL,
   user TEXT NOT NULL,
   time_us TEXT NOT NULL,
-  PRIMARY KEY (user, channel),
-  FOREIGN KEY (channel) REFERENCES channels(uri),
+  PRIMARY KEY (user, channel, server),
+  FOREIGN KEY (channel, server) REFERENCES channels(id, server),
   FOREIGN KEY (user) REFERENCES users(did)
 );`,
 };
@@ -91,7 +93,7 @@ export const getDatabase = (
     BEGIN
       UPDATE channels
       SET latest_message_received_time_us = NEW.time_us
-      WHERE uri = NEW.channel AND (latest_message_received_time_us IS NULL OR NEW.time_us > latest_message_received_time_us);
+      WHERE id = NEW.channel AND (latest_message_received_time_us IS NULL OR NEW.time_us > latest_message_received_time_us);
     END;`,
     )
     .run();
@@ -102,7 +104,7 @@ export const getDatabase = (
        SELECT c.*, sm.user, COALESCE(rr.time_us, NULL) as last_message_read_time_us
        FROM channels c
        JOIN server_memberships sm ON sm.server = c.server
-       LEFT JOIN read_receipts rr ON rr.channel = c.uri AND rr.user = sm.user;`,
+       LEFT JOIN read_receipts rr ON rr.channel = c.id AND rr.user = sm.user AND rr.server = sm.server;`,
     )
     .run();
 

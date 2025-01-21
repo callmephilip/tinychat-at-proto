@@ -8,14 +8,34 @@
       "key": "any",
       "record": {
         "type": "object",
-        "required": ["name"],
+        "required": ["name", "channels"],
         "properties": {
           "name": {
             "type": "string",
             "description": "Server name",
             "maxGraphemes": 64,
             "maxLength": 640
+          },
+          "channels": {
+            "type": "array",
+            "description": "Channels on this server",
+            "minLength": 1,
+            "maxLength": 100,
+            "items": { "type": "ref", "ref": "#channelRef" }
           }
+        }
+      }
+    },
+    "channelRef": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "type": "string", "format": "tid" },
+        "name": {
+          "type": "string",
+          "description": "Channel name",
+          "maxGraphemes": 64,
+          "maxLength": 640
         }
       }
     }

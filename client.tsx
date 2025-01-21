@@ -1,10 +1,15 @@
 import { serveStatic } from "hono/deno";
+import { TID } from "@atproto/common";
 import { app } from "tinychat/client.ts";
 import { ChatPage } from "@tinychat/ui/pages/chat.tsx";
 import { Message } from "@tinychat/ui/message.tsx";
 import { sleep } from "tinychat/utils.ts";
 import { HTTPException } from "hono/http-exception";
-import { serverAtURIFromUrl, urlFromServerAtURI } from "tinychat/utils.ts";
+import {
+  parseURLForChannelMessageList,
+  serverAtURIFromUrl,
+  urlFromServerAtURI,
+} from "tinychat/utils.ts";
 
 // reset env vars - if we want to test oauth properly
 Deno.env.delete("TEST_AGENT_SERVICE");
@@ -39,7 +44,7 @@ app.get("/chat/:did?/:rkey?", async (c) => {
         server: {
           server: serverData,
           currentChannel: ch
-            ? serverData.channels?.find((c) => c.uri.endsWith(ch))
+            ? serverData.channels?.find((c) => c.id === ch)
             : serverData.channels[0],
         },
         noShell: typeof c.req.header("hx-request") !== "undefined",
@@ -62,17 +67,12 @@ app.get("/chat/:did?/:rkey?", async (c) => {
         },
         {
           name: "tinychat-dev",
+          channels: [
+            { name: "general", id: TID.nextStr() },
+            { name: "random", id: TID.nextStr() },
+            { name: "meta", id: TID.nextStr() },
+          ],
         },
-      );
-      await sleep(1000);
-      await agent?.chat.tinychat.core.channel.create(
-        { repo: agent?.agent.assertDid },
-        { name: "general", server: s?.uri! },
-      );
-      await sleep(1000);
-      await agent?.chat.tinychat.core.channel.create(
-        { repo: agent?.agent.assertDid },
-        { name: "random", server: s?.uri! },
       );
       await sleep(2000);
       return c.redirect(urlFromServerAtURI(s?.uri!));
@@ -95,10 +95,11 @@ app.post("/messages/send", async (c) => {
   return c.html(Message({ message: d?.data.message!, oob: false }).toString());
 });
 
-app.get("/messages/list/:channel", async (c) => {
-  const { channel } = c.req.param();
+app.get("/messages/list/:did/:rkey1/:rkey2", async (c) => {
+  const { server, channel } = parseURLForChannelMessageList(c.req.path);
   const agent = await c.var.ctx.agent();
   const d = await agent?.chat.tinychat.server.getMessages({
+    server,
     channel,
     limit: 40,
   });
@@ -106,6 +107,14 @@ app.get("/messages/list/:channel", async (c) => {
   //       cls="messages-loading htmx-indicator", hx_get=f"/c/messages/{cid}?c={prev_cursor}", hx_indicator=".messages-loading",
   //       hx_trigger="intersect once", hx_target=f"#channel-{cid}", hx_swap=f"beforeend show:#chat-message-{msgs[-1].id}:top"
   //   ) if len(msgs) == settings.message_history_page_size else None
+
+  console.log(
+    ">>>>>>>>>>>>>>>>>>>>>> got messages",
+    d?.data.messages,
+    "for",
+    server,
+    channel,
+  );
 
   return c.html(
     (d?.data.messages || [])
@@ -119,6 +128,7 @@ app.post("/mark-all-as-read", async (c) => {
   const agent = await c.var.ctx.agent();
   await agent?.chat.tinychat.server.markAllMessagesAsRead({
     channel: data.get("channel")!.toString(),
+    server: data.get("server")!.toString(),
   });
   return c.json({ success: true });
 });

@@ -15,13 +15,17 @@ export class Messaging {
   constructor(protected db: Database) {}
 
   public markAllMessagesAsRead(
-    { channel, user }: { channel: string; user: string },
+    { channel, server, user }: {
+      channel: string;
+      server: string;
+      user: string;
+    },
   ) {
     this.db
       .prepare(
-        `INSERT OR REPLACE INTO read_receipts (channel, user, time_us) VALUES (:channel, :user, :time)`,
+        `INSERT OR REPLACE INTO read_receipts (channel, server, user, time_us) VALUES (:channel, :server, :user, :time)`,
       )
-      .run({ channel, user, time: get_time_us() });
+      .run({ channel, user, server, time: get_time_us() });
   }
 
   public getServers(
@@ -41,7 +45,7 @@ export class Messaging {
         s.creator,
         json_group_array(
           json_object(
-            'uri', c.uri,
+            'id', c.id,
             'name', c.name,
             'server', c.server,
             'latestMessageReceivedTime', c.latest_message_received_time_us
@@ -57,7 +61,7 @@ export class Messaging {
         s.creator,
         json_group_array(
           json_object(
-            'uri', c.uri,
+            'id', c.id,
             'name', c.name,
             'server', c.server,
             'lastMessageReadTime', c.last_message_read_time_us,
@@ -91,32 +95,6 @@ export class Messaging {
     );
   }
 
-  public getChannels(
-    { server, viewer }: { server: string; viewer?: string | undefined },
-  ): ChannelView[] {
-    let base = "SELECT * FROM channel_view WHERE server = :server";
-    if (viewer) {
-      base += " AND user = :viewer";
-    }
-    return this.db
-      .prepare(base)
-      .all<{
-        uri: string;
-        name: string;
-        server: string;
-        latest_message_received_time_us: string | null;
-        last_message_read_time_us: string | null;
-      }>(Object.assign({ server }, viewer ? { viewer } : {}))
-      .map((rec) => ({
-        uri: rec.uri,
-        name: rec.name,
-        server: rec.server,
-        lastMessageReadTime: rec.last_message_read_time_us || undefined,
-        latestMessageReceivedTime: rec.latest_message_received_time_us ||
-          undefined,
-      }));
-  }
-
   public receiveMessage(
     { m, uri, sender, time_us }: {
       m: Message;
@@ -140,6 +118,7 @@ export class Messaging {
   }
 }
 import { getDatabase } from "tinychat/db.ts";
+import { TID } from "@atproto/common";
 
 class TestMessaging extends Messaging {
   constructor() {
@@ -149,13 +128,13 @@ class TestMessaging extends Messaging {
   public static server: string = "at://server-1";
   public static user1: string = "did:1";
   public static user2: string = "did:2";
-  public static channel1: string = "at://channel-1";
-  public static channel2: string = "at://channel-2";
+  public static channel1: string = TID.nextStr();
+  public static channel2: string = TID.nextStr();
 
   public user1MessagesChannel1(text: string) {
     this.receiveMessage({
       m: {
-        channel: "at://channel-1",
+        channel: TestMessaging.channel1,
         server: "at://server-1",
         text,
         createdAt: new Date().toISOString(),
@@ -218,18 +197,18 @@ class TestMessaging extends Messaging {
     });
 
     // setup channels
-    [1, 2].forEach((i) => {
+    [TestMessaging.channel1, TestMessaging.channel2].forEach((c) => {
       service.db
         .prepare(
           `
-        INSERT INTO channels (uri, name, server) VALUES (
-          :uri, :name, :server
+        INSERT INTO channels (id, name, server) VALUES (
+          :id, :name, :server
         )
       `,
         )
         .run({
-          uri: `at://channel-${i}`,
-          name: `channel ${i}`,
+          id: c,
+          name: `channel ${c}`,
           server: "at://server-1",
         });
     });
@@ -270,13 +249,13 @@ class TestMessaging extends Messaging {
       service.db
         .prepare(
           `
-        INSERT INTO channels (uri, name, server) VALUES (
-          :uri, :name, :server
+        INSERT INTO channels (id, name, server) VALUES (
+          :id, :name, :server
         )
       `,
         )
         .run({
-          uri: `at://channel-server-2-${i}`,
+          id: TID.nextStr(),
           name: `channel server 2 ${i}`,
           server: "at://server-2",
         });

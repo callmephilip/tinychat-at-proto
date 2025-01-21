@@ -9,7 +9,9 @@ import { CID } from "multiformats/cid";
 import * as ChatTinychatServerDefs from "./defs.ts";
 
 export interface QueryParams {
-  /** Channel AT-URI to return messages for. */
+  /** Server AT-URI */
+  server: string;
+  /** Channel id */
   channel: string;
   /** Maximum number of messages to return */
   limit: number;

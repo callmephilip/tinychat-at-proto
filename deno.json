@@ -6,7 +6,8 @@
     "clean": "deno run --allow-read --allow-env --allow-write --allow-run jsr:@jurassic/jurassic/clean",
     "docs": "deno run -A --reload jsr:@jurassic/jurassic/docs . && deno lint && deno fmt",
     "runnbs": "deno run --allow-read --allow-env --allow-run jsr:@jurassic/jurassic/runnbs",
-    "dev": "deno run --unstable-kv --watch --env-file --allow-all bin/dev.ts",
+    "dev": "deno run --env-file --allow-all bin/dev.ts",
+    "dev:apps": "deno run --unstable-kv --watch --env-file --allow-all bin/apps.ts",
     "generate:lexicons": "lex gen-api --yes tinychat/api lexicons/**/* && deno task unslopify",
     "unslopify": "deno run --unstable-sloppy-imports --allow-read --allow-write ./bin/unslopify.ts ./tinychat/api",
     "playwright:install": "deno run --allow-all npm:playwright install",
@@ -46,6 +47,6 @@
   },
   "publish": { "exclude": ["nbs/", "docs/"] },
   "lint": { "exclude": ["tinychat/api", "static"] },
-  "exclude": ["_docs", "docs"],
+  "exclude": ["_docs", "docs", "e2e"],
   "nodeModulesDir": "auto"
 }

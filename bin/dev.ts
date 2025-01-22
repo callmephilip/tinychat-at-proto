@@ -1,6 +1,4 @@
 import { spawn } from "node:child_process";
-import { runClient } from "../client.tsx";
-import { runAppView } from "tinychat/appview.ts";
 
 const cloudflared = spawn("cloudflared", [
   "tunnel",
@@ -13,13 +11,16 @@ cloudflared.on("close", (code) => {
   console.log(`cloudflared exited with code ${code}`);
 });
 
-runAppView();
-runClient();
+const apps = spawn("deno", ["task", "dev:apps"]);
+
+const playwright = spawn("npx", ["playwright", "test", "--ui"]);
 
 // Handle cleanup
 const cleanup = () => {
   console.log("bye");
   cloudflared.kill("SIGTERM");
+  playwright.kill("SIGTERM");
+  apps.kill("SIGTERM");
   Deno.exit(0);
 };
 

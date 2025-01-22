@@ -76,7 +76,15 @@ export const getDatabase = (
   const dbPath = Deno.env.get("DB_URL") &&
     path.join(getProjectRoot(), Deno.env.get("DB_URL")!);
 
-  __db = new Database(dbPath || ":memory:");
+  console.log("DB_PATH is", dbPath);
+
+  try {
+    __db = new Database(dbPath || ":memory:");
+  } catch {
+    console.error("Failed to open database at", dbPath);
+    console.log("Trying with", Deno.env.get("DB_URL"));
+    __db = new Database(Deno.env.get("DB_URL") || ":memory:");
+  }
 
   const existingTables = __db
     .prepare("SELECT name FROM sqlite_master WHERE type='table'")

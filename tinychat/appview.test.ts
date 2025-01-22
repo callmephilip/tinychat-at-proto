@@ -514,6 +514,8 @@ Deno.test("/", async () => {
 });
 
 Deno.test("test xrpc", async (t) => {
+  Deno.env.set("APPVIEW_URL", "http://localhost:8001");
+
   const agent = await TinychatAgent.create();
   const repo = agent.agent.assertDid;
   const serverName = `test-${TID.nextStr()}`;
@@ -658,6 +660,8 @@ Deno.test("test xrpc", async (t) => {
 });
 
 Deno.test("test app view", async (t) => {
+  Deno.env.set("APPVIEW_URL", "http://localhost:8001");
+
   const db = getDatabase({ reset: true });
   const shutdown = runAppView({ database: db });
   const serverName = `test-${TID.nextStr()}`;

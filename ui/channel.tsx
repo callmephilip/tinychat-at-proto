@@ -23,10 +23,8 @@ export const Channel = ({ channel }: { channel: ChannelView }) => {
       hx-get={href}
       hx-push-url="true"
       hx-target="#main"
-      class={
-        (hasUnreadMessages(channel) ? "font-bold" : "font-medium") +
-        " w-full justify-start inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 rounded-md px-3 bg-primary text-primary-foreground hover:bg-primary/90"
-      }
+      class={(hasUnreadMessages(channel) ? "font-bold" : "font-medium") +
+        " w-full justify-start inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 rounded-md px-3 bg-primary text-primary-foreground hover:bg-primary/90"}
       style="justify-content: flex-start !important;"
     >
       <svg

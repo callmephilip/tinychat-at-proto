@@ -1,0 +1,9 @@
+tunnel: TUNNEL_ID_HERE
+credentials-file: ~/.cloudflared/TUNNEL_ID_HERE.json
+
+ingress:
+  - hostname: APPVIEW_SMTH_SMTH.tinychat.chat
+    service: http://localhost:8001
+  - hostname: CLIENT_APP_SMTH_SMTH.tinychat.chat
+    service: http://localhost:8000
+  - service: http_status:404

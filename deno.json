@@ -6,13 +6,10 @@
     "clean": "deno run --allow-read --allow-env --allow-write --allow-run jsr:@jurassic/jurassic/clean",
     "docs": "deno run -A --reload jsr:@jurassic/jurassic/docs . && deno lint && deno fmt",
     "runnbs": "deno run --allow-read --allow-env --allow-run jsr:@jurassic/jurassic/runnbs",
-    "dev:client": "deno run --unstable-kv --watch --env-file --allow-all client.tsx",
-    "dev:appview": "deno run --watch --env-file --allow-all appview.ts",
-    "dev": "deno run --unstable-kv --watch --env-file --allow-all dev.ts",
+    "dev": "deno run --unstable-kv --watch --env-file --allow-all bin/dev.ts",
     "generate:lexicons": "lex gen-api --yes tinychat/api lexicons/**/* && deno task unslopify",
     "unslopify": "deno run --unstable-sloppy-imports --allow-read --allow-write ./bin/unslopify.ts ./tinychat/api"
   },
-  "exports": { ".": "./mod.ts" },
   "imports": {
     "@atcute/lex-cli": "npm:@atcute/lex-cli@^1.0.4",
     "@atproto-labs/simple-store": "npm:@atproto-labs/simple-store@^0.1.1",

@@ -10,6 +10,7 @@ import {
   serverAtURIFromUrl,
   urlFromServerAtURI,
 } from "tinychat/utils.ts";
+import { run } from "node:test";
 
 // reset env vars - if we want to test oauth properly
 Deno.env.delete("TEST_AGENT_SERVICE");
@@ -48,7 +49,7 @@ app.get("/chat/:did?/:rkey?", async (c) => {
             : serverData.channels[0],
         },
         noShell: typeof c.req.header("hx-request") !== "undefined",
-      }),
+      })
     );
   }
 
@@ -72,7 +73,7 @@ app.get("/chat/:did?/:rkey?", async (c) => {
             { name: "random", id: TID.nextStr() },
             { name: "meta", id: TID.nextStr() },
           ],
-        },
+        }
       );
       await sleep(2000);
       return c.redirect(urlFromServerAtURI(s?.uri!));
@@ -113,13 +114,13 @@ app.get("/messages/list/:did/:rkey1/:rkey2", async (c) => {
     d?.data.messages,
     "for",
     server,
-    channel,
+    channel
   );
 
   return c.html(
     (d?.data.messages || [])
       .map((message) => Message({ message, oob: false }).toString())
-      .join(""),
+      .join("")
   );
 });
 
@@ -133,9 +134,15 @@ app.post("/mark-all-as-read", async (c) => {
   return c.json({ success: true });
 });
 
-Deno.serve(
-  {
-    port: parseInt(Deno.env.get("CLIENT_PORT") || "8000"),
-  },
-  app.fetch,
-);
+export const runClient = () => {
+  Deno.serve(
+    {
+      port: parseInt(Deno.env.get("CLIENT_PORT") || "8000"),
+    },
+    app.fetch
+  );
+};
+
+if (import.meta.main) {
+  runClient();
+}

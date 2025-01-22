@@ -11,7 +11,9 @@ cloudflared.on("close", (code) => {
   console.log(`cloudflared exited with code ${code}`);
 });
 
-const apps = spawn("deno", ["task", "dev:apps"]);
+const apps = spawn("deno", ["task", "dev:apps"], {
+  stdio: "inherit",
+});
 
 const playwright = spawn("npx", ["playwright", "test", "--ui"]);
 

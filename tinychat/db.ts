@@ -3,6 +3,9 @@
 import { Database } from "@db/sqlite";
 
 export type { Database } from "@db/sqlite";
+import path from "node:path";
+import { getProjectRoot } from "tinychat/utils.ts";
+
 const tables: Record<string, string> = {
   users: `
     CREATE TABLE users (
@@ -70,7 +73,10 @@ export const getDatabase = (
     return __db;
   }
 
-  __db = new Database(Deno.env.get("DB_URL") || ":memory:");
+  const dbPath = Deno.env.get("DB_URL") &&
+    path.join(getProjectRoot(), Deno.env.get("DB_URL")!);
+
+  __db = new Database(dbPath || ":memory:");
 
   const existingTables = __db
     .prepare("SELECT name FROM sqlite_master WHERE type='table'")

@@ -63,6 +63,7 @@ import { MessageView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
 import { ids } from "tinychat/api/lexicons.ts";
 import { getProfile } from "tinychat/bsky.ts";
 import { Messaging } from "tinychat/core/messaging.ts";
+import { Servers } from "tinychat/core/servers.ts";
 
 export type AppContext = {
   agent: () => Promise<TinychatAgent | undefined>;
@@ -113,6 +114,8 @@ app.get(
     };
   }),
 );
+
+"";
 import {
   NewMembershipRecord,
   NewMessageRecord,
@@ -130,6 +133,8 @@ export const runAppView = (
 ): AppViewShutdown => {
   const db = database || getDatabase();
   const messaging = new Messaging(db);
+  const servers = new Servers(db);
+
   console.log("Starting appview with db", db);
 
   // Cleanup function
@@ -150,36 +155,7 @@ export const runAppView = (
   const shutdownJetstream = startJetstream({
     db,
     onNewServer: (m: NewServerRecord) => {
-      const createServer = db.prepare(`
-        INSERT INTO servers (uri, name, creator) VALUES (
-          :uri, :name, :creator
-        )`);
-      const createMembership = db
-        .prepare(
-          `INSERT INTO server_memberships (user, server) VALUES (
-          :creator, :server
-        ) ON CONFLICT(user, server) DO NOTHING`,
-        );
-      const createChannel = db
-        .prepare(
-          `INSERT INTO channels (id, name, server) VALUES (:id, :name, :server) ON CONFLICT(id, server) DO NOTHING`,
-        );
-
-      db.transaction(() => {
-        createServer.run({
-          uri: m.uri,
-          name: m.commit.record.name,
-          creator: m.did,
-        });
-        createMembership.run({ creator: m.did, server: m.uri });
-        for (const channel of m.commit.record.channels) {
-          createChannel.run({
-            id: channel.id,
-            name: channel.name,
-            server: m.uri,
-          });
-        }
-      })();
+      servers.createServer(m);
     },
     onNewMembership: (m: NewMembershipRecord) => {
       // add server memberships record

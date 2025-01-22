@@ -8,7 +8,9 @@
     "runnbs": "deno run --allow-read --allow-env --allow-run jsr:@jurassic/jurassic/runnbs",
     "dev": "deno run --unstable-kv --watch --env-file --allow-all bin/dev.ts",
     "generate:lexicons": "lex gen-api --yes tinychat/api lexicons/**/* && deno task unslopify",
-    "unslopify": "deno run --unstable-sloppy-imports --allow-read --allow-write ./bin/unslopify.ts ./tinychat/api"
+    "unslopify": "deno run --unstable-sloppy-imports --allow-read --allow-write ./bin/unslopify.ts ./tinychat/api",
+    "playwright:install": "deno run --allow-all npm:playwright install",
+    "test:e2e": "deno run --allow-all npm:playwright test"
   },
   "imports": {
     "@atcute/lex-cli": "npm:@atcute/lex-cli@^1.0.4",
@@ -31,6 +33,7 @@
     "hono": "jsr:@hono/hono@^4.6.16",
     "iron-session": "npm:iron-session@^8.0.4",
     "multiformats": "npm:multiformats@^13.3.1",
+    "playwright": "npm:playwright@^1.49.1",
     "sqlite": "jsr:@db/sqlite@^0.12.0",
     "tinychat/": "./tinychat/",
     "@tinychat/ui/": "./ui/",
@@ -43,5 +46,6 @@
   },
   "publish": { "exclude": ["nbs/", "docs/"] },
   "lint": { "exclude": ["tinychat/api", "static"] },
-  "exclude": ["_docs", "docs"]
+  "exclude": ["_docs", "docs"],
+  "nodeModulesDir": "auto"
 }

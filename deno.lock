@@ -42,6 +42,7 @@
     "npm:iron-session@^8.0.4": "8.0.4",
     "npm:multiformats@^13.3.1": "13.3.1",
     "npm:playwright@*": "1.49.1",
+    "npm:playwright@1.49.1": "1.49.1",
     "npm:playwright@^1.49.1": "1.49.1",
     "npm:typescript@^5.7.2": "5.7.3",
     "npm:zod@^3.23.8": "3.24.1",

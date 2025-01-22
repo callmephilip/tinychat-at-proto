@@ -7,11 +7,33 @@ interface MessageProps {
   oob: boolean;
 }
 
+const messageId = (message: MessageView) =>
+  `chat-message-${shortIdFromAtUri(message.uri)}`;
+const channelId = (message: MessageView) =>
+  `channel-${shortIdFromAtUri(message.channel!)}`;
+
+export const LoadMoreMessages = ({
+  messages,
+  url,
+}: {
+  messages: MessageView[];
+  url: string;
+}) => (
+  <div
+    class="messages-loading htmx-indicator"
+    hx-get={url}
+    hx-indicator=".messages-loading"
+    hx-trigger="intersect once"
+    hx-target={`#${channelId(messages[0])}`}
+    hx-swap={`beforeend show:#${messageId(messages[messages.length - 1])}:top`}
+  />
+);
+
 export const Message = ({ message, oob = false }: MessageProps) => {
   const Wrapper = oob
     ? ({ children }: PropsWithChildren) => (
       <div
-        id={`channel-${shortIdFromAtUri(message.channel!)}`}
+        id={channelId(message)}
         hx-swap="scroll:bottom"
         hx-swap-oob="afterbegin"
       >
@@ -29,7 +51,7 @@ export const Message = ({ message, oob = false }: MessageProps) => {
   return (
     <Wrapper>
       <div
-        id={`chat-message-${shortIdFromAtUri(message.uri)}`}
+        id={messageId(message)}
         class="chat-message flex items-start mb-4 text-sm"
       >
         <img src={avatar} class="w-10 h-10 rounded mr-3" />{" "}

@@ -2,7 +2,7 @@ import { serveStatic } from "hono/deno";
 import { TID } from "@atproto/common";
 import { app } from "tinychat/client.ts";
 import { ChatPage } from "@tinychat/ui/pages/chat.tsx";
-import { Message } from "@tinychat/ui/message.tsx";
+import { LoadMoreMessages, Message } from "@tinychat/ui/message.tsx";
 import { sleep } from "tinychat/utils.ts";
 import { HTTPException } from "hono/http-exception";
 import {
@@ -96,17 +96,14 @@ app.post("/messages/send", async (c) => {
 });
 
 app.get("/messages/list/:did/:rkey1/:rkey2", async (c) => {
+  const limit = 40;
   const { server, channel } = parseURLForChannelMessageList(c.req.path);
   const agent = await c.var.ctx.agent();
   const d = await agent?.chat.tinychat.server.getMessages({
     server,
     channel,
-    limit: 40,
+    limit,
   });
-  // load_previous = Div(
-  //       cls="messages-loading htmx-indicator", hx_get=f"/c/messages/{cid}?c={prev_cursor}", hx_indicator=".messages-loading",
-  //       hx_trigger="intersect once", hx_target=f"#channel-{cid}", hx_swap=f"beforeend show:#chat-message-{msgs[-1].id}:top"
-  //   ) if len(msgs) == settings.message_history_page_size else None
 
   console.log(
     ">>>>>>>>>>>>>>>>>>>>>> got messages",
@@ -118,8 +115,14 @@ app.get("/messages/list/:did/:rkey1/:rkey2", async (c) => {
 
   return c.html(
     (d?.data.messages || [])
-      .map((message) => Message({ message, oob: false }).toString())
-      .join(""),
+      .map((message) => (<Message message={message} oob={false} />).toString())
+      .join("") +
+      (
+        <LoadMoreMessages
+          messages={d?.data.messages || []}
+          url={c.req.path + `?cursor=${d?.data.cursor}`}
+        />
+      ).toString(),
   );
 });
 

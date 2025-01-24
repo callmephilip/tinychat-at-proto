@@ -43,9 +43,13 @@
                 "ref": "chat.tinychat.server.defs#messageView"
               }
             },
-            "cursor": {
+            "prevCursor": {
               "type": "string",
-              "description": "Cursor for pagination"
+              "description": "Cursor for fetching previous page"
+            },
+            "nextCursor": {
+              "type": "string",
+              "description": "Cursor for fetching next page"
             }
           }
         }

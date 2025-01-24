@@ -351,7 +351,7 @@ export const schemaDict = {
       messageView: {
         type: "object",
         description: "Message view",
-        required: ["uri", "sender", "text", "createdAt"],
+        required: ["uri", "sender", "text", "createdAt", "ts"],
         properties: {
           uri: {
             type: "string",
@@ -371,6 +371,10 @@ export const schemaDict = {
           },
           text: {
             type: "string",
+          },
+          ts: {
+            type: "string",
+            description: "timestamp in us",
           },
           createdAt: {
             type: "string",
@@ -426,9 +430,13 @@ export const schemaDict = {
                   ref: "lex:chat.tinychat.server.defs#messageView",
                 },
               },
-              cursor: {
+              prevCursor: {
                 type: "string",
-                description: "Cursor for pagination",
+                description: "Cursor for fetching previous page",
+              },
+              nextCursor: {
+                type: "string",
+                description: "Cursor for fetching next page",
               },
             },
           },

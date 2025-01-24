@@ -35,7 +35,7 @@
     "messageView": {
       "type": "object",
       "description": "Message view",
-      "required": ["uri", "sender", "text", "createdAt"],
+      "required": ["uri", "sender", "text", "createdAt", "ts"],
       "properties": {
         "uri": { "type": "string", "format": "at-uri" },
         "server": {
@@ -51,6 +51,7 @@
           "ref": "chat.tinychat.actor.defs#actorView"
         },
         "text": { "type": "string" },
+        "ts": { "type": "string", "description": "timestamp in us" },
         "createdAt": { "type": "string", "format": "datetime" }
       }
     }

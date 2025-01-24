@@ -99,6 +99,7 @@ export const getDatabase = (
   // create triggers and etc
   __db.prepare(`DROP TRIGGER IF EXISTS update_channel_latest_message;`).run();
   __db.prepare(`DROP VIEW IF EXISTS channel_view;`).run();
+  __db.prepare(`DROP VIEW IF EXISTS message_view;`).run();
 
   __db
     .prepare(
@@ -121,6 +122,14 @@ export const getDatabase = (
        LEFT JOIN read_receipts rr ON rr.channel = c.id AND rr.user = sm.user AND rr.server = sm.server;`,
     )
     .run();
+
+  __db.prepare(
+    `CREATE VIEW message_view AS
+       SELECT uri, channel, server, text, sender, created_at as createdAt, time_us, users.did, users.handle, users.display_name as displayName,
+              users.avatar, users.description
+       FROM messages
+       INNER JOIN users ON messages.sender = users.did`,
+  ).run();
 
   return __db;
 };

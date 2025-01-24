@@ -23,8 +23,10 @@ export type InputSchema = undefined;
 
 export interface OutputSchema {
   messages: ChatTinychatServerDefs.MessageView[];
-  /** Cursor for pagination */
-  cursor?: string;
+  /** Cursor for fetching previous page */
+  prevCursor?: string;
+  /** Cursor for fetching next page */
+  nextCursor?: string;
   [k: string]: unknown;
 }
 

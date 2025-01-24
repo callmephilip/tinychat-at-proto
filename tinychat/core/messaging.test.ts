@@ -4,6 +4,10 @@ import type { Database } from "tinychat/db.ts";
 import { Record as Message } from "tinychat/api/types/chat/tinychat/core/message.ts";
 import { ChannelView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
 import { ServerView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
+import {
+  MessageView,
+  validateMessageView,
+} from "tinychat/api/types/chat/tinychat/server/defs.ts";
 
 const get_time_us = (): string => `${new Date().getTime() * 1000}`;
 
@@ -11,16 +15,32 @@ const cleanupChannelView = (view: ChannelView) => {
   return Object.fromEntries(Object.entries(view).filter(([, v]) => v !== null));
 };
 
+export class MessageCursor {
+  constructor(public timestamp: string, public direction: "past" | "future") {}
+
+  public static fromString(base64Str: string): MessageCursor {
+    const decoded = atob(base64Str);
+    const [timestamp, direction] = decoded.split(":");
+    return new MessageCursor(timestamp, direction as "past" | "future");
+  }
+
+  public toString(): string {
+    return btoa(`${this.timestamp}:${this.direction}`);
+  }
+}
+
 export class Messaging {
   constructor(protected db: Database) {}
 
-  public markAllMessagesAsRead(
-    { channel, server, user }: {
-      channel: string;
-      server: string;
-      user: string;
-    },
-  ) {
+  public markAllMessagesAsRead({
+    channel,
+    server,
+    user,
+  }: {
+    channel: string;
+    server: string;
+    user: string;
+  }) {
     this.db
       .prepare(
         `INSERT OR REPLACE INTO read_receipts (channel, server, user, time_us) VALUES (:channel, :server, :user, :time)`,
@@ -28,16 +48,20 @@ export class Messaging {
       .run({ channel, user, server, time: get_time_us() });
   }
 
-  public getServers(
-    { uris, did, viewer }: {
-      uris?: string[] | undefined;
-      did?: string | undefined;
-      viewer?: string | undefined;
-    },
-  ): ServerView[] {
+  public getServers({
+    uris,
+    did,
+    viewer,
+  }: {
+    uris?: string[] | undefined;
+    did?: string | undefined;
+    viewer?: string | undefined;
+  }): ServerView[] {
     const sql = (where: string = "") => {
-      const w = [viewer ? `c.user = '${viewer}'` : "", where].filter((q) => q)
-        .join(" AND ").trim();
+      const w = [viewer ? `c.user = '${viewer}'` : "", where]
+        .filter((q) => q)
+        .join(" AND ")
+        .trim();
       const s = !viewer
         ? `SELECT 
         s.uri,
@@ -77,9 +101,9 @@ export class Messaging {
 
     let results: ServerView[] = [];
     if (uris && uris.length > 0) {
-      results = sql(`s.uri IN (${uris.map((u) => `'${u}'`).join(", ")})`).all<
-        ServerView
-      >();
+      results = sql(
+        `s.uri IN (${uris.map((u) => `'${u}'`).join(", ")})`,
+      ).all<ServerView>();
     } else if (did) {
       results = sql(`s.creator = :did`).all<ServerView>({
         did,
@@ -95,26 +119,137 @@ export class Messaging {
     );
   }
 
-  public receiveMessage(
-    { m, uri, sender, time_us }: {
-      m: Message;
-      uri: string;
-      sender: string;
-      time_us: string;
-    },
-  ) {
-    this.db.prepare(`
+  public receiveMessage({
+    m,
+    uri,
+    sender,
+    time_us,
+  }: {
+    m: Message;
+    uri: string;
+    sender: string;
+    time_us: string;
+  }) {
+    this.db
+      .prepare(
+        `
       INSERT INTO messages (uri, channel, server, text, sender, created_at, time_us) VALUES (
         :uri, :channel, :server, :text, :sender, :created_at, :time_us
-      )`).run({
-      uri,
-      channel: m.channel,
-      server: m.server,
-      text: m.text,
-      sender,
-      created_at: m.createdAt,
-      time_us: time_us,
-    });
+      )`,
+      )
+      .run({
+        uri,
+        channel: m.channel,
+        server: m.server,
+        text: m.text,
+        sender,
+        created_at: m.createdAt,
+        time_us: time_us,
+      });
+  }
+
+  public getMessages({
+    server,
+    channel,
+    uri,
+    cursor,
+    limit,
+  }: {
+    server?: string;
+    channel?: string;
+    uri?: string;
+    cursor?: string;
+    limit?: number;
+  }): {
+    messages: MessageView[];
+    prevCursor?: string;
+    nextCursor?: string;
+  } {
+    interface Message {
+      uri: string;
+      channel: string;
+      server: string;
+      text: string;
+      createdAt: string;
+      time_us: string;
+      // user
+      did: string;
+      handle: string;
+      displayName: string;
+      avatar?: string;
+      description?: string;
+    }
+
+    if (!channel && !server && !uri) {
+      return {
+        messages: [],
+      };
+    }
+
+    const parsedCursor = cursor && MessageCursor.fromString(cursor);
+    const cursorWhere = (c: MessageCursor) =>
+      c.direction === "past" ? "time_us < :cursor" : "time_us > :cursor";
+    let results: Message[] = [];
+
+    if (uri) {
+      results = this.db.prepare(`SELECT * FROM message_view WHERE uri = :uri`)
+        .all<Message>(Object.assign({ uri }));
+    } else {
+      results = this.db.prepare(`SELECT * FROM message_view
+      WHERE channel = :channel AND server = :server ${
+        parsedCursor ? `AND ${cursorWhere(parsedCursor)}` : ""
+      } ORDER BY time_us DESC LIMIT :limit`).all<Message>(
+        Object.assign(
+          { server, channel, limit: limit || 10 },
+          parsedCursor ? { cursor: parsedCursor.timestamp } : {},
+        ),
+      );
+    }
+
+    const messages: MessageView[] = results
+      .map((m: Message) => ({
+        uri: m.uri,
+        channel: m.channel,
+        server: m.server,
+        text: m.text,
+        createdAt: m.createdAt,
+        ts: m.time_us,
+        sender: {
+          did: m.did,
+          handle: m.handle,
+          displayName: m.displayName,
+          avatar: m.avatar,
+          description: m.description,
+        },
+      }))
+      .map((m) => {
+        const v = validateMessageView(m);
+        if (!v.success) {
+          console.error("Failed to validate message view", v);
+        }
+        // @ts-ignore yolo
+        return v.value;
+      })
+      .filter((m) => m) as MessageView[];
+
+    return Object.assign(
+      {
+        messages,
+      },
+      messages.length === limit
+        ? {
+          prevCursor: new MessageCursor(
+            messages[messages.length - 1].ts,
+            "past",
+          ).toString(),
+        }
+        : {},
+      cursor
+        ? {
+          nextCursor: new MessageCursor(messages[0].ts, "future").toString(),
+        }
+        : {},
+    );
   }
 }
 import { getDatabase } from "tinychat/db.ts";
@@ -125,30 +260,37 @@ class TestMessaging extends Messaging {
     super(getDatabase({ reset: true }));
   }
 
-  public static server: string = "at://server-1";
-  public static user1: string = "did:1";
-  public static user2: string = "did:2";
+  public static server: string =
+    "at://did:plc:ubdeopbbkbgedccgbum7dhsh/chat.tinychat.core.server/3lgfm4edsy72b";
+  public static server2: string =
+    "at://did:plc:ubdeopbbkbgedccgbum7dhsh/chat.tinychat.core.server/3lgfm4edsy767";
+  public static user1: string = "did:plc:ubdeopbbkbgedccgbum7dhsh";
+  public static user2: string = "did:plc:ubdeopbbkbgedccgbum7dhop";
   public static channel1: string = TID.nextStr();
   public static channel2: string = TID.nextStr();
 
-  public user1MessagesChannel1(text: string) {
+  public user1MessagesChannel1(
+    text: string,
+    timestamp: string = get_time_us(),
+  ) {
     this.receiveMessage({
       m: {
         channel: TestMessaging.channel1,
-        server: "at://server-1",
+        server: TestMessaging.server,
         text,
         createdAt: new Date().toISOString(),
       },
-      uri: "at://message-1",
+      uri:
+        `at://did:plc:ubdeopbbkbgedccgbum7dhsh/chat.tinychat.core.message/${TID.nextStr()}`,
       sender: TestMessaging.user1,
-      time_us: get_time_us(),
+      time_us: timestamp,
     });
   }
 
   public static setup(): TestMessaging {
     const service = new TestMessaging();
     // insert 2 test users
-    [1, 2].forEach((i) => {
+    [0, 1].forEach((i) => {
       service.db
         .prepare(
           `
@@ -158,11 +300,11 @@ class TestMessaging extends Messaging {
       `,
         )
         .run({
-          did: `did:${i}`,
-          handle: `user-${i}`,
-          display_name: `User ${i}`,
-          avatar: `http://google.com/avatar-${i}.jpeg`,
-          description: `description ${i}`,
+          did: [TestMessaging.user1, TestMessaging.user2][i],
+          handle: "callmephilip.com",
+          display_name: `User ${i + 1}`,
+          avatar: `http://google.com/avatar.jpeg`,
+          description: `description ${i + 1}`,
         });
     });
     // create test server
@@ -175,13 +317,13 @@ class TestMessaging extends Messaging {
     `,
       )
       .run({
-        uri: "at://server-1",
+        uri: TestMessaging.server,
         name: "Test Server",
-        creator: "did:1",
+        creator: TestMessaging.user1,
       });
 
     // create memberships for both users
-    [1, 2].forEach((i) => {
+    [0, 1].forEach((i) => {
       service.db
         .prepare(
           `
@@ -191,8 +333,8 @@ class TestMessaging extends Messaging {
       `,
         )
         .run({
-          user: `did:${i}`,
-          server: "at://server-1",
+          user: [TestMessaging.user1, TestMessaging.user2][i],
+          server: TestMessaging.server,
         });
     });
 
@@ -209,7 +351,7 @@ class TestMessaging extends Messaging {
         .run({
           id: c,
           name: `channel ${c}`,
-          server: "at://server-1",
+          server: TestMessaging.server,
         });
     });
 
@@ -223,13 +365,15 @@ class TestMessaging extends Messaging {
     `,
       )
       .run({
-        uri: "at://server-2",
+        uri: TestMessaging.server2,
         name: "Test Server 2",
-        creator: "did:1",
+        creator: TestMessaging.user1,
       });
 
+    console.log(">>>>>>>>>>>>>>>>> setup done");
+
     // create memberships for both users
-    [1, 2].forEach((i) => {
+    [TestMessaging.user1, TestMessaging.user2].forEach((user) => {
       service.db
         .prepare(
           `
@@ -239,8 +383,8 @@ class TestMessaging extends Messaging {
       `,
         )
         .run({
-          user: `did:${i}`,
-          server: "at://server-2",
+          user,
+          server: TestMessaging.server2,
         });
     });
 
@@ -257,7 +401,7 @@ class TestMessaging extends Messaging {
         .run({
           id: TID.nextStr(),
           name: `channel server 2 ${i}`,
-          server: "at://server-2",
+          server: TestMessaging.server2,
         });
     });
 
@@ -389,7 +533,7 @@ export const seedMessages = (
 import { assert, assertEquals } from "asserts";
 // 🦕 AUTOGENERATED! DO NOT EDIT! File to edit: core/messaging.ipynb
 
-Deno.test.ignore("cleanup ChnanelView", () => {
+Deno.test("cleanup ChannelView", () => {
   assertEquals(
     cleanupChannelView({
       id: "channel-1",
@@ -424,7 +568,7 @@ Deno.test.ignore("cleanup ChnanelView", () => {
   );
 });
 
-Deno.test.ignore("get servers includes channel message ts info", () => {
+Deno.test("get servers includes channel message ts info", () => {
   const messaging = TestMessaging.setup();
   messaging.user1MessagesChannel1("hello world");
 
@@ -498,5 +642,141 @@ Deno.test("message seeding", () => {
   assert(
     db.prepare("SELECT COUNT(*) FROM messages").value<[number]>()![0] > 80,
     "messaging seeding works",
+  );
+});
+Deno.test("message cursor", () => {
+  const t = `${new Date().getTime() * 1000}`;
+  const cursor = MessageCursor.fromString(
+    new MessageCursor(t, "past").toString(),
+  );
+  assert(cursor.timestamp === t, "timestamp matches");
+  assert(cursor.direction === "past", "direction matches");
+});
+Deno.test("message loading and pagination", async (t) => {
+  const messaging = TestMessaging.setup();
+  const db = getDatabase();
+
+  //throw a bunch of messages into the db
+  for (let i = 0; i < 1000; i++) {
+    // offset ts by i minutes
+    const timestamp = `${(new Date().getTime() + 60 * (i * 1000)) * 1000}`;
+    messaging.user1MessagesChannel1(`[${i}] hello world`, timestamp);
+  }
+
+  await t.step("test get by uri", () => {
+    const uri =
+      db.prepare("SELECT uri FROM messages").get<{ uri: string }>()!.uri;
+    const { messages } = messaging.getMessages({ uri });
+    assertEquals(messages.length, 1, "got 1 message");
+    assertEquals(messages[0].uri, uri, "got the right message");
+  });
+
+  await t.step("test pagination and order for the first batch", () => {
+    const { messages, prevCursor, nextCursor } = messaging.getMessages({
+      server: TestMessaging.server,
+      channel: TestMessaging.channel1,
+      limit: 10,
+    });
+
+    assertEquals(messages.length, 10, "got 10 messages");
+    assertEquals(
+      messages[0].text,
+      "[999] hello world",
+      "the latest message comes first",
+    );
+    assertEquals(
+      messages[9].text,
+      "[990] hello world",
+      "the oldest message comes last",
+    );
+    assert(messages[0].text > messages[9].text, "latest messages come first");
+
+    assert(
+      !nextCursor,
+      "no next cursor for the first fetch with the latest messages",
+    );
+    assert(prevCursor, "got a prev cursor for the first fetch");
+    assert(
+      MessageCursor.fromString(prevCursor!).timestamp === messages[9].ts,
+      "prev cursor points to the oldest in the batch",
+    );
+    assert(
+      MessageCursor.fromString(prevCursor!).direction === "past",
+      "prev cursor points to the past",
+    );
+  });
+
+  await t.step(
+    "test pagination and order for the second batch going into past",
+    () => {
+      const firstBatch = messaging.getMessages({
+        server: TestMessaging.server,
+        channel: TestMessaging.channel1,
+        limit: 10,
+      });
+      const { messages, nextCursor, prevCursor } = messaging.getMessages({
+        server: TestMessaging.server,
+        channel: TestMessaging.channel1,
+        limit: 10,
+        cursor: firstBatch.prevCursor,
+      });
+
+      assertEquals(messages.length, 10, "past batch has 10 messages");
+      assert(nextCursor, "past batch has next cursor");
+      assert(prevCursor, "past batch has prev cursor");
+      assert(
+        Number(messages[0].ts) <
+          Number(firstBatch.messages[firstBatch.messages.length - 1].ts),
+        "past batch latest messages is older than the first batch's last message",
+      );
+      assert(
+        MessageCursor.fromString(nextCursor).timestamp === messages[0].ts,
+        "past batch next cursor points to its newest message",
+      );
+      assert(
+        MessageCursor.fromString(nextCursor).direction === "future",
+        "past batch next cursor points to the future",
+      );
+      assert(
+        MessageCursor.fromString(prevCursor).timestamp ===
+          messages[messages.length - 1].ts,
+        "past batch prev cursor points to its oldest message",
+      );
+      assert(
+        MessageCursor.fromString(prevCursor).direction === "past",
+        "past batch prev cursor points to the past",
+      );
+    },
+  );
+
+  await t.step(
+    "test pagination and order going forward from the second batch",
+    () => {
+      const firstBatch = messaging.getMessages({
+        server: TestMessaging.server,
+        channel: TestMessaging.channel1,
+        limit: 10,
+      });
+      const secondBatch = messaging.getMessages({
+        server: TestMessaging.server,
+        channel: TestMessaging.channel1,
+        limit: 10,
+        cursor: firstBatch.prevCursor,
+      });
+      const { messages, nextCursor, prevCursor } = messaging.getMessages({
+        server: TestMessaging.server,
+        channel: TestMessaging.channel1,
+        limit: 10,
+        cursor: secondBatch.nextCursor,
+      });
+
+      assertEquals(messages.length, 10, "got 10 messages");
+      assert(
+        messages[0].ts > messages[messages.length - 1].ts,
+        "new messages comes first",
+      );
+      assert(prevCursor, "got prev cursor for the new batch");
+      assert(nextCursor, "got next cursor for the new batch");
+    },
   );
 });

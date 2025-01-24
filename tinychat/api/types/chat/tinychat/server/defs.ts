@@ -57,6 +57,8 @@ export interface MessageView {
   channel?: string;
   sender: ChatTinychatActorDefs.ActorView;
   text: string;
+  /** timestamp in us */
+  ts: string;
   createdAt: string;
   [k: string]: unknown;
 }

@@ -103,6 +103,7 @@ app.get("/messages/list/:did/:rkey1/:rkey2", async (c) => {
     server,
     channel,
     limit,
+    cursor: c.req.query("cursor"),
   });
 
   console.log(
@@ -113,16 +114,19 @@ app.get("/messages/list/:did/:rkey1/:rkey2", async (c) => {
     channel,
   );
 
+  const loadMore = d?.data.prevCursor
+    ? (
+      <LoadMoreMessages
+        messages={d?.data.messages || []}
+        url={c.req.path + `?cursor=${d?.data.prevCursor}`}
+      />
+    )
+    : null;
+
   return c.html(
     (d?.data.messages || [])
       .map((message) => (<Message message={message} oob={false} />).toString())
-      .join("") +
-      (
-        <LoadMoreMessages
-          messages={d?.data.messages || []}
-          url={c.req.path + `?cursor=${d?.data.cursor}`}
-        />
-      ).toString(),
+      .join("") + (loadMore ? loadMore.toString() : ""),
   );
 });
 

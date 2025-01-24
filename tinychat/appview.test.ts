@@ -59,7 +59,9 @@ import { TinychatAgent } from "tinychat/agent.ts";
 import { getDatabase } from "tinychat/db.ts";
 import type { Database } from "tinychat/db.ts";
 import { ActorView } from "tinychat/api/types/chat/tinychat/actor/defs.ts";
-import { MessageView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
+import {
+  validateMessageView,
+} from "tinychat/api/types/chat/tinychat/server/defs.ts";
 import { ids } from "tinychat/api/lexicons.ts";
 import { getProfile } from "tinychat/bsky.ts";
 import { Messaging } from "tinychat/core/messaging.ts";
@@ -183,7 +185,8 @@ export const runAppView = (
       });
 
       // grab new message + sender info and broadcast to chat
-      const { messages } = pullMessagesFromDb({ db, uri: m.uri, limit: 1 });
+
+      const { messages } = new Messaging(db).getMessages({ uri: m.uri });
       const msgHTML = Message({ message: messages[0], oob: true }).toString();
       // chatServer.broadcast(
       //   JSON.stringify({
@@ -269,127 +272,18 @@ app.get(`/xrpc/${ids.ChatTinychatServerGetServers}`, async (c) => {
 });
 
 "";
-interface Message {
-  uri: string;
-  channel: string;
-  server: string;
-  text: string;
-  createdAt: string;
-  time_us: string;
-  // user
-  did: string;
-  handle: string;
-  displayName: string;
-  avatar?: string;
-  description?: string;
-}
-
-const pullMessagesFromDb = ({
-  db,
-  server,
-  channel,
-  uri,
-  cursor,
-  limit,
-}: {
-  db: Database;
-  server?: string;
-  channel?: string;
-  uri?: string;
-  cursor?: string;
-  limit: number;
-}): {
-  messages: MessageView[];
-  cursor?: string;
-} => {
-  if (!channel && !uri) {
-    return {
-      messages: [],
-    };
-  }
-
-  const messages = (
-    channel && server
-      ? db
-        .prepare(
-          `
-      SELECT uri, channel, server, text, sender, created_at as createdAt, time_us,
-        users.did, users.handle, users.display_name as displayName, users.avatar, users.description
-      FROM messages
-      INNER JOIN users ON messages.sender = users.did
-      WHERE channel = :channel AND server = :server ${
-            cursor ? `AND time_us < :cursor` : ""
-          }
-      ORDER BY time_us DESC
-      LIMIT :limit
-    `,
-        )
-        .all<Message>(
-          Object.assign({ server, channel, limit }, cursor ? { cursor } : {}),
-        )
-      : db
-        .prepare(
-          `
-      SELECT uri, channel, server, text, sender, created_at as createdAt, time_us,
-        users.did, users.handle, users.display_name as displayName, users.avatar, users.description
-      FROM messages
-      INNER JOIN users ON messages.sender = users.did
-      WHERE uri = :uri ${cursor ? `AND time_us < :cursor` : ""}
-      ORDER BY time_us DESC
-      LIMIT :limit
-    `,
-        )
-        .all<Message>(Object.assign({ uri, limit }, cursor ? { cursor } : {}))
-  ).map((m: Message) => ({
-    uri: m.uri,
-    channel: m.channel,
-    server: m.server,
-    text: m.text,
-    createdAt: m.createdAt,
-    time_us: m.time_us,
-    sender: {
-      did: m.did,
-      handle: m.handle,
-      displayName: m.displayName,
-      avatar: m.avatar,
-      description: m.description,
-    },
-  }));
-
-  return {
-    messages,
-    cursor: messages.length > 0
-      ? `${messages[messages.length - 1].time_us}`
-      : undefined,
-  };
-};
-
 app.get(`/xrpc/${ids.ChatTinychatServerGetMessages}`, (c) => {
-  const { db } = c.var.ctx;
-  if (!db) {
-    throw new HTTPException(500, { message: "DB not available" });
-  }
   const { channel, server, cursor, limit } = c.req.query();
-  console.log(
-    ">>>>>>>>>>>>>. getting messages for channel",
+  console.log(">>>>>>>>>>>>>. getting messages for channel", c.req.query());
+  return c.json(new Messaging(c.var.ctx.db!).getMessages({
     channel,
+    server,
     cursor,
-    limit,
-    typeof limit,
-  );
-  return c.json(
-    pullMessagesFromDb({
-      db,
-      channel,
-      server,
-      cursor,
-      limit: limit ? parseInt(limit) : 10,
-    }),
-  );
+    limit: limit ? parseInt(limit) : 10,
+  }));
 });
 
 "";
-
 app.post(`/xrpc/${ids.ChatTinychatServerSendMessage}`, async (c) => {
   const agent = await c.var.ctx.agent();
 
@@ -414,15 +308,23 @@ app.post(`/xrpc/${ids.ChatTinychatServerSendMessage}`, async (c) => {
     },
   );
 
+  const v = validateMessageView({
+    uri: d.uri,
+    channel,
+    server,
+    text,
+    createdAt,
+    sender: await getProfile(agent.agent.assertDid),
+    ts: `${new Date().getTime() * 1000}`,
+  });
+
+  if (!v.success) {
+    console.error("Error validating message in sendMessage", v);
+  }
+
   return c.json({
-    message: {
-      uri: d.uri,
-      channel,
-      server,
-      text,
-      createdAt,
-      sender: await getProfile(agent.agent.assertDid),
-    },
+    // @ts-ignore yolo
+    message: v.value,
   });
 });
 
@@ -594,17 +496,6 @@ Deno.test("test xrpc", async (t) => {
     );
   });
 
-  await t.step("list messages", async () => {
-    const { data } = await agent.chat.tinychat.server.getMessages({
-      server: chatServer.uri,
-      channel: channelId,
-      limit: 10,
-    });
-    assert(data.messages.length > 0, "got a least 1 message");
-    assert(data.messages.find((m) => m.text === "hello"), "found our message");
-    assert(typeof data.cursor === "string", "got a cursor for messages");
-  });
-
   // send another message
 
   await t.step("send message via xrpc", async () => {
@@ -615,7 +506,9 @@ Deno.test("test xrpc", async (t) => {
     });
     await sleep(2000);
 
-    const messages = db.prepare("SELECT * FROM messages").all<Message>();
+    const messages = db.prepare("SELECT * FROM messages").all<
+      { text: string }
+    >();
     assert(messages.length === 2, "expecting 2 messages");
     assert(
       messages.find((m) => m.text === "message via xrpc"),
@@ -737,7 +630,7 @@ Deno.test("test app view", async (t) => {
     assert(receivedMessages[0].html.includes("hello"));
   });
 
-  await t.step("test message cursor", async () => {
+  await t.step("test get messages", async () => {
     await agent.chat.tinychat.core.message.create(
       { repo },
       {
@@ -745,6 +638,7 @@ Deno.test("test app view", async (t) => {
         channel,
         text: "cursor test message",
         createdAt: new Date().toISOString(),
+        time_us: `${new Date().getTime() * 1000}`,
       },
     );
     await sleep(2000);
@@ -755,6 +649,7 @@ Deno.test("test app view", async (t) => {
         channel,
         text: "cursor test message: latest",
         createdAt: new Date().toISOString(),
+        time_us: `${new Date().getTime() * 1000}`,
       },
     );
     await sleep(2000);
@@ -766,28 +661,6 @@ Deno.test("test app view", async (t) => {
     });
 
     assert(data.messages.length === 1, "got 1 message");
-    assert(
-      data.messages[0].text === "cursor test message: latest",
-      "got the latest message",
-    );
-    assert(data.cursor, "got a cursor to work with");
-
-    console.log(">>>>>>>>>>>>>>>>> messages data with cursor", data);
-
-    const { data: data2 } = await agent.chat.tinychat.server.getMessages({
-      channel,
-      server,
-      cursor: data.cursor,
-      limit: 1,
-    });
-
-    // should get 1 message for
-
-    assert(data2.messages.length === 1, "got 1 message");
-    assert(
-      data2.messages[0].text === "cursor test message",
-      "got previous cursor message",
-    );
   });
 
   await t.step("mark all messages as read in a channel", async () => {

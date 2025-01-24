@@ -15,5 +15,4 @@ TODO
 lsof -i tcp:8000 sudo kill -9 <PID>
 
 Run playwright UI:
-
 `npx playwright test --ui`

@@ -15,14 +15,12 @@ export const Chat = () => {
       data-current-channel={currentChannel?.id}
       data-current-server={server?.uri}
     >
-      {
-        /* PING <div
+      {/* PING <div
           hx-trigger="load, every 5s"
           ws-send="true"
           hx-vals='{"cmd": "ping", "d": {"cid": 1}}'
           class="hidden"
-        /> */
-      }
+        /> */}
 
       {server?.channels.map((channel) => (
         <>
@@ -51,15 +49,13 @@ export const Chat = () => {
             >
               {/* style="padding-top: 60px; padding-bottom: 130px;" if is_mobile else "" */}
               {/* lazy load messages for current channel */}
-              {currentChannel?.id === channel.id
-                ? (
-                  <div
-                    hx-trigger="revealed"
-                    hx-get={urlForChannelMessageList(channel)}
-                    hx-swap="outerHTML"
-                  />
-                )
-                : null}
+              {currentChannel?.id === channel.id ? (
+                <div
+                  hx-trigger="revealed"
+                  hx-get={urlForChannelMessageList(channel)}
+                  hx-swap="outerHTML"
+                />
+              ) : null}
             </div>
           </div>
         </>
@@ -81,9 +77,9 @@ export const Chat = () => {
             <Channel
               key={channel.id}
               channel={channel}
-              isSelected={currentChannel
-                ? currentChannel.id === channel.id
-                : i === 0}
+              isSelected={
+                currentChannel ? currentChannel.id === channel.id : i === 0
+              }
             />
           ))}
         </div>
@@ -101,37 +97,36 @@ export const Chat = () => {
           </div>
           {nav}
         </div>
-        <div class="px-3 py-8">
-          <a
-            href="/login"
-            type="button"
-            class="px-3 py-2 text-xs font-medium text-center inline-flex items-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-          >
-            Join the conversation
-          </a>
-        </div>
+        {!user ? (
+          <div class="px-3 py-8">
+            <a
+              href="/login"
+              type="button"
+              class="px-3 py-2 text-xs font-medium text-center inline-flex items-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            >
+              Join the conversation
+            </a>
+          </div>
+        ) : null}
         <div class="px-3 py-2 border-t">
           {/* hx-get="/stats" hx-trigger="every 2s" */}
           <div class="flex items-center space-x-2">
-            <span class="w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full">
-            </span>{" "}
+            <span class="w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"></span>{" "}
             <div class="text-xs text-muted-foreground">
               11 connections, 3460 users, 25648 messages
             </div>
           </div>
         </div>
         {/* Profile */}
-        {user
-          ? (
-            <button class="flex items-center px-4 mx-4 fixed bottom-6">
-              <img src={user.avatar} class="w-10 h-10 mr-3" />
-              <div class="text-sm">
-                <div class="font-bold">{user.displayName}</div>
-                <div class="text-xs font-bold text-green-400">Online</div>
-              </div>
-            </button>
-          )
-          : null}
+        {user ? (
+          <button class="flex items-center px-4 mx-4 fixed bottom-6">
+            <img src={user.avatar} class="w-10 h-10 mr-3" />
+            <div class="text-sm">
+              <div class="font-bold">{user.displayName}</div>
+              <div class="text-xs font-bold text-green-400">Online</div>
+            </div>
+          </button>
+        ) : null}
       </div>
       {/* Main */}
       {main}

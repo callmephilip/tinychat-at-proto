@@ -11,9 +11,9 @@ type PageProps = PropsWithChildren<{
 export const Page = ({ hideOverflow, htmx, user, children }: PageProps) => {
   const htmxAttrs = htmx
     ? {
-      "hx-ext": "ws",
-      "ws-connect": getNotificationsWsUrl({ user }),
-    }
+        "hx-ext": "ws",
+        "ws-connect": getNotificationsWsUrl({ user }),
+      }
     : {};
   const bodyClasses = `font-sans antialiased h-dvh flex bg-background ${
     hideOverflow ? "overflow-hidden" : ""
@@ -27,6 +27,7 @@ export const Page = ({ hideOverflow, htmx, user, children }: PageProps) => {
         <script src="https://cdn.tailwindcss.com" />
         <style href="/static/styles.css" />
         <script src="https://unpkg.com/htmx.org@2.0.4" />
+        <script src="/static/htmx-ws.js" />
         <script
           defer
           src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"

@@ -101,6 +101,15 @@ export const Chat = () => {
           </div>
           {nav}
         </div>
+        <div class="px-3 py-8">
+          <a
+            href="/login"
+            type="button"
+            class="px-3 py-2 text-xs font-medium text-center inline-flex items-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+          >
+            Join the conversation
+          </a>
+        </div>
         <div class="px-3 py-2 border-t">
           {/* hx-get="/stats" hx-trigger="every 2s" */}
           <div class="flex items-center space-x-2">

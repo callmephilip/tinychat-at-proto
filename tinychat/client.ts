@@ -157,8 +157,8 @@ app.post("/login", async (c) => {
 
     return c.redirect(url.toString());
   } catch (e) {
-    console.error(e);
-    return c.json({ error: "Internal server error" }, 500);
+    console.error("Error with POST /login", e);
+    return c.redirect("/login");
   }
 });
 

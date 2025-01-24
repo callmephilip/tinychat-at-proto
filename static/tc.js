@@ -51,6 +51,9 @@ document.addEventListener("DOMContentLoaded", () => {
         .querySelector("#composer")
         .setAttribute("hx-target", `#channel-${channelId}`);
       document.querySelector("#composer input[name=channel]").value = channelId;
+
+      // focus on composer
+      document.querySelector("#msg").focus();
     });
   });
 });

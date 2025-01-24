@@ -23,6 +23,10 @@ app.get("/chat/:did?/:rkey?", async (c) => {
   const { ch } = c.req.query();
   const agent = await c.var.ctx.agent();
 
+  if (!agent) {
+    return c.redirect("/login");
+  }
+
   // got a fully qualified route, let's go!
   if (did && rkey) {
     console.log("server iz", serverAtURIFromUrl(c.req.url));
@@ -47,7 +51,6 @@ app.get("/chat/:did?/:rkey?", async (c) => {
             ? serverData.channels?.find((c) => c.id === ch)
             : serverData.channels[0],
         },
-        noShell: typeof c.req.header("hx-request") !== "undefined",
       }),
     );
   }
@@ -86,6 +89,11 @@ app.get("/chat/:did?/:rkey?", async (c) => {
 
 app.post("/messages/send", async (c) => {
   const agent = await c.var.ctx.agent();
+
+  if (!agent) {
+    return c.redirect("/login");
+  }
+
   const data = await c.req.formData();
   const d = await agent?.chat.tinychat.server.sendMessage({
     channel: data.get("channel")!.toString(),
@@ -106,13 +114,13 @@ app.get("/messages/list/:did/:rkey1/:rkey2", async (c) => {
     cursor: c.req.query("cursor"),
   });
 
-  console.log(
-    ">>>>>>>>>>>>>>>>>>>>>> got messages",
-    d?.data.messages,
-    "for",
-    server,
-    channel,
-  );
+  // console.log(
+  //   ">>>>>>>>>>>>>>>>>>>>>> got messages",
+  //   d?.data.messages,
+  //   "for",
+  //   server,
+  //   channel,
+  // );
 
   const loadMore = d?.data.prevCursor
     ? (

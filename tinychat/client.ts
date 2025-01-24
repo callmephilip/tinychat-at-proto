@@ -68,7 +68,14 @@ app.use(
     c.set("ctx", {
       session,
       oauthClient,
-      agent: () => getAgent(),
+      agent: async () => {
+        try {
+          return await getAgent();
+        } catch (e) {
+          console.error("get agent failed with", e);
+          console.error("gonna ask for login");
+        }
+      },
       user: async () => {
         try {
           const a = await getAgent();

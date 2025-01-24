@@ -1,5 +1,5 @@
 import { ChannelView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
-import { urlFromServerAtURI } from "tinychat/utils.ts";
+import { urlForChannelMessageList } from "tinychat/utils.ts";
 
 const hasUnreadMessages = (channel: ChannelView): boolean => {
   if (!channel.latestMessageReceivedTime) {
@@ -14,18 +14,24 @@ const hasUnreadMessages = (channel: ChannelView): boolean => {
 };
 
 // channel as it appears in the sidebar
-export const Channel = ({ channel }: { channel: ChannelView }) => {
-  const href = urlFromServerAtURI(channel.server) + "?ch=" + channel.id;
+export const Channel = ({
+  channel,
+  isSelected,
+}: {
+  channel: ChannelView;
+  isSelected?: boolean | undefined;
+}) => {
   return (
-    <a
+    <div
       id={`nav-channel-${channel.id}`}
-      href={href}
-      hx-get={href}
-      hx-push-url="true"
-      hx-target="#main"
+      hx-trigger="click once"
+      hx-target={`#channel-${channel.id}`}
+      hx-get={urlForChannelMessageList(channel)}
       class={(hasUnreadMessages(channel) ? "font-bold" : "font-medium") +
-        " w-full justify-start inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 rounded-md px-3 bg-primary text-primary-foreground hover:bg-primary/90"}
+        (isSelected ? " bg-red-100" : "") +
+        " cursor-pointer w-full justify-start inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 rounded-md px-3 bg-primary text-primary-foreground hover:bg-primary/90"}
       style="justify-content: flex-start !important;"
+      role="button"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -44,7 +50,9 @@ export const Channel = ({ channel }: { channel: ChannelView }) => {
         <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
         <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
       </svg>{" "}
-      <div>{channel.name}</div>
-    </a>
+      <label class="w-full" for={`tab-${channel.id}`}>
+        {channel.name}
+      </label>
+    </div>
   );
 };

@@ -4,5 +4,6 @@ _docs
 test.db
 node_modules
 data/*.db
+data/*.db-*
 # playwright
 test-results

@@ -86,6 +86,9 @@ export const getDatabase = (
     __db = new Database(Deno.env.get("DB_URL") || ":memory:");
   }
 
+  // WAL please
+  __db.exec("pragma journal_mode = WAL");
+
   const existingTables = __db
     .prepare("SELECT name FROM sqlite_master WHERE type='table'")
     .all<{ name: string }>();

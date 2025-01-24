@@ -3,7 +3,12 @@
 import type { Database } from "tinychat/db.ts";
 import { Record as Message } from "tinychat/api/types/chat/tinychat/core/message.ts";
 import { ChannelView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
-import { ServerView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
+import {
+  ServerSummaryView,
+  ServerView,
+  validateServerSummaryView,
+  validateServerView,
+} from "tinychat/api/types/chat/tinychat/server/defs.ts";
 import {
   MessageView,
   validateMessageView,
@@ -48,6 +53,25 @@ export class Messaging {
       .run({ channel, user, server, time: get_time_us() });
   }
 
+  public findServers({
+    query,
+  }: {
+    query?: string | undefined;
+  }): ServerView[] {
+    console.log("Finding servers with query: ", query);
+    return this.db
+      .prepare(`SELECT uri, name FROM servers`)
+      .all<ServerSummaryView>()
+      .map((s) => {
+        const v = validateServerSummaryView(s);
+        if (!v.success) {
+          console.error("Failed to validate server summary view", v);
+        }
+        // @ts-ignore yolo
+        return v.value;
+      });
+  }
+
   public getServers({
     uris,
     did,
@@ -62,6 +86,7 @@ export class Messaging {
         .filter((q) => q)
         .join(" AND ")
         .trim();
+
       const s = !viewer
         ? `SELECT 
         s.uri,
@@ -93,7 +118,7 @@ export class Messaging {
           )
         ) as channels
         FROM servers s
-        INNER JOIN channel_view c ON c.server = s.uri
+        LEFT OUTER JOIN channel_view c ON c.server = s.uri
         ${w ? `WHERE ${w}` : ""}
         GROUP BY s.uri`;
       return this.db.prepare(s);
@@ -109,14 +134,24 @@ export class Messaging {
         did,
       });
     } else {
+      console.log("Getting all servers", sql());
       results = sql().all<ServerView>();
     }
 
-    return results.map((rec) =>
-      Object.assign(rec, {
-        channels: (rec.channels || []).map(cleanupChannelView),
-      })
-    );
+    return results
+      .map((rec) =>
+        Object.assign(rec, {
+          channels: (rec.channels || []).map(cleanupChannelView),
+        })
+      )
+      .map((s) => {
+        const v = validateServerView(s);
+        if (!v.success) {
+          console.error("Failed to validate server view", v);
+        }
+        // @ts-ignore yolo
+        return v.value;
+      });
   }
 
   public receiveMessage({
@@ -192,18 +227,23 @@ export class Messaging {
     let results: Message[] = [];
 
     if (uri) {
-      results = this.db.prepare(`SELECT * FROM message_view WHERE uri = :uri`)
+      results = this.db
+        .prepare(`SELECT * FROM message_view WHERE uri = :uri`)
         .all<Message>(Object.assign({ uri }));
     } else {
-      results = this.db.prepare(`SELECT * FROM message_view
+      results = this.db
+        .prepare(
+          `SELECT * FROM message_view
       WHERE channel = :channel AND server = :server ${
-        parsedCursor ? `AND ${cursorWhere(parsedCursor)}` : ""
-      } ORDER BY time_us DESC LIMIT :limit`).all<Message>(
-        Object.assign(
-          { server, channel, limit: limit || 10 },
-          parsedCursor ? { cursor: parsedCursor.timestamp } : {},
-        ),
-      );
+            parsedCursor ? `AND ${cursorWhere(parsedCursor)}` : ""
+          } ORDER BY time_us DESC LIMIT :limit`,
+        )
+        .all<Message>(
+          Object.assign(
+            { server, channel, limit: limit || 10 },
+            parsedCursor ? { cursor: parsedCursor.timestamp } : {},
+          ),
+        );
     }
 
     const messages: MessageView[] = results
@@ -285,6 +325,19 @@ class TestMessaging extends Messaging {
       sender: TestMessaging.user1,
       time_us: timestamp,
     });
+  }
+
+  public addUser() {
+    const did = `did:plc:${TID.nextStr()}`;
+    const handle = `${TID.nextStr()}.bsky.social`;
+    this.db.prepare(
+      `
+      INSERT INTO users (did, handle, display_name, avatar, description) VALUES (
+        :did, :handle, :display_name, :avatar, :description
+      )`,
+    )
+      .run({ did, handle, display_name: handle });
+    return this.db.prepare(`SELECT * FROM users WHERE did = :did`).get({ did });
   }
 
   public static setup(): TestMessaging {
@@ -408,7 +461,6 @@ class TestMessaging extends Messaging {
     return service;
   }
 }
-
 const messagingSeed =
   `**Bom dia!** Fancy a bite of *Bacalhau à Brás* today? 🇵🇹 A classic Portuguese dish of shredded cod, onions, and fried potatoes—comfort food at its finest!
 Want to explore **Portuguese pastries**? 🥐 Try the iconic *Pastéis de Nata*! Crispy, creamy, and best with a sprinkle of cinnamon.

@@ -29,7 +29,14 @@ app.get("/chat/:did?/:rkey?", async (c) => {
 
   // got a fully qualified route, let's go!
   if (did && rkey) {
-    console.log("server iz", serverAtURIFromUrl(c.req.url));
+    const user = await c.var.ctx.user();
+
+    if (user) {
+      await agent.chat.tinychat.server.joinServer({
+        server: serverAtURIFromUrl(c.req.url),
+      });
+    }
+
     const s = await agent?.chat.tinychat.server.getServers({
       uris: [serverAtURIFromUrl(c.req.url)],
     });
@@ -43,7 +50,7 @@ app.get("/chat/:did?/:rkey?", async (c) => {
     return c.html(
       ChatPage({
         auth: {
-          user: await c.var.ctx.user(),
+          user,
         },
         server: {
           server: serverData,
@@ -56,7 +63,7 @@ app.get("/chat/:did?/:rkey?", async (c) => {
   }
 
   // XX: this is to get smth rolling quickly for test purposes
-  const availableServers = await agent?.chat.tinychat.server.getServers();
+  const availableServers = await agent?.chat.tinychat.server.findServers({});
 
   if (availableServers?.data.servers.length === 0) {
     console.log("no servers found, let's create one");

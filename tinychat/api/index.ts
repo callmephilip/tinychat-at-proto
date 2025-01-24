@@ -11,6 +11,7 @@ import * as ChatTinychatCoreMessage from "./types/chat/tinychat/core/message.ts"
 import * as ChatTinychatCoreServer from "./types/chat/tinychat/core/server.ts";
 import * as ChatTinychatRichtextFacet from "./types/chat/tinychat/richtext/facet.ts";
 import * as ChatTinychatServerDefs from "./types/chat/tinychat/server/defs.ts";
+import * as ChatTinychatServerFindServers from "./types/chat/tinychat/server/findServers.ts";
 import * as ChatTinychatServerGetMessages from "./types/chat/tinychat/server/getMessages.ts";
 import * as ChatTinychatServerGetServers from "./types/chat/tinychat/server/getServers.ts";
 import * as ChatTinychatServerJoinServer from "./types/chat/tinychat/server/joinServer.ts";
@@ -105,6 +106,7 @@ export * as ChatTinychatCoreMessage from "./types/chat/tinychat/core/message.ts"
 export * as ChatTinychatCoreServer from "./types/chat/tinychat/core/server.ts";
 export * as ChatTinychatRichtextFacet from "./types/chat/tinychat/richtext/facet.ts";
 export * as ChatTinychatServerDefs from "./types/chat/tinychat/server/defs.ts";
+export * as ChatTinychatServerFindServers from "./types/chat/tinychat/server/findServers.ts";
 export * as ChatTinychatServerGetMessages from "./types/chat/tinychat/server/getMessages.ts";
 export * as ChatTinychatServerGetServers from "./types/chat/tinychat/server/getServers.ts";
 export * as ChatTinychatServerJoinServer from "./types/chat/tinychat/server/joinServer.ts";
@@ -486,6 +488,18 @@ export class ChatTinychatServerNS {
 
   constructor(client: XrpcClient) {
     this._client = client;
+  }
+
+  findServers(
+    params?: ChatTinychatServerFindServers.QueryParams,
+    opts?: ChatTinychatServerFindServers.CallOptions,
+  ): Promise<ChatTinychatServerFindServers.Response> {
+    return this._client.call(
+      "chat.tinychat.server.findServers",
+      params,
+      undefined,
+      opts,
+    );
   }
 
   getMessages(

@@ -20,6 +20,15 @@
         }
       }
     },
+    "serverSummaryView": {
+      "type": "object",
+      "description": "Chat server instance overview",
+      "required": ["uri", "name"],
+      "properties": {
+        "uri": { "type": "string", "format": "at-uri" },
+        "name": { "type": "string" }
+      }
+    },
     "channelView": {
       "type": "object",
       "description": "Chat server channel instance view",

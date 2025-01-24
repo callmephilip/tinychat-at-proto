@@ -28,6 +28,25 @@ export function validateServerView(v: unknown): ValidationResult {
   return lexicons.validate("chat.tinychat.server.defs#serverView", v);
 }
 
+/** Chat server instance overview */
+export interface ServerSummaryView {
+  uri: string;
+  name: string;
+  [k: string]: unknown;
+}
+
+export function isServerSummaryView(v: unknown): v is ServerSummaryView {
+  return (
+    isObj(v) &&
+    hasProp(v, "$type") &&
+    v.$type === "chat.tinychat.server.defs#serverSummaryView"
+  );
+}
+
+export function validateServerSummaryView(v: unknown): ValidationResult {
+  return lexicons.validate("chat.tinychat.server.defs#serverSummaryView", v);
+}
+
 /** Chat server channel instance view */
 export interface ChannelView {
   id: string;

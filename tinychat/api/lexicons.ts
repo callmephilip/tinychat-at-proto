@@ -324,6 +324,20 @@ export const schemaDict = {
           },
         },
       },
+      serverSummaryView: {
+        type: "object",
+        description: "Chat server instance overview",
+        required: ["uri", "name"],
+        properties: {
+          uri: {
+            type: "string",
+            format: "at-uri",
+          },
+          name: {
+            type: "string",
+          },
+        },
+      },
       channelView: {
         type: "object",
         description: "Chat server channel instance view",
@@ -379,6 +393,42 @@ export const schemaDict = {
           createdAt: {
             type: "string",
             format: "datetime",
+          },
+        },
+      },
+    },
+  },
+  ChatTinychatServerFindServers: {
+    lexicon: 1,
+    id: "chat.tinychat.server.findServers",
+    defs: {
+      main: {
+        type: "query",
+        description: "Find chat server instances.",
+        parameters: {
+          type: "params",
+          properties: {
+            query: {
+              type: "string",
+              description:
+                "Did of the person to get servers for. This returns servers person is member of.",
+            },
+          },
+        },
+        output: {
+          encoding: "application/json",
+          schema: {
+            type: "object",
+            required: ["servers"],
+            properties: {
+              servers: {
+                type: "array",
+                items: {
+                  type: "ref",
+                  ref: "lex:chat.tinychat.server.defs#serverSummaryView",
+                },
+              },
+            },
           },
         },
       },
@@ -4699,6 +4749,7 @@ export const ids = {
   ChatTinychatCoreServer: "chat.tinychat.core.server",
   ChatTinychatRichtextFacet: "chat.tinychat.richtext.facet",
   ChatTinychatServerDefs: "chat.tinychat.server.defs",
+  ChatTinychatServerFindServers: "chat.tinychat.server.findServers",
   ChatTinychatServerGetMessages: "chat.tinychat.server.getMessages",
   ChatTinychatServerGetServers: "chat.tinychat.server.getServers",
   ChatTinychatServerJoinServer: "chat.tinychat.server.joinServer",

@@ -1,0 +1,35 @@
+{
+  "lexicon": 1,
+  "id": "chat.tinychat.server.findServers",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "Find chat server instances.",
+      "parameters": {
+        "type": "params",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Did of the person to get servers for. This returns servers person is member of."
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["servers"],
+          "properties": {
+            "servers": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "chat.tinychat.server.defs#serverSummaryView"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

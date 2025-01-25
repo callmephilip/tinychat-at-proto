@@ -2,7 +2,6 @@
 
 import type { Database } from "tinychat/db.ts";
 import { Record as Message } from "tinychat/api/types/chat/tinychat/core/message.ts";
-import { ChannelView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
 import {
   ServerSummaryView,
   ServerView,
@@ -13,12 +12,9 @@ import {
   MessageView,
   validateMessageView,
 } from "tinychat/api/types/chat/tinychat/server/defs.ts";
+import { removeNulls } from "tinychat/utils.ts";
 
 const get_time_us = (): string => `${new Date().getTime() * 1000}`;
-
-const cleanupChannelView = (view: ChannelView) => {
-  return Object.fromEntries(Object.entries(view).filter(([, v]) => v !== null));
-};
 
 export class MessageCursor {
   constructor(public timestamp: string, public direction: "past" | "future") {}
@@ -62,6 +58,7 @@ export class Messaging {
     return this.db
       .prepare(`SELECT uri, name FROM servers`)
       .all<ServerSummaryView>()
+      .map(removeNulls)
       .map((s) => {
         const v = validateServerSummaryView(s);
         if (!v.success) {
@@ -141,7 +138,7 @@ export class Messaging {
     return results
       .map((rec) =>
         Object.assign(rec, {
-          channels: (rec.channels || []).map(cleanupChannelView),
+          channels: (rec.channels || []).map(removeNulls),
         })
       )
       .map((s) => {
@@ -262,6 +259,7 @@ export class Messaging {
           description: m.description,
         },
       }))
+      .map(removeNulls)
       .map((m) => {
         const v = validateMessageView(m);
         if (!v.success) {
@@ -355,9 +353,9 @@ class TestMessaging extends Messaging {
         .run({
           did: [TestMessaging.user1, TestMessaging.user2][i],
           handle: "callmephilip.com",
-          display_name: `User ${i + 1}`,
-          avatar: `http://google.com/avatar.jpeg`,
-          description: `description ${i + 1}`,
+          display_name: null,
+          avatar: null,
+          description: null,
         });
     });
     // create test server

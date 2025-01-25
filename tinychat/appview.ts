@@ -278,7 +278,6 @@ app.get(`/xrpc/${ids.ChatTinychatServerFindServers}`, (c) => {
 });
 
 "";
-
 app.get(`/xrpc/${ids.ChatTinychatServerGetMessages}`, (c) => {
   const { channel, server, cursor, limit } = c.req.query();
   console.log(">>>>>>>>>>>>>. getting messages for channel", c.req.query());
@@ -357,7 +356,6 @@ app.post(`/xrpc/${ids.ChatTinychatServerMarkAllMessagesAsRead}`, async (c) => {
 });
 
 "";
-
 app.post(`/xrpc/${ids.ChatTinychatServerJoinServer}`, async (c) => {
   const agent = await c.var.ctx.agent();
 

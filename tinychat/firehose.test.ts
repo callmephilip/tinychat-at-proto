@@ -121,9 +121,9 @@ export function startJetstream(
     ).run({
       did,
       handle: profile.handle,
-      displayName: profile.displayName,
-      avatar: profile.avatar,
-      description: profile.description,
+      displayName: profile.displayName || null,
+      avatar: profile.avatar || null,
+      description: profile.description || null,
     });
   };
 

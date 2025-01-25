@@ -10,7 +10,7 @@ import { CID } from "multiformats/cid";
 export interface ActorView {
   did: string;
   handle: string;
-  displayName: string;
+  displayName?: string;
   description?: string;
   avatar?: string;
   [k: string]: unknown;

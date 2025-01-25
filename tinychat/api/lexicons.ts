@@ -11,7 +11,7 @@ export const schemaDict = {
       actorView: {
         type: "object",
         description: "Chat server actor instance view",
-        required: ["did", "handle", "displayName"],
+        required: ["did", "handle"],
         properties: {
           did: {
             type: "string",

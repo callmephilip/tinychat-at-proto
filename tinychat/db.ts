@@ -11,7 +11,7 @@ const tables: Record<string, string> = {
     CREATE TABLE users (
       did TEXT PRIMARY KEY,
       handle TEXT NOT NULL,
-      display_name TEXT NOT NULL,
+      display_name TEXT,
       avatar TEXT,
       description TEXT
     )`,

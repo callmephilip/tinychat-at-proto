@@ -6,8 +6,8 @@ import { z } from "zod";
 const profileSchema = z.object({
   did: z.string(),
   handle: z.string(),
-  displayName: z.string(),
-  avatar: z.string(),
+  displayName: z.string().optional(),
+  avatar: z.string().optional(),
   labels: z.array(z.string()),
   createdAt: z.string(),
   description: z.string().optional(),

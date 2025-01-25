@@ -52,7 +52,7 @@ import { z } from "zod";
 import { HTTPException } from "hono/http-exception";
 import { upgradeWebSocket } from "hono/deno";
 import { Message } from "@tinychat/ui/message.tsx";
-import { Channel } from "@tinychat/ui/channel.tsx";
+import { ChannelLabel } from "@tinychat/ui/channel.tsx";
 import { createMiddleware } from "hono/factory";
 import { TinychatOAuthClient } from "tinychat/oauth.ts";
 import { TinychatAgent } from "tinychat/agent.ts";
@@ -208,7 +208,9 @@ export const runAppView = (
         return JSON.stringify({
           data: { message: messages[0], channels },
           html: (c.did !== m.did ? msgHTML : "") +
-            channels.map((channel) => Channel({ channel }).toString()).join(""),
+            channels
+              .map((channel) => ChannelLabel({ channel }).toString())
+              .join(""),
         });
       });
     },

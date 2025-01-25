@@ -41,6 +41,8 @@
     "npm:@skyware/jetstream@~0.2.2": "0.2.2",
     "npm:@types/node@*": "22.5.4",
     "npm:iron-session@^8.0.4": "8.0.4",
+    "npm:linkify-string@^4.2.0": "4.2.0_linkifyjs@4.2.0",
+    "npm:linkifyjs@^4.2.0": "4.2.0",
     "npm:multiformats@^13.3.1": "13.3.1",
     "npm:playwright@*": "1.50.0",
     "npm:playwright@^1.50.0": "1.50.0",
@@ -923,6 +925,15 @@
     "iso-datestring-validator@2.2.2": {
       "integrity": "sha512-yLEMkBbLZTlVQqOnQ4FiMujR6T4DEcCb1xizmvXS+OxuhwcbtynoosRzdMA69zZCShCNAbi+gJ71FxZBBXx1SA=="
     },
+    "linkify-string@4.2.0_linkifyjs@4.2.0": {
+      "integrity": "sha512-LqOKk0+RlqibFkxjPAGOL7Mfssqj6/SdG9QWGvzeVDpoWXhaw9OXxseCtFanjIl7C6UyTTZizhyGr4IWLfijiw==",
+      "dependencies": [
+        "linkifyjs"
+      ]
+    },
+    "linkifyjs@4.2.0": {
+      "integrity": "sha512-pCj3PrQyATaoTYKHrgWRF3SJwsm61udVh+vuls/Rl6SptiDhgE7ziUIudAedRY9QEfynmM7/RmLEfPUyw1HPCw=="
+    },
     "lru-cache@10.4.3": {
       "integrity": "sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ=="
     },
@@ -1439,6 +1450,8 @@
       "npm:@atproto/xrpc@~0.6.6",
       "npm:@skyware/jetstream@~0.2.2",
       "npm:iron-session@^8.0.4",
+      "npm:linkify-string@^4.2.0",
+      "npm:linkifyjs@^4.2.0",
       "npm:multiformats@^13.3.1",
       "npm:playwright@^1.50.0",
       "npm:zod@^3.24.1"

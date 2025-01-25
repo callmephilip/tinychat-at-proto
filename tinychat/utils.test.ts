@@ -24,6 +24,12 @@ export const removeNulls = (input: object): object => {
 
   return input;
 };
+import linkifyStr from "linkify-string";
+
+export const linkify = (
+  input: string,
+  className?: string | undefined,
+): string => linkifyStr(input, { target: "_blank", className });
 import path from "node:path";
 
 export const getProjectRoot = (
@@ -147,6 +153,23 @@ Deno.test("removeNulls", () => {
       { d: 4, e: { g: 7 }, h: 9 },
     ],
     "works for array of objects",
+  );
+});
+Deno.test("linkify", () => {
+  assertEquals(
+    linkify("Hello https://example.com!"),
+    'Hello <a href="https://example.com" target="_blank">https://example.com</a>!',
+    "works for basic cases",
+  );
+  assertEquals(
+    linkify("Hello https://example.com. How are you?"),
+    'Hello <a href="https://example.com" target="_blank">https://example.com</a>. How are you?',
+    "works for multiple links",
+  );
+  assertEquals(
+    linkify("Hello https://example.com. How are you?", "text-bold underline"),
+    'Hello <a href="https://example.com" class="text-bold underline" target="_blank">https://example.com</a>. How are you?',
+    "works with className",
   );
 });
 Deno.test("processLine", () => {

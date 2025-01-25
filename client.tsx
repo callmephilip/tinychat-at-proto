@@ -120,15 +120,6 @@ app.get("/messages/list/:did/:rkey1/:rkey2", async (c) => {
     limit,
     cursor: c.req.query("cursor"),
   });
-
-  // console.log(
-  //   ">>>>>>>>>>>>>>>>>>>>>> got messages",
-  //   d?.data.messages,
-  //   "for",
-  //   server,
-  //   channel,
-  // );
-
   const loadMore = d?.data.prevCursor
     ? (
       <LoadMoreMessages
@@ -152,6 +143,7 @@ app.post("/mark-all-as-read", async (c) => {
     channel: data.get("channel")!.toString(),
     server: data.get("server")!.toString(),
   });
+  console.log("mark-all-as-read", data);
   return c.json({ success: true });
 });
 

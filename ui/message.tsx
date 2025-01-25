@@ -1,6 +1,6 @@
 import { MessageView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
 import { PropsWithChildren } from "hono/jsx";
-import { shortIdFromAtUri } from "tinychat/utils.ts";
+import { linkify, shortIdFromAtUri } from "tinychat/utils.ts";
 
 interface MessageProps {
   message: MessageView;
@@ -69,7 +69,11 @@ export const Message = ({ message, oob = false }: MessageProps) => {
             {" "}
           </div>
           <div class="leading-relaxed">
-            <p>{message.text}</p>
+            <p
+              dangerouslySetInnerHTML={{
+                __html: linkify(message.text, "font-bold underline"),
+              }}
+            />
           </div>
         </div>
       </div>

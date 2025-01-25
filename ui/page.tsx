@@ -50,10 +50,12 @@ export const Page = ({ hideOverflow, htmx, user, children }: PageProps) => {
               font-weight: 500;
             }
 
-
             /* home made tabs */ 
             input[name=channel-tab]:checked + div { display: flex; }
             div[role=tabpanel] { display: none; }
+
+            /* channel nav */
+            .channel-label.has-new-messages { font-weight: 700;}
           `,
           }}
         />

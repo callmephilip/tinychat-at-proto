@@ -24,6 +24,12 @@ export const removeNulls = (input: object): object => {
 
   return input;
 };
+import linkifyStr from "linkify-string";
+
+export const linkify = (
+  input: string,
+  className?: string | undefined,
+): string => linkifyStr(input, { target: "_blank", className });
 import path from "node:path";
 
 export const getProjectRoot = (

@@ -66,7 +66,7 @@ export class Messaging {
         }
         // @ts-ignore yolo
         return v.value;
-      });
+      }).filter((s) => s);
   }
 
   public getServers({

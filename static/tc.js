@@ -1,6 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
   window.tc = {
     onChannelChange: (selctedChannelId) => {
+      document
+        .querySelector("#main")
+        .setAttribute("data-current-channel", selctedChannelId);
       tc.markAllMessagesAsReadInCurrentChannel();
       const url = new URL(location);
       url.searchParams.set("ch", selctedChannelId);
@@ -17,15 +20,24 @@ document.addEventListener("DOMContentLoaded", () => {
         .getAttribute("data-current-server");
     },
     markAllMessagesAsReadInCurrentChannel: () => {
+      const channel = tc.getCurrentChannel();
+      document
+        .querySelector(`#nav-channel-label-${channel}`)
+        .classList.remove("has-new-messages");
       htmx.ajax("POST", "/mark-all-as-read", {
         swap: "none",
         values: {
-          channel: tc.getCurrentChannel(),
+          channel,
           server: tc.getCurrentServer(),
         },
       });
     },
   };
+
+  // mark current channel as read after 5 seconds
+  setTimeout(() => {
+    tc.markAllMessagesAsReadInCurrentChannel();
+  }, 4000);
 
   document.querySelectorAll("[name=channel-tab]").forEach((t) => {
     t.addEventListener("change", (e) => {

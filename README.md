@@ -1,17 +1,32 @@
-deno compile --allow-all --output firehose firehose.ts
+<div align="center">
 
-ngrok http --domain=tinychat.ngrok.app 8000 https://pdsls.dev/
+# _tinychat_
 
-cloudflared tunnel --url http://localhost:8001
+**Experimental implementation of group chat using atproto**
 
-here's what subscriptions look like on xrpc
-https://github.com/bluesky-social/atproto/blob/d97272de0bef835a8e64e7e924e21e9bb5d012f2/packages/xrpc-server/tests/subscriptions.test.ts#L130
+[Dev diary](https://bsky.app/profile/callmephilip.com)
 
-TODO
+</div>
 
-- look into ID resolver
-  https://github.com/nperez0111/bookhive/blob/main/src/bsky/id-resolver.ts
+## What is this and who is this for?
 
-lsof -i tcp:8000 sudo kill -9 <PID>
+Tons of collaboration and communication online happens in group chats these days. Most of these are private. Pretty much all of them hold on to people's data and make it painfully difficult to access it from outside the castle walls.
 
-Run playwright UI: `npx playwright test --ui`
+Some chats should stay private but a lot of them would benefit from being public, accessible, indexable and usable by a larger community.
+
+_tinychat_ is an exploration of this big idea using open source tools and [protocols](https://atproto.com/).
+
+This project is for open source developers, community builders willing to try something new.
+
+It's in a very early stage so please be gentle and generous.
+
+## Navigating codebase
+
+This project uses [jurassic](https://github.com/callmephilip/jurassic) for development and exploration.
+
+|   |   |
+|---|---|
+|nbs| Most of the code is here inside jupyter notebooks running on deno|
+|lexicons| Atproto lexicons used by the project are here|
+|ui| Server rendered react components|
+

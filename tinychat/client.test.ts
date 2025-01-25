@@ -96,7 +96,10 @@ app.use(
 );
 
 "";
-app.get("/", (c) => c.redirect("https://github.com/callmephilip/tinychat"));
+app.get(
+  "/",
+  (c) => c.redirect("https://github.com/callmephilip/tinychat-at-proto"),
+);
 
 "";
 app.get("/health", (c) => c.json({ status: "ok", t: c.var.ctx.session!.t }));

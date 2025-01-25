@@ -100,7 +100,10 @@ app.use(
   }),
 );
 
-app.get("/", (c) => c.redirect("https://github.com/callmephilip/tinychat"));
+app.get(
+  "/",
+  (c) => c.redirect("https://github.com/callmephilip/tinychat-at-proto"),
+);
 
 // app.use("/ws", cors());
 app.get(

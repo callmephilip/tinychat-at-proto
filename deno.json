@@ -31,7 +31,7 @@
     "@skyware/jetstream": "npm:@skyware/jetstream@^0.2.2",
     "@std/fs": "jsr:@std/fs@^1.0.10",
     "asserts": "jsr:@std/assert@^1.0.11",
-    "hono": "jsr:@hono/hono@^4.6.18",
+    "hono": "jsr:@hono/hono@^4.6.19",
     "iron-session": "npm:iron-session@^8.0.4",
     "linkify-string": "npm:linkify-string@^4.2.0",
     "linkifyjs": "npm:linkifyjs@^4.2.0",

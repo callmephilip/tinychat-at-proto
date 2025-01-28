@@ -3,7 +3,7 @@
   "specifiers": {
     "jsr:@db/sqlite@0.12": "0.12.0",
     "jsr:@denosaurs/plug@1": "1.0.6",
-    "jsr:@hono/hono@^4.6.18": "4.6.18",
+    "jsr:@hono/hono@^4.6.19": "4.6.19",
     "jsr:@jurassic/jurassic@~0.1.43": "0.1.43",
     "jsr:@std/assert@*": "0.221.0",
     "jsr:@std/assert@0.217": "0.217.0",
@@ -13,7 +13,7 @@
     "jsr:@std/dotenv@~0.225.3": "0.225.3",
     "jsr:@std/encoding@0.221": "0.221.0",
     "jsr:@std/fmt@0.221": "0.221.0",
-    "jsr:@std/fs@*": "1.0.9",
+    "jsr:@std/fs@*": "1.0.10",
     "jsr:@std/fs@0.221": "0.221.0",
     "jsr:@std/fs@^1.0.10": "1.0.10",
     "jsr:@std/fs@^1.0.6": "1.0.10",
@@ -67,8 +67,8 @@
         "jsr:@std/path@0.221"
       ]
     },
-    "@hono/hono@4.6.18": {
-      "integrity": "0759311509fc19b77ada512c7df29d181cf3f5c5ddd599605c1adce127aaaadc"
+    "@hono/hono@4.6.19": {
+      "integrity": "5ba1bd0ef74449c0a647f029e29896776c30fb64aefbcef8724af4ce4846791b"
     },
     "@jurassic/jurassic@0.1.43": {
       "integrity": "ecf26abf13f045032acb5d444e741cb62a41bfaed2f8009f93bdce09f8ea404c",
@@ -1432,7 +1432,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@db/sqlite@0.12",
-      "jsr:@hono/hono@^4.6.18",
+      "jsr:@hono/hono@^4.6.19",
       "jsr:@jurassic/jurassic@~0.1.43",
       "jsr:@std/assert@^1.0.11",
       "jsr:@std/fs@^1.0.10",

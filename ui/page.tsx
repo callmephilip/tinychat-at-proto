@@ -6,18 +6,25 @@ type PageProps = PropsWithChildren<{
   hideOverflow?: boolean;
   htmx?: boolean;
   user?: ActorView | undefined;
+  flex?: boolean;
 }>;
 
-export const Page = ({ hideOverflow, htmx, user, children }: PageProps) => {
+export const Page = ({
+  hideOverflow,
+  htmx,
+  user,
+  flex = true,
+  children,
+}: PageProps) => {
   const htmxAttrs = htmx
     ? {
       "hx-ext": "ws",
       "ws-connect": getNotificationsWsUrl({ user }),
     }
     : {};
-  const bodyClasses = `font-sans antialiased h-dvh flex bg-background ${
+  const bodyClasses = `font-sans antialiased h-dvh bg-background ${
     hideOverflow ? "overflow-hidden" : ""
-  }`;
+  } ${flex ? "flex" : ""}`;
   return (
     <html lang="en">
       <head>

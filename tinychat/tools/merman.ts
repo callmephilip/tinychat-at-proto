@@ -2,12 +2,17 @@
 
 import { Hono } from "hono";
 
-export const merman = (yaml: string, ports: number[] = [7000, 8000]) => {
+export const merman = (
+  yaml: string,
+  header: string | undefined = undefined,
+  ports: number[] = [7000, 8000],
+) => {
   const port = Math.floor(Math.random() * (ports[1] - ports[0] + 1)) + ports[0];
   const app = new Hono();
   app.get("/", (c) =>
     c.html(`<html>
       <body>
+        ${header || ""}
         <pre class="mermaid">
           ${yaml}        
         </pre>

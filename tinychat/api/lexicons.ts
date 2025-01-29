@@ -311,8 +311,8 @@ export const schemaDict = {
             type: "string",
           },
           creator: {
-            type: "string",
-            format: "did",
+            type: "ref",
+            ref: "lex:chat.tinychat.actor.defs#actorView",
           },
           channels: {
             type: "array",
@@ -327,7 +327,7 @@ export const schemaDict = {
       serverSummaryView: {
         type: "object",
         description: "Chat server instance overview",
-        required: ["uri", "name"],
+        required: ["uri", "name", "creator"],
         properties: {
           uri: {
             type: "string",
@@ -335,6 +335,10 @@ export const schemaDict = {
           },
           name: {
             type: "string",
+          },
+          creator: {
+            type: "ref",
+            ref: "lex:chat.tinychat.actor.defs#actorView",
           },
         },
       },
@@ -464,6 +468,13 @@ export const schemaDict = {
               type: "string",
               description:
                 "Cursor for pagination. Pagination goes backwards - from more recent messages to older ones",
+            },
+            sort: {
+              type: "string",
+              knownValues: ["latest", "chronological"],
+              default: "latest",
+              description:
+                "Specifies how to sort messages: latest first VS chronological order",
             },
           },
         },

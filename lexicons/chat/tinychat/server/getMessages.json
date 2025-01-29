@@ -27,6 +27,12 @@
           "cursor": {
             "type": "string",
             "description": "Cursor for pagination. Pagination goes backwards - from more recent messages to older ones"
+          },
+          "sort": {
+            "type": "string",
+            "knownValues": ["latest", "chronological"],
+            "default": "latest",
+            "description": "Specifies how to sort messages: latest first VS chronological order"
           }
         }
       },

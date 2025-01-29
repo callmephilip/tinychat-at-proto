@@ -17,6 +17,8 @@ export interface QueryParams {
   limit: number;
   /** Cursor for pagination. Pagination goes backwards - from more recent messages to older ones */
   cursor?: string;
+  /** Specifies how to sort messages: latest first VS chronological order */
+  sort?: "latest" | "chronological" | (string & {});
 }
 
 export type InputSchema = undefined;

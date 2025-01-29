@@ -49,14 +49,22 @@ export class Messaging {
       .run({ channel, user, server, time: get_time_us() });
   }
 
-  public findServers({
-    query,
-  }: {
-    query?: string | undefined;
-  }): ServerView[] {
+  public findServers({ query }: { query?: string | undefined }): ServerView[] {
     console.log("Finding servers with query: ", query);
     return this.db
-      .prepare(`SELECT uri, name FROM servers`)
+      .prepare(
+        `
+        SELECT uri, name, json_object(
+            'did', u.did,
+            'handle', u.handle,
+            'displayName', u.display_name,
+            'description', u.description,
+            'avatar', u.avatar
+        ) as creator
+        FROM servers
+        INNER JOIN users u ON u.did = servers.creator
+      `,
+      )
       .all<ServerSummaryView>()
       .map(removeNulls)
       .map((s) => {
@@ -66,7 +74,8 @@ export class Messaging {
         }
         // @ts-ignore yolo
         return v.value;
-      }).filter((s) => s);
+      })
+      .filter((s) => s);
   }
 
   public getServers({
@@ -88,7 +97,13 @@ export class Messaging {
         ? `SELECT 
         s.uri,
         s.name,
-        s.creator,
+        json_object(
+            'did', u.did,
+            'handle', u.handle,
+            'displayName', u.display_name,
+            'description', u.description,
+            'avatar', u.avatar
+        ) as creator,
         json_group_array(
           json_object(
             'id', c.id,
@@ -99,12 +114,19 @@ export class Messaging {
         ) as channels
         FROM servers s
         INNER JOIN channels c ON c.server = s.uri
+        INNER JOIN users u ON u.did = s.creator
         ${w ? `WHERE ${w}` : ""}
         GROUP BY s.uri`
         : `SELECT 
         s.uri,
         s.name,
-        s.creator,
+        json_object(
+            'did', u.did,
+            'handle', u.handle,
+            'displayName', u.display_name,
+            'description', u.description,
+            'avatar', u.avatar
+        ) as creator,
         json_group_array(
           json_object(
             'id', c.id,
@@ -116,6 +138,7 @@ export class Messaging {
         ) as channels
         FROM servers s
         LEFT OUTER JOIN channel_view c ON c.server = s.uri
+        INNER JOIN users u ON u.did = s.creator
         ${w ? `WHERE ${w}` : ""}
         GROUP BY s.uri`;
       return this.db.prepare(s);
@@ -135,20 +158,14 @@ export class Messaging {
       results = sql().all<ServerView>();
     }
 
-    return results
-      .map((rec) =>
-        Object.assign(rec, {
-          channels: (rec.channels || []).map(removeNulls),
-        })
-      )
-      .map((s) => {
-        const v = validateServerView(s);
-        if (!v.success) {
-          console.error("Failed to validate server view", v);
-        }
-        // @ts-ignore yolo
-        return v.value;
-      });
+    return results.map(removeNulls).map((s) => {
+      const v = validateServerView(s);
+      if (!v.success) {
+        console.error("Failed to validate server view", v);
+      }
+      // @ts-ignore yolo
+      return v.value;
+    });
   }
 
   public receiveMessage({
@@ -186,12 +203,14 @@ export class Messaging {
     uri,
     cursor,
     limit,
+    sort = "latest",
   }: {
     server?: string;
     channel?: string;
     uri?: string;
     cursor?: string;
     limit?: number;
+    sort?: "latest" | "chronological";
   }): {
     messages: MessageView[];
     prevCursor?: string;
@@ -233,7 +252,9 @@ export class Messaging {
           `SELECT * FROM message_view
       WHERE channel = :channel AND server = :server ${
             parsedCursor ? `AND ${cursorWhere(parsedCursor)}` : ""
-          } ORDER BY time_us DESC LIMIT :limit`,
+          } ORDER BY ${
+            sort === "chronological" ? "time_us ASC" : "time_us DESC"
+          } LIMIT :limit`,
         )
         .all<Message>(
           Object.assign(
@@ -270,21 +291,46 @@ export class Messaging {
       })
       .filter((m) => m) as MessageView[];
 
+    if (sort === "latest") {
+      return Object.assign(
+        {
+          messages,
+        },
+        messages.length === limit
+          ? {
+            prevCursor: new MessageCursor(
+              messages[messages.length - 1].ts,
+              "past",
+            ).toString(),
+          }
+          : {},
+        cursor
+          ? {
+            nextCursor: new MessageCursor(
+              messages[0].ts,
+              "future",
+            ).toString(),
+          }
+          : {},
+      );
+    }
+
+    // chronological ordering
     return Object.assign(
       {
         messages,
       },
       messages.length === limit
         ? {
-          prevCursor: new MessageCursor(
+          nextCursor: new MessageCursor(
             messages[messages.length - 1].ts,
-            "past",
+            "future",
           ).toString(),
         }
         : {},
       cursor
         ? {
-          nextCursor: new MessageCursor(messages[0].ts, "future").toString(),
+          prevCursor: new MessageCursor(messages[0].ts, "past").toString(),
         }
         : {},
     );
@@ -667,7 +713,7 @@ Deno.test("message cursor", () => {
   assert(cursor.timestamp === t, "timestamp matches");
   assert(cursor.direction === "past", "direction matches");
 });
-Deno.test("message loading and pagination", async (t) => {
+Deno.test("message loading and pagination with default latest sorting", async (t) => {
   const messaging = TestMessaging.setup();
   const db = getDatabase();
 
@@ -795,6 +841,129 @@ Deno.test("message loading and pagination", async (t) => {
     },
   );
 });
+Deno.test(
+  "message loading and pagination with chronological sorting",
+  async (t) => {
+    const messaging = TestMessaging.setup();
+
+    //throw a bunch of messages into the db
+    for (let i = 0; i < 1000; i++) {
+      // offset ts by i minutes
+      const timestamp = `${(new Date().getTime() + 60 * (i * 1000)) * 1000}`;
+      messaging.user1MessagesChannel1(`[${i}] hello world`, timestamp);
+    }
+
+    await t.step("test pagination and order for the first batch", () => {
+      const { messages, prevCursor, nextCursor } = messaging.getMessages({
+        server: TestMessaging.server,
+        channel: TestMessaging.channel1,
+        limit: 10,
+        sort: "chronological",
+      });
+
+      assertEquals(messages.length, 10, "got 10 messages");
+      assertEquals(
+        messages[0].text,
+        "[0] hello world",
+        "first message comes first",
+      );
+      assertEquals(
+        messages[9].text,
+        "[9] hello world",
+        "later message comes last",
+      );
+
+      assert(nextCursor, "got next cursor for the first batch");
+      assert(!prevCursor, "no previous cursor");
+      assert(
+        MessageCursor.fromString(nextCursor!).timestamp === messages[9].ts,
+        "next cursor points to the newest message in the batch",
+      );
+      assert(
+        MessageCursor.fromString(nextCursor!).direction === "future",
+        "next cursor points to the future",
+      );
+    });
+
+    await t.step(
+      "test pagination and order for the second batch going into future",
+      () => {
+        const firstBatch = messaging.getMessages({
+          server: TestMessaging.server,
+          channel: TestMessaging.channel1,
+          limit: 10,
+          sort: "chronological",
+        });
+        const { messages, nextCursor, prevCursor } = messaging.getMessages({
+          server: TestMessaging.server,
+          channel: TestMessaging.channel1,
+          limit: 10,
+          cursor: firstBatch.nextCursor,
+          sort: "chronological",
+        });
+
+        assertEquals(messages.length, 10, "future batch has 10 messages");
+        assert(nextCursor, "future batch has next cursor");
+        assert(prevCursor, "future batch has prev cursor");
+        assert(
+          Number(messages[0].ts) >
+            Number(firstBatch.messages[firstBatch.messages.length - 1].ts),
+          "future batch first message is newer than the last message of the previous batch",
+        );
+        assert(
+          MessageCursor.fromString(prevCursor).timestamp === messages[0].ts,
+          "future batch prev cursor points to its first message",
+        );
+        assert(
+          MessageCursor.fromString(nextCursor).direction === "future",
+          "future batch next cursor points to the future",
+        );
+        assert(
+          MessageCursor.fromString(prevCursor).timestamp === messages[0].ts,
+          "future batch prev cursor points to its oldest message",
+        );
+        assert(
+          MessageCursor.fromString(prevCursor).direction === "past",
+          "future batch prev cursor points to the past",
+        );
+      },
+    );
+
+    await t.step(
+      "test pagination and order going backwards from the second batch",
+      () => {
+        const firstBatch = messaging.getMessages({
+          server: TestMessaging.server,
+          channel: TestMessaging.channel1,
+          limit: 10,
+          sort: "chronological",
+        });
+        const secondBatch = messaging.getMessages({
+          server: TestMessaging.server,
+          channel: TestMessaging.channel1,
+          limit: 10,
+          cursor: firstBatch.nextCursor,
+          sort: "chronological",
+        });
+        const { messages, nextCursor, prevCursor } = messaging.getMessages({
+          server: TestMessaging.server,
+          channel: TestMessaging.channel1,
+          limit: 10,
+          cursor: secondBatch.prevCursor,
+          sort: "chronological",
+        });
+
+        assertEquals(messages.length, 10, "got 10 messages");
+        assert(
+          messages[0].ts < messages[messages.length - 1].ts,
+          "odlers messages comes first",
+        );
+        assert(prevCursor, "got prev cursor for the new batch");
+        assert(nextCursor, "got next cursor for the new batch");
+      },
+    );
+  },
+);
 Deno.test("findServers", () => {
   const messaging = TestMessaging.setup();
   assertEquals(messaging.findServers({}).length, 2, "found 2 servers");

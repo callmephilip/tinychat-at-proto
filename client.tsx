@@ -191,7 +191,8 @@ app.get("/server/:did/:rkey/:slug/:channel", async (c) => {
     server,
     channel,
     limit: 10,
-    // cursor: c.req.query("cursor"),
+    sort: "chronological",
+    cursor: c.req.query("cursor"),
   });
 
   return c.html(
@@ -199,6 +200,8 @@ app.get("/server/:did/:rkey/:slug/:channel", async (c) => {
       server={r.data.servers[0]}
       channel={channel}
       messages={d?.data.messages || []}
+      nextCursor={d?.data.nextCursor}
+      prevCursor={d?.data.prevCursor}
     />,
   );
 });

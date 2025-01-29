@@ -49,14 +49,22 @@ export class Messaging {
       .run({ channel, user, server, time: get_time_us() });
   }
 
-  public findServers({
-    query,
-  }: {
-    query?: string | undefined;
-  }): ServerView[] {
+  public findServers({ query }: { query?: string | undefined }): ServerView[] {
     console.log("Finding servers with query: ", query);
     return this.db
-      .prepare(`SELECT uri, name FROM servers`)
+      .prepare(
+        `
+        SELECT uri, name, json_object(
+            'did', u.did,
+            'handle', u.handle,
+            'displayName', u.display_name,
+            'description', u.description,
+            'avatar', u.avatar
+        ) as creator
+        FROM servers
+        INNER JOIN users u ON u.did = servers.creator
+      `,
+      )
       .all<ServerSummaryView>()
       .map(removeNulls)
       .map((s) => {
@@ -66,7 +74,8 @@ export class Messaging {
         }
         // @ts-ignore yolo
         return v.value;
-      }).filter((s) => s);
+      })
+      .filter((s) => s);
   }
 
   public getServers({
@@ -88,7 +97,13 @@ export class Messaging {
         ? `SELECT 
         s.uri,
         s.name,
-        s.creator,
+        json_object(
+            'did', u.did,
+            'handle', u.handle,
+            'displayName', u.display_name,
+            'description', u.description,
+            'avatar', u.avatar
+        ) as creator,
         json_group_array(
           json_object(
             'id', c.id,
@@ -99,12 +114,19 @@ export class Messaging {
         ) as channels
         FROM servers s
         INNER JOIN channels c ON c.server = s.uri
+        INNER JOIN users u ON u.did = s.creator
         ${w ? `WHERE ${w}` : ""}
         GROUP BY s.uri`
         : `SELECT 
         s.uri,
         s.name,
-        s.creator,
+        json_object(
+            'did', u.did,
+            'handle', u.handle,
+            'displayName', u.display_name,
+            'description', u.description,
+            'avatar', u.avatar
+        ) as creator,
         json_group_array(
           json_object(
             'id', c.id,
@@ -116,6 +138,7 @@ export class Messaging {
         ) as channels
         FROM servers s
         LEFT OUTER JOIN channel_view c ON c.server = s.uri
+        INNER JOIN users u ON u.did = s.creator
         ${w ? `WHERE ${w}` : ""}
         GROUP BY s.uri`;
       return this.db.prepare(s);
@@ -135,20 +158,14 @@ export class Messaging {
       results = sql().all<ServerView>();
     }
 
-    return results
-      .map((rec) =>
-        Object.assign(rec, {
-          channels: (rec.channels || []).map(removeNulls),
-        })
-      )
-      .map((s) => {
-        const v = validateServerView(s);
-        if (!v.success) {
-          console.error("Failed to validate server view", v);
-        }
-        // @ts-ignore yolo
-        return v.value;
-      });
+    return results.map(removeNulls).map((s) => {
+      const v = validateServerView(s);
+      if (!v.success) {
+        console.error("Failed to validate server view", v);
+      }
+      // @ts-ignore yolo
+      return v.value;
+    });
   }
 
   public receiveMessage({
@@ -186,12 +203,14 @@ export class Messaging {
     uri,
     cursor,
     limit,
+    sort = "latest",
   }: {
     server?: string;
     channel?: string;
     uri?: string;
     cursor?: string;
     limit?: number;
+    sort?: "latest" | "chronological";
   }): {
     messages: MessageView[];
     prevCursor?: string;
@@ -233,7 +252,9 @@ export class Messaging {
           `SELECT * FROM message_view
       WHERE channel = :channel AND server = :server ${
             parsedCursor ? `AND ${cursorWhere(parsedCursor)}` : ""
-          } ORDER BY time_us DESC LIMIT :limit`,
+          } ORDER BY ${
+            sort === "chronological" ? "time_us ASC" : "time_us DESC"
+          } LIMIT :limit`,
         )
         .all<Message>(
           Object.assign(
@@ -270,21 +291,46 @@ export class Messaging {
       })
       .filter((m) => m) as MessageView[];
 
+    if (sort === "latest") {
+      return Object.assign(
+        {
+          messages,
+        },
+        messages.length === limit
+          ? {
+            prevCursor: new MessageCursor(
+              messages[messages.length - 1].ts,
+              "past",
+            ).toString(),
+          }
+          : {},
+        cursor
+          ? {
+            nextCursor: new MessageCursor(
+              messages[0].ts,
+              "future",
+            ).toString(),
+          }
+          : {},
+      );
+    }
+
+    // chronological ordering
     return Object.assign(
       {
         messages,
       },
       messages.length === limit
         ? {
-          prevCursor: new MessageCursor(
+          nextCursor: new MessageCursor(
             messages[messages.length - 1].ts,
-            "past",
+            "future",
           ).toString(),
         }
         : {},
       cursor
         ? {
-          nextCursor: new MessageCursor(messages[0].ts, "future").toString(),
+          prevCursor: new MessageCursor(messages[0].ts, "past").toString(),
         }
         : {},
     );

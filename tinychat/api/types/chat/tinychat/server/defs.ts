@@ -11,7 +11,7 @@ import * as ChatTinychatActorDefs from "../actor/defs.ts";
 export interface ServerView {
   uri: string;
   name: string;
-  creator: string;
+  creator: ChatTinychatActorDefs.ActorView;
   channels: ChannelView[];
   [k: string]: unknown;
 }
@@ -32,6 +32,7 @@ export function validateServerView(v: unknown): ValidationResult {
 export interface ServerSummaryView {
   uri: string;
   name: string;
+  creator: ChatTinychatActorDefs.ActorView;
   [k: string]: unknown;
 }
 

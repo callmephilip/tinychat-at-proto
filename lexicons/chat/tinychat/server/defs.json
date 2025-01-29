@@ -9,7 +9,10 @@
       "properties": {
         "uri": { "type": "string", "format": "at-uri" },
         "name": { "type": "string" },
-        "creator": { "type": "string", "format": "did" },
+        "creator": {
+          "type": "ref",
+          "ref": "chat.tinychat.actor.defs#actorView"
+        },
         "channels": {
           "type": "array",
           "minLength": 1,
@@ -23,10 +26,14 @@
     "serverSummaryView": {
       "type": "object",
       "description": "Chat server instance overview",
-      "required": ["uri", "name"],
+      "required": ["uri", "name", "creator"],
       "properties": {
         "uri": { "type": "string", "format": "at-uri" },
-        "name": { "type": "string" }
+        "name": { "type": "string" },
+        "creator": {
+          "type": "ref",
+          "ref": "chat.tinychat.actor.defs#actorView"
+        }
       }
     },
     "channelView": {

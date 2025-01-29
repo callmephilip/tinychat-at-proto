@@ -7,6 +7,7 @@ type PageProps = PropsWithChildren<{
   htmx?: boolean;
   user?: ActorView | undefined;
   flex?: boolean;
+  tcScripts?: boolean;
 }>;
 
 export const Page = ({
@@ -14,13 +15,14 @@ export const Page = ({
   htmx,
   user,
   flex = true,
+  tcScripts = false,
   children,
 }: PageProps) => {
   const htmxAttrs = htmx
     ? {
-      "hx-ext": "ws",
-      "ws-connect": getNotificationsWsUrl({ user }),
-    }
+        "hx-ext": "ws",
+        "ws-connect": getNotificationsWsUrl({ user }),
+      }
     : {};
   const bodyClasses = `font-sans antialiased h-dvh bg-background ${
     hideOverflow ? "overflow-hidden" : ""
@@ -35,10 +37,7 @@ export const Page = ({
         <style href="/static/styles.css" />
         <script src="https://unpkg.com/htmx.org@2.0.4" />
         <script src="/static/htmx-ws.js" />
-        <script
-          defer
-          src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
-        />
+        <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" />
         <style
           dangerouslySetInnerHTML={{
             __html: `
@@ -69,7 +68,9 @@ export const Page = ({
       </head>
       <body {...htmxAttrs} className={bodyClasses}>
         {children}
-        <script src={`/static/tc.js?${Math.random() * 100000}`} />
+        {tcScripts ? (
+          <script src={`/static/tc.js?${Math.random() * 100000}`} />
+        ) : null}
       </body>
     </html>
   );

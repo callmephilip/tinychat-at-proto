@@ -153,7 +153,13 @@ app.post("/mark-all-as-read", async (c) => {
 app.get("/servers", async (c) => {
   const agent = await c.var.ctx.agent();
   const availableServers = await agent?.chat.tinychat.server.findServers({});
-  return c.html(<ServersPage servers={availableServers?.data.servers || []} />);
+  return c.html(
+    <ServersPage
+      servers={(availableServers?.data.servers || []).filter(
+        (s) => s.name === "tinychat-dev",
+      )}
+    />,
+  );
 });
 
 app.get("/server/:did/:rkey/:slug", async (c) => {

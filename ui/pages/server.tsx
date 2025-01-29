@@ -1,22 +1,27 @@
-import { Page } from "@tinychat/ui/page.tsx";
 import { ServerView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
 import { slugify, urlFromServerAtURI } from "tinychat/utils.ts";
+import { DigestCard } from "@tinychat/ui/layout/digest-card.tsx";
 
 export const ServerPage = ({ server }: { server: ServerView }) => {
   const baseURIForChannel = urlFromServerAtURI(server.uri, `server`) + "/" +
     slugify(server.name);
   return (
-    <Page flex={false}>
-      <h1>{server.name}</h1>
-      <p>by {server.creator}</p>
-      <h2>Channels</h2>
+    <DigestCard
+      title={server.name}
+      subtitle={`admin: @${server.creator.handle}`}
+    >
       <ul>
         {server.channels.map((channel) => (
           <li key={server.id}>
-            <a href={`${baseURIForChannel}/${channel.id}`}>{channel.name}</a>
+            <a
+              class="font-bold underline"
+              href={`${baseURIForChannel}/${channel.id}`}
+            >
+              #{channel.name}
+            </a>
           </li>
         ))}
       </ul>
-    </Page>
+    </DigestCard>
   );
 };

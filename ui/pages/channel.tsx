@@ -1,8 +1,8 @@
-import { Page } from "@tinychat/ui/page.tsx";
 import { ServerView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
 import { MessageView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
 import { Message } from "@tinychat/ui/message.tsx";
 import { slugify, urlFromServerAtURI } from "tinychat/utils.ts";
+import { DigestCard } from "@tinychat/ui/layout/digest-card.tsx";
 
 export const ChannelPage = ({
   server,
@@ -31,11 +31,7 @@ export const ChannelPage = ({
     );
   };
   return (
-    <Page flex={false}>
-      <h1>
-        {server.name} // {currentChannel?.name}
-      </h1>
-      <p>by {server.creator}</p>
+    <DigestCard title={`${server.name} > #${currentChannel?.name}`}>
       <ul>
         {messages.map((message) => (
           <li>
@@ -43,10 +39,29 @@ export const ChannelPage = ({
           </li>
         ))}
       </ul>
-      {prevCursor
-        ? <a href={buildURLWithCursor(prevCursor)}>Previous</a>
-        : null}
-      {nextCursor ? <a href={buildURLWithCursor(nextCursor)}>Next</a> : null}
-    </Page>
+      <hr />
+      <div class="py-4 text-sm">
+        {prevCursor
+          ? (
+            <a
+              class="font-bold underline"
+              href={buildURLWithCursor(prevCursor)}
+            >
+              previous{" | "}
+            </a>
+          )
+          : null}
+        {nextCursor
+          ? (
+            <a
+              class="font-bold underline"
+              href={buildURLWithCursor(nextCursor)}
+            >
+              next
+            </a>
+          )
+          : null}
+      </div>
+    </DigestCard>
   );
 };

@@ -316,6 +316,21 @@ export class Messaging {
     }
 
     // chronological ordering
+    // need to check if we have older messages for the prev cursor
+
+    const hasPreviousMessages = messages.length !== 0 && this.db
+          .prepare(
+            `SELECT uri FROM message_view
+          WHERE channel = :channel AND server = :server AND time_us < :time_us
+          ORDER BY time_us DESC LIMIT :limit`,
+          )
+          .all<Message>({
+            channel,
+            server,
+            time_us: messages[0].ts,
+            limit: 1,
+          }).length > 0;
+
     return Object.assign(
       {
         messages,
@@ -328,7 +343,7 @@ export class Messaging {
           ).toString(),
         }
         : {},
-      cursor
+      hasPreviousMessages
         ? {
           prevCursor: new MessageCursor(messages[0].ts, "past").toString(),
         }

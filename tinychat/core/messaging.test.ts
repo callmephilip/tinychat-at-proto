@@ -316,6 +316,21 @@ export class Messaging {
     }
 
     // chronological ordering
+    // need to check if we have older messages for the prev cursor
+
+    const hasPreviousMessages = messages.length !== 0 && this.db
+          .prepare(
+            `SELECT uri FROM message_view
+          WHERE channel = :channel AND server = :server AND time_us < :time_us
+          ORDER BY time_us DESC LIMIT :limit`,
+          )
+          .all<Message>({
+            channel,
+            server,
+            time_us: messages[0].ts,
+            limit: 1,
+          }).length > 0;
+
     return Object.assign(
       {
         messages,
@@ -328,7 +343,7 @@ export class Messaging {
           ).toString(),
         }
         : {},
-      cursor
+      hasPreviousMessages
         ? {
           prevCursor: new MessageCursor(messages[0].ts, "past").toString(),
         }
@@ -945,6 +960,8 @@ Deno.test(
           cursor: firstBatch.nextCursor,
           sort: "chronological",
         });
+
+        // back to the first batch
         const { messages, nextCursor, prevCursor } = messaging.getMessages({
           server: TestMessaging.server,
           channel: TestMessaging.channel1,
@@ -954,11 +971,16 @@ Deno.test(
         });
 
         assertEquals(messages.length, 10, "got 10 messages");
+        assertEquals(
+          messages[0].text,
+          "[0] hello world",
+          "got the first message",
+        );
         assert(
           messages[0].ts < messages[messages.length - 1].ts,
           "odlers messages comes first",
         );
-        assert(prevCursor, "got prev cursor for the new batch");
+        assert(!prevCursor, "there is no prev cursor for the new batch");
         assert(nextCursor, "got next cursor for the new batch");
       },
     );

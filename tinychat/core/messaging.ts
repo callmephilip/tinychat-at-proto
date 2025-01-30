@@ -6,7 +6,6 @@ import {
   ServerSummaryView,
   ServerView,
   validateServerSummaryView,
-  validateServerView,
 } from "tinychat/api/types/chat/tinychat/server/defs.ts";
 import {
   MessageView,
@@ -76,96 +75,6 @@ export class Messaging {
         return v.value;
       })
       .filter((s) => s);
-  }
-
-  public getServers({
-    uris,
-    did,
-    viewer,
-  }: {
-    uris?: string[] | undefined;
-    did?: string | undefined;
-    viewer?: string | undefined;
-  }): ServerView[] {
-    const sql = (where: string = "") => {
-      const w = [viewer ? `c.user = '${viewer}'` : "", where]
-        .filter((q) => q)
-        .join(" AND ")
-        .trim();
-
-      const s = !viewer
-        ? `SELECT 
-        s.uri,
-        s.name,
-        json_object(
-            'did', u.did,
-            'handle', u.handle,
-            'displayName', u.display_name,
-            'description', u.description,
-            'avatar', u.avatar
-        ) as creator,
-        json_group_array(
-          json_object(
-            'id', c.id,
-            'name', c.name,
-            'server', c.server,
-            'latestMessageReceivedTime', c.latest_message_received_time_us
-          )
-        ) as channels
-        FROM servers s
-        INNER JOIN channels c ON c.server = s.uri
-        INNER JOIN users u ON u.did = s.creator
-        ${w ? `WHERE ${w}` : ""}
-        GROUP BY s.uri`
-        : `SELECT 
-        s.uri,
-        s.name,
-        json_object(
-            'did', u.did,
-            'handle', u.handle,
-            'displayName', u.display_name,
-            'description', u.description,
-            'avatar', u.avatar
-        ) as creator,
-        json_group_array(
-          json_object(
-            'id', c.id,
-            'name', c.name,
-            'server', c.server,
-            'lastMessageReadTime', c.last_message_read_time_us,
-            'latestMessageReceivedTime', c.latest_message_received_time_us
-          )
-        ) as channels
-        FROM servers s
-        LEFT OUTER JOIN channel_view c ON c.server = s.uri
-        INNER JOIN users u ON u.did = s.creator
-        ${w ? `WHERE ${w}` : ""}
-        GROUP BY s.uri`;
-      return this.db.prepare(s);
-    };
-
-    let results: ServerView[] = [];
-    if (uris && uris.length > 0) {
-      results = sql(
-        `s.uri IN (${uris.map((u) => `'${u}'`).join(", ")})`,
-      ).all<ServerView>();
-    } else if (did) {
-      results = sql(`s.creator = :did`).all<ServerView>({
-        did,
-      });
-    } else {
-      console.log("Getting all servers", sql());
-      results = sql().all<ServerView>();
-    }
-
-    return results.map(removeNulls).map((s) => {
-      const v = validateServerView(s);
-      if (!v.success) {
-        console.error("Failed to validate server view", v);
-      }
-      // @ts-ignore yolo
-      return v.value;
-    });
   }
 
   public receiveMessage({

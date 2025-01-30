@@ -3,6 +3,45 @@
 import { Database } from "@db/sqlite";
 
 export type { Database } from "@db/sqlite";
+import { ValidationResult } from "@atproto/lexicon";
+import { removeNulls } from "tinychat/utils.ts";
+
+export function fetchView<T>(
+  { db, sql, validate }: {
+    db: Database;
+    sql: string;
+    validate: (v: unknown) => ValidationResult;
+  },
+): T[] {
+  console.log("Fetching view using sql:", sql);
+  return db.prepare(sql).all().map((r) => {
+    return Object.keys(r).reduce((acc, k) => {
+      if (!k.includes("__")) {
+        return Object.assign(acc, { [k]: r[k] });
+      }
+
+      const [parent, attr] = k.split("__");
+
+      if (parent === attr) {
+        return Object.assign(acc, {
+          [parent]: JSON.parse(r[k]),
+        });
+      }
+
+      return Object.assign(acc, {
+        // @ts-ignore yolo
+        [parent]: Object.assign(acc[parent] || {}, { [attr]: r[k] }),
+      });
+    }, {});
+  }).map(removeNulls).map((r) => {
+    const v = validate(r);
+    if (!v.success) {
+      console.error("Failed to validate view", v);
+    }
+    // @ts-ignore yolo
+    return v.value;
+  }).filter((v) => v);
+}
 import path from "node:path";
 import { getProjectRoot } from "tinychat/utils.ts";
 
@@ -103,6 +142,8 @@ export const getDatabase = (
   __db.prepare(`DROP TRIGGER IF EXISTS update_channel_latest_message;`).run();
   __db.prepare(`DROP VIEW IF EXISTS channel_view;`).run();
   __db.prepare(`DROP VIEW IF EXISTS message_view;`).run();
+  __db.prepare(`DROP VIEW IF EXISTS server_view;`).run();
+  __db.prepare(`DROP VIEW IF EXISTS server_view_with_viewer;`).run();
 
   __db
     .prepare(
@@ -116,6 +157,62 @@ export const getDatabase = (
     )
     .run();
 
+  // simple server view when viewer is not present
+  __db
+    .prepare(
+      `CREATE VIEW server_view AS
+       SELECT s.uri, s.name,
+        u.did as creator__did,
+        u.handle as creator__handle,
+        u.display_name as creator__display_name,
+        u.avatar as creator__avatar,
+        u.description as creator__description,
+        json_group_array(
+          json_object(
+            'id', c.id,
+            'name', c.name,
+            'server', c.server,
+            'latestMessageReceivedTime', c.latest_message_received_time_us
+          )
+        ) as channels__channels 
+      FROM servers s
+      INNER JOIN channels c ON c.server = s.uri
+      INNER JOIN users u ON u.did = s.creator
+      GROUP BY s.uri;
+    `,
+    )
+    .run();
+
+  // server view with viewer
+  __db
+    .prepare(
+      `CREATE VIEW server_view_with_viewer AS
+        SELECT 
+          s.uri,
+          s.name,
+          u.did as creator__did,
+          u.handle as creator__handle,
+          u.display_name as creator__display_name,
+          u.avatar as creator__avatar,
+          u.description as creator__description,
+          c.user as viewer,
+          json_group_array(
+            json_object(
+              'id', c.id,
+              'name', c.name,
+              'server', c.server,
+              'lastMessageReadTime', c.last_message_read_time_us,
+              'latestMessageReceivedTime', c.latest_message_received_time_us
+            )
+          ) as channels__channels
+          FROM servers s
+          LEFT OUTER JOIN channel_view c ON c.server = s.uri
+          INNER JOIN users u ON u.did = s.creator
+          GROUP BY s.uri;
+      `,
+    )
+    .run();
+
   __db
     .prepare(
       `CREATE VIEW channel_view AS
@@ -126,13 +223,15 @@ export const getDatabase = (
     )
     .run();
 
-  __db.prepare(
-    `CREATE VIEW message_view AS
+  __db
+    .prepare(
+      `CREATE VIEW message_view AS
        SELECT uri, channel, server, text, sender, created_at as createdAt, time_us, users.did, users.handle, users.display_name as displayName,
               users.avatar, users.description
        FROM messages
        INNER JOIN users ON messages.sender = users.did`,
-  ).run();
+    )
+    .run();
 
   return __db;
 };

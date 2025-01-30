@@ -20,9 +20,9 @@ export const Page = ({
 }: PageProps) => {
   const htmxAttrs = htmx
     ? {
-        "hx-ext": "ws",
-        "ws-connect": getNotificationsWsUrl({ user }),
-      }
+      "hx-ext": "ws",
+      "ws-connect": getNotificationsWsUrl({ user }),
+    }
     : {};
   const bodyClasses = `font-sans antialiased h-dvh bg-background ${
     hideOverflow ? "overflow-hidden" : ""
@@ -68,9 +68,9 @@ export const Page = ({
       </head>
       <body {...htmxAttrs} className={bodyClasses}>
         {children}
-        {tcScripts ? (
-          <script src={`/static/tc.js?${Math.random() * 100000}`} />
-        ) : null}
+        {tcScripts
+          ? <script src={`/static/tc.js?${Math.random() * 100000}`} />
+          : null}
       </body>
     </html>
   );

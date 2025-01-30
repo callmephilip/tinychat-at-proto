@@ -160,6 +160,7 @@ export const runAppView = (
   const shutdownJetstream = startJetstream({
     db,
     onNewServer: (m: NewServerRecord) => {
+      console.log(">>>>>>>>>>>>>>>>>>>>>>> Creating server", m);
       servers.createServer(m);
     },
     onNewMembership: (m: NewMembershipRecord) => {
@@ -200,7 +201,7 @@ export const runAppView = (
       // );
 
       chatServer.broadcastFn((c: ChatServerClient) => {
-        const servers = messaging.getServers({
+        const servers = new Servers(db).getServers({
           uris: [m.commit.record.server],
           viewer: c.did,
         });
@@ -258,7 +259,7 @@ app.get(`/xrpc/${ids.ChatTinychatServerGetServers}`, async (c) => {
 
   console.log(">>>>>>>>>>>>>. getting servers for", uris, did);
 
-  const servers = new Messaging(db!).getServers({
+  const servers = new Servers(db!).getServers({
     uris,
     did,
     viewer: agent?.agent.did,

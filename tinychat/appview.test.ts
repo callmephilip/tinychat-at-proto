@@ -163,6 +163,9 @@ export const runAppView = (
       console.log(">>>>>>>>>>>>>>>>>>>>>>> Creating server", m);
       servers.createServer(m);
     },
+    onDeleteServer: (m: NewServerRecord) => {
+      console.log(">>>>>>>>>>>>>>>>>>>>>>> Deleting server", m);
+    },
     onNewMembership: (m: NewMembershipRecord) => {
       // add server memberships record
       try {
@@ -407,7 +410,7 @@ Deno.test("/", async () => {
 Deno.test("test xrpc", async (t) => {
   Deno.env.set("APPVIEW_URL", "http://localhost:8001");
 
-  const agent = await TinychatAgent.create();
+  const agent: TinychatAgent = await TinychatAgent.create();
   const repo = agent.agent.assertDid;
   const serverName = `test-${TID.nextStr()}`;
   const anotherServerName = `test-${TID.nextStr()}`;
@@ -422,10 +425,12 @@ Deno.test("test xrpc", async (t) => {
     },
     {
       name: serverName,
-      channels: [{
-        name: "general",
-        id: channelId,
-      }],
+      channels: [
+        {
+          name: "general",
+          id: channelId,
+        },
+      ],
     },
   );
   const anotherChatServer = await agent.chat.tinychat.core.server.create(
@@ -434,10 +439,12 @@ Deno.test("test xrpc", async (t) => {
     },
     {
       name: anotherServerName,
-      channels: [{
-        name: "general",
-        id: TID.nextStr(),
-      }],
+      channels: [
+        {
+          name: "general",
+          id: TID.nextStr(),
+        },
+      ],
     },
   );
 
@@ -465,7 +472,10 @@ Deno.test("test xrpc", async (t) => {
   await t.step("list available servers", async () => {
     const { data } = await agent.chat.tinychat.server.getServers();
     assert(data.servers.length > 0, "got a least 1 server");
-    assert(data.servers.find((s) => s.name === serverName), "found our server");
+    assert(
+      data.servers.find((s) => s.name === serverName),
+      "found our server",
+    );
     assert(
       data.servers.find((s) => s.name === anotherServerName),
       "found another server",
@@ -524,9 +534,9 @@ Deno.test("test xrpc", async (t) => {
     });
     await sleep(2000);
 
-    const messages = db.prepare("SELECT * FROM messages").all<
-      { text: string }
-    >();
+    const messages = db
+      .prepare("SELECT * FROM messages")
+      .all<{ text: string }>();
     assert(messages.length === 2, "expecting 2 messages");
     assert(
       messages.find((m) => m.text === "message via xrpc"),
@@ -540,6 +550,13 @@ Deno.test("test xrpc", async (t) => {
     await agent.chat.tinychat.server.joinServer({
       server: chatServer.uri,
     });
+  });
+
+  // delete server
+
+  agent.chat.tinychat.core.server.delete({
+    repo,
+    rkey: chatServer.uri.split("/").pop()!,
   });
 
   await shutdown();
@@ -687,7 +704,6 @@ Deno.test("test app view", async (t) => {
       channel,
     });
   });
-
   // clean up and shutdown
 
   await shutdown();

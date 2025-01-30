@@ -72,11 +72,21 @@ export const unslopifyModules = async (dir: string) => {
     await processFile(dirEntry.path);
   }
 };
+export const getTimeus = (): string => `${new Date().getTime() * 1000}`;
 export const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
 export const shortIdFromAtUri = (atUri: string) => {
   return atUri.split("/").pop();
 };
+export const atURIFromParts = ({
+  did,
+  collection,
+  rkey,
+}: {
+  did: string;
+  collection: string;
+  rkey: string;
+}): string => `at://${did}/${collection}/${rkey}`;
 import { ids } from "tinychat/api/lexicons.ts";
 import { ChannelView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
 
@@ -233,6 +243,16 @@ Deno.test("shortIdFromAtUri", () => {
       "at://did:plc:ubdeopbbkbgedccgbum7dhsh/chat.tinychat.server/3lfu4indvy72b",
     ),
     "3lfu4indvy72b",
+  );
+});
+Deno.test("atURIFromParts", () => {
+  assertEquals(
+    atURIFromParts({
+      did: "did:plc:ubdeopbbkbgedccgbum7dhsh",
+      collection: "chat.tinychat.server",
+      rkey: "3lfu4indvy72b",
+    }),
+    "at://did:plc:ubdeopbbkbgedccgbum7dhsh/chat.tinychat.server/3lfu4indvy72b",
   );
 });
 Deno.test("serverAtURIFromUrl", () => {

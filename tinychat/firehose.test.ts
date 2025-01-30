@@ -14,19 +14,23 @@ const baseCommitSchema = z.object({
   operation: z.string(),
   collection: z.string(),
   rkey: z.string(),
-  cid: z.string(),
+  cid: z.string().optional(),
 });
 
 // Change to object schema that can be extended
-const makeBaseSchema = <T extends z.ZodTypeAny>(recordSchema: T) =>
+const makeBaseSchema = <T extends z.ZodTypeAny>(recordSchema?: T | undefined) =>
   z
-    .object({
+    .object(Object.assign({
       did: z.string(),
       time_us: z.number(),
-      commit: baseCommitSchema.extend({
-        record: recordSchema,
-      }),
-    })
+      commit: baseCommitSchema.extend(
+        recordSchema
+          ? {
+            record: recordSchema,
+          }
+          : {},
+      ),
+    }))
     .transform((d) => {
       if (!d.commit) {
         throw new Error(`Invalid record: ${JSON.stringify(d, null, 2)}`);
@@ -65,9 +69,23 @@ const newMessageRecordSchema = makeBaseSchema(
   }),
 );
 
+const deleteServerRecordSchema = makeBaseSchema();
+
+// z.object({
+//   did: z.string(),
+//   time_us: z.number(),
+//   commit: z.object({
+//     operation: z.literal("delete"),
+//     collection: z.literal(ids.ChatTinychatCoreServer),
+//     rkey: z.string(),
+//   }),
+// });
+
 export type NewServerRecord = z.infer<typeof newServerRecordSchema>;
 export type NewMembershipRecord = z.infer<typeof newMembershipRecordSchema>;
 export type NewMessageRecord = z.infer<typeof newMessageRecordSchema>;
+
+export type DeleteServerRecord = z.infer<typeof deleteServerRecordSchema>;
 
 const jetstream = new Jetstream({
   wantedCollections: Deno.env.get("JETSTREAM_WANTED_COLLECTIONS")!.split(","),
@@ -80,12 +98,14 @@ type JetstreamCleanup = () => void;
 type JetstreamConfig = {
   db: Database;
   onNewServer: (m: NewServerRecord) => void;
+  onDeleteServer: (m: DeleteServerRecord) => void;
   onNewMembership: (m: NewMembershipRecord) => void;
   onNewMessage: (m: NewMessageRecord) => void;
 };
 
 export function startJetstream(
-  { onNewServer, onNewMembership, onNewMessage, db }: JetstreamConfig,
+  { onNewServer, onDeleteServer, onNewMembership, onNewMessage, db }:
+    JetstreamConfig,
 ): JetstreamCleanup {
   console.log("Starting jetstream");
 
@@ -130,11 +150,13 @@ export function startJetstream(
   // handle server updates
   jetstream.on(ids.ChatTinychatCoreServer, async (event) => {
     // we only do creates for now
-    if (event.commit.operation !== "create") {
-      return;
+    if (event.commit.operation === "create") {
+      await syncUser(event.did);
+      onNewServer(newServerRecordSchema.parse(event));
+    } else if (event.commit.operation === "delete") {
+      console.log("Server deleted >>>>>>>>>>>>>>>>>>>>", event);
+      onDeleteServer(deleteServerRecordSchema.parse(event));
     }
-    await syncUser(event.did);
-    onNewServer(newServerRecordSchema.parse(event));
   });
 
   // handle membership updates
@@ -182,8 +204,12 @@ Deno.test("jetstream", async (t) => {
   const servers: NewServerRecord[] = [];
   const memberships: NewMembershipRecord[] = [];
   const messages: NewMessageRecord[] = [];
+  const deletes: DeleteServerRecord[] = [];
   const cleanup = startJetstream({
     db: getDatabase(),
+    onDeleteServer: (m: DeleteServerRecord) => {
+      deletes.push(m);
+    },
     onNewServer: (m: NewServerRecord) => {
       servers.push(m);
     },
@@ -220,6 +246,11 @@ Deno.test("jetstream", async (t) => {
     createdAt: new Date().toISOString(),
   });
 
+  await agent.chat.tinychat.core.server.delete({
+    repo,
+    rkey: chatServer.uri.split("/").pop()!,
+  });
+
   await sleep(2000);
 
   await t.step("spot check jetstream updates", () => {
@@ -227,6 +258,7 @@ Deno.test("jetstream", async (t) => {
     assert(servers.some((s) => s.commit.record.name === serverName));
     assert(
       servers.some((s) =>
+        // @ts-ignore yolo
         s.commit.record.channels.some((c) => c.id === channelId)
       ),
     );
@@ -239,6 +271,7 @@ Deno.test("jetstream", async (t) => {
         m.commit.record.channel === channelId
       ),
     );
+    assert(deletes.length > 0, "delete happened");
   });
 
   cleanup();

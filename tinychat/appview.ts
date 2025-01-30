@@ -163,6 +163,9 @@ export const runAppView = (
       console.log(">>>>>>>>>>>>>>>>>>>>>>> Creating server", m);
       servers.createServer(m);
     },
+    onDeleteServer: (m: NewServerRecord) => {
+      console.log(">>>>>>>>>>>>>>>>>>>>>>> Deleting server", m);
+    },
     onNewMembership: (m: NewMembershipRecord) => {
       // add server memberships record
       try {

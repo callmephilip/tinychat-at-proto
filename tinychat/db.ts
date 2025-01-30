@@ -72,10 +72,10 @@ const tables: Record<string, string> = {
   FOREIGN KEY (server) REFERENCES servers(uri) ON DELETE CASCADE
 );`,
   server_memberships: `CREATE TABLE server_memberships (
+  uri TEXT PRIMARY KEY,
   user TEXT NOT NULL,
   server TEXT NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (user, server),
   FOREIGN KEY (server) REFERENCES servers(uri) ON DELETE CASCADE
   FOREIGN KEY (user) REFERENCES users(did) ON DELETE CASCADE
 );`,

@@ -163,28 +163,13 @@ export const runAppView = (
   const shutdownJetstream = startJetstream({
     db,
     onNewServer: (m: NewServerRecord) => {
-      console.log(">>>>>>>>>>>>>>>>>>>>>>> Creating server", m);
       servers.createServer(m);
     },
     onDeleteServer: (m: DeleteServerRecord) => {
-      console.log(">>>>>>>>>>>>>>>>>>>>>>> Deleting server", m);
+      servers.deleteServer(m);
     },
     onNewMembership: (m: NewMembershipRecord) => {
-      // add server memberships record
-      try {
-        db.prepare(
-          `INSERT INTO server_memberships (user, server) VALUES (
-          :creator, :server
-        ) ON CONFLICT(user, server) DO NOTHING`,
-        ).run({
-          creator: m.did,
-          server: m.commit.record.server,
-        });
-      } catch (e) {
-        // normally this happens when creating a server and adding the creator to the server
-        // membership gets processed before the server creation wraps up
-        console.error("Error adding server membership", e);
-      }
+      servers.createMembership(m);
     },
     onNewMessage: (m: NewMessageRecord) => {
       messaging.receiveMessage({

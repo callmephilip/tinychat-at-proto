@@ -2,7 +2,12 @@
 
 import type { Database } from "tinychat/db.ts";
 import { fetchView, seedMessages } from "tinychat/db.ts";
-import { DeleteServerRecord, NewServerRecord } from "tinychat/firehose.ts";
+import {
+  DeleteMembershipRecord,
+  DeleteServerRecord,
+  NewMembershipRecord,
+  NewServerRecord,
+} from "tinychat/firehose.ts";
 import {
   ServerSummaryView,
   ServerView,
@@ -32,13 +37,13 @@ export class Servers {
           creator: server.did,
         });
 
-      this.db
-        .prepare(
-          `INSERT INTO server_memberships (user, server) VALUES (
-            :creator, :server
-          ) ON CONFLICT(user, server) DO NOTHING`,
-        )
-        .run({ creator: server.did, server: server.uri });
+      // this.db
+      //   .prepare(
+      //     `INSERT INTO server_memberships (user, server) VALUES (
+      //       :creator, :server
+      //     ) ON CONFLICT(user, server) DO NOTHING`,
+      //   )
+      //   .run({ creator: server.did, server: server.uri });
 
       for (const channel of server.commit.record.channels) {
         createChannel.run({
@@ -55,8 +60,28 @@ export class Servers {
     }
   }
 
+  public createMembership(m: NewMembershipRecord) {
+    this.db.prepare(
+      `INSERT INTO server_memberships (user, server, uri) VALUES (
+        :creator, :server, :uri
+      )`,
+    ).run({
+      uri: m.uri,
+      creator: m.did,
+      server: m.commit.record.server,
+    });
+  }
+
   deleteServer(server: DeleteServerRecord) {
     this.db.prepare(`DELETE FROM servers WHERE uri = '${server.uri}'`).run();
+  }
+
+  deleteMembership(membership: DeleteMembershipRecord) {
+    this.db
+      .prepare(
+        `DELETE FROM server_memberships WHERE user = '${membership.did}' AND server = '${membership.uri}'`,
+      )
+      .run();
   }
 
   public getServers({

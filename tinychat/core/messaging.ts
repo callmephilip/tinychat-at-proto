@@ -7,6 +7,7 @@ import {
   validateMessageView,
 } from "tinychat/api/types/chat/tinychat/server/defs.ts";
 import { getTimeus, removeNulls } from "tinychat/utils.ts";
+import { DeleteMessageRecord } from "tinychat/firehose.ts";
 
 export class MessageCursor {
   constructor(public timestamp: string, public direction: "past" | "future") {}
@@ -24,6 +25,14 @@ export class MessageCursor {
 
 export class Messaging {
   constructor(protected db: Database) {}
+
+  public deleteMessage({ uri }: DeleteMessageRecord) {
+    this.db
+      .prepare(
+        `UPDATE messages SET deleted_at = :time, text = '<deleted>' WHERE uri = :uri`,
+      )
+      .run({ uri, time: new Date().toISOString() });
+  }
 
   public markAllMessagesAsRead({
     channel,

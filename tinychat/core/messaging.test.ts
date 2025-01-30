@@ -7,6 +7,7 @@ import {
   validateMessageView,
 } from "tinychat/api/types/chat/tinychat/server/defs.ts";
 import { getTimeus, removeNulls } from "tinychat/utils.ts";
+import { DeleteMessageRecord } from "tinychat/firehose.ts";
 
 export class MessageCursor {
   constructor(public timestamp: string, public direction: "past" | "future") {}
@@ -24,6 +25,14 @@ export class MessageCursor {
 
 export class Messaging {
   constructor(protected db: Database) {}
+
+  public deleteMessage({ uri }: DeleteMessageRecord) {
+    this.db
+      .prepare(
+        `UPDATE messages SET deleted_at = :time, text = '<deleted>' WHERE uri = :uri`,
+      )
+      .run({ uri, time: new Date().toISOString() });
+  }
 
   public markAllMessagesAsRead({
     channel,
@@ -506,3 +515,27 @@ Deno.test(
     );
   },
 );
+Deno.test("delete message", () => {
+  const tdb = TestDatabase.setup();
+  const messaging = new Messaging(tdb.db);
+  const m = tdb.db.prepare("SELECT * FROM messages").get<{ uri: string }>();
+
+  messaging.deleteMessage({
+    did: TestDatabase.user1,
+    time_us: 1738269878791634,
+    commit: {
+      rev: "3lgydzdyarc2b",
+      operation: "delete",
+      collection: "chat.tinychat.core.server",
+      rkey: "k",
+    },
+    uri: m!.uri,
+  });
+
+  const deletedMessage = tdb.db
+    .prepare(`SELECT * FROM messages WHERE uri = '${m!.uri}'`)
+    .get<{ deleted_at: string; text: string }>();
+
+  assert(deletedMessage!.deleted_at, "message has deleted timestamp set");
+  assertEquals(deletedMessage!.text, "<deleted>", "message text is deleted");
+});

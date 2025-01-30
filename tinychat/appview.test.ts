@@ -222,7 +222,7 @@ export const runAppView = (
       });
     },
     onDeleteMessage: (m: DeleteMessageRecord) => {
-      console.log(">>>>>>>>>>>>>>>>>>>>>>> Deleting message", m);
+      messaging.deleteMessage(m);
     },
     onDeleteMembership: (m: DeleteMembershipRecord) => {
       console.log(">>>>>>>>>>>>>>>>>>>>>>> Deleting membership", m);

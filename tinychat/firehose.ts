@@ -70,22 +70,18 @@ const newMessageRecordSchema = makeBaseSchema(
 );
 
 const deleteServerRecordSchema = makeBaseSchema();
-
-// z.object({
-//   did: z.string(),
-//   time_us: z.number(),
-//   commit: z.object({
-//     operation: z.literal("delete"),
-//     collection: z.literal(ids.ChatTinychatCoreServer),
-//     rkey: z.string(),
-//   }),
-// });
+const deleteMessageRecordSchema = makeBaseSchema();
+const deleteMembershipRecordSchema = makeBaseSchema();
 
 export type NewServerRecord = z.infer<typeof newServerRecordSchema>;
 export type NewMembershipRecord = z.infer<typeof newMembershipRecordSchema>;
 export type NewMessageRecord = z.infer<typeof newMessageRecordSchema>;
 
 export type DeleteServerRecord = z.infer<typeof deleteServerRecordSchema>;
+export type DeleteMembershipRecord = z.infer<
+  typeof deleteMembershipRecordSchema
+>;
+export type DeleteMessageRecord = z.infer<typeof deleteMessageRecordSchema>;
 
 const jetstream = new Jetstream({
   wantedCollections: Deno.env.get("JETSTREAM_WANTED_COLLECTIONS")!.split(","),
@@ -100,12 +96,21 @@ type JetstreamConfig = {
   onNewServer: (m: NewServerRecord) => void;
   onDeleteServer: (m: DeleteServerRecord) => void;
   onNewMembership: (m: NewMembershipRecord) => void;
+  onDeleteMembership: (m: DeleteMembershipRecord) => void;
   onNewMessage: (m: NewMessageRecord) => void;
+  onDeleteMessage: (m: DeleteMessageRecord) => void;
 };
 
 export function startJetstream(
-  { onNewServer, onDeleteServer, onNewMembership, onNewMessage, db }:
-    JetstreamConfig,
+  {
+    onNewServer,
+    onDeleteServer,
+    onNewMembership,
+    onDeleteMembership,
+    onNewMessage,
+    onDeleteMessage,
+    db,
+  }: JetstreamConfig,
 ): JetstreamCleanup {
   console.log("Starting jetstream");
 
@@ -154,7 +159,6 @@ export function startJetstream(
       await syncUser(event.did);
       onNewServer(newServerRecordSchema.parse(event));
     } else if (event.commit.operation === "delete") {
-      console.log("Server deleted >>>>>>>>>>>>>>>>>>>>", event);
       onDeleteServer(deleteServerRecordSchema.parse(event));
     }
   });
@@ -162,22 +166,23 @@ export function startJetstream(
   // handle membership updates
   jetstream.on(ids.ChatTinychatCoreMembership, async (event) => {
     // we only do creates for now
-    if (event.commit.operation !== "create") {
-      return;
+    if (event.commit.operation === "create") {
+      await syncUser(event.did);
+      onNewMembership(newMembershipRecordSchema.parse(event));
+    } else if (event.commit.operation === "delete") {
+      onDeleteMembership(deleteMembershipRecordSchema.parse(event));
     }
-    await syncUser(event.did);
-    onNewMembership(newMembershipRecordSchema.parse(event));
   });
 
   // handle new message
   jetstream.on(ids.ChatTinychatCoreMessage, async (event) => {
     // we only do creates for now
-    if (event.commit.operation !== "create") {
-      return;
+    if (event.commit.operation === "create") {
+      await syncUser(event.did);
+      onNewMessage(newMessageRecordSchema.parse(event));
+    } else if (event.commit.operation === "delete") {
+      onDeleteMessage(deleteMessageRecordSchema.parse(event));
     }
-    console.log("New message >>>>>>>>>>>>>>>>>>>>", event);
-    await syncUser(event.did);
-    onNewMessage(newMessageRecordSchema.parse(event));
   });
 
   jetstream.start();

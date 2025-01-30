@@ -122,6 +122,9 @@ app.get(
 
 "";
 import {
+  DeleteMembershipRecord,
+  DeleteMessageRecord,
+  DeleteServerRecord,
   NewMembershipRecord,
   NewMessageRecord,
   NewServerRecord,
@@ -163,7 +166,7 @@ export const runAppView = (
       console.log(">>>>>>>>>>>>>>>>>>>>>>> Creating server", m);
       servers.createServer(m);
     },
-    onDeleteServer: (m: NewServerRecord) => {
+    onDeleteServer: (m: DeleteServerRecord) => {
       console.log(">>>>>>>>>>>>>>>>>>>>>>> Deleting server", m);
     },
     onNewMembership: (m: NewMembershipRecord) => {
@@ -217,6 +220,12 @@ export const runAppView = (
               .join(""),
         });
       });
+    },
+    onDeleteMessage: (m: DeleteMessageRecord) => {
+      console.log(">>>>>>>>>>>>>>>>>>>>>>> Deleting message", m);
+    },
+    onDeleteMembership: (m: DeleteMembershipRecord) => {
+      console.log(">>>>>>>>>>>>>>>>>>>>>>> Deleting membership", m);
     },
   });
 

@@ -53,7 +53,7 @@ export class Servers {
   public getServers({
     uris,
     did,
-    viewer,
+    // viewer,
   }: {
     uris?: string[] | undefined;
     did?: string | undefined;
@@ -66,16 +66,16 @@ export class Servers {
       baseWhere = `creator__did = '${did}'`;
     }
 
-    const where = [viewer ? `viewer = '${viewer}'` : "", baseWhere]
+    // viewer ? `viewer = '${viewer}'` : "",
+    const where = [baseWhere]
       .filter((q) => q)
       .join(" AND ")
       .trim();
 
     return fetchView<ServerView>({
       db: this.db,
-      sql: `SELECT * FROM ${
-        viewer ? "server_view_with_viewer" : "server_view"
-      } ${where ? `WHERE ${where}` : ""}`,
+      // sql: `SELECT * FROM ${viewer ? 'server_view_with_viewer' : 'server_view'} ${where ? `WHERE ${where}` : ""}`,
+      sql: `SELECT * FROM  server_view ${where ? `WHERE ${where}` : ""}`,
       validate: validateServerView,
     });
   }

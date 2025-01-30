@@ -2,13 +2,24 @@
 
 import { Database } from "tinychat/db.ts";
 
-export const createDefaultTestUser = ({ db }: { db: Database }) => {
+export const createTestUser = (
+  { db, user }: { db: Database; user: { did: string; handle: string } },
+) => {
   // this test user does not have some common fields like display name and avatar not set intentionally
   // to mimic bare bones setup - handy for testing record validations with missing fields etc.
   db.prepare(
     "INSERT INTO users (did, handle) VALUES (:did, :handle)",
-  ).run({
-    did: "did:plc:ubdeopbbkbgedccgbum7dhsh",
-    handle: "callmephilip.com",
+  ).run(user);
+};
+
+export const createDefaultTestUser = ({ db }: { db: Database }) => {
+  // this test user does not have some common fields like display name and avatar not set intentionally
+  // to mimic bare bones setup - handy for testing record validations with missing fields etc.
+  createTestUser({
+    db,
+    user: {
+      did: "did:plc:ubdeopbbkbgedccgbum7dhsh",
+      handle: "callmephilip.com",
+    },
   });
 };

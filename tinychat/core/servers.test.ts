@@ -4,9 +4,9 @@ import type { Database } from "tinychat/db.ts";
 import { fetchView } from "tinychat/db.ts";
 import { NewServerRecord } from "tinychat/firehose.ts";
 import {
-  //  ServerSummaryView,
+  ServerSummaryView,
   ServerView,
-  // validateServerSummaryView,
+  validateServerSummaryView,
   validateServerView,
 } from "tinychat/api/types/chat/tinychat/server/defs.ts";
 import { seedMessages } from "tinychat/core/messaging.ts";
@@ -20,20 +20,26 @@ export class Servers {
     );
 
     this.db.transaction(() => {
-      this.db.prepare(`
+      this.db
+        .prepare(
+          `
         INSERT INTO servers (uri, name, creator) VALUES (
           :uri, :name, :creator
-        )`).run({
-        uri: server.uri,
-        name: server.commit.record.name,
-        creator: server.did,
-      });
+        )`,
+        )
+        .run({
+          uri: server.uri,
+          name: server.commit.record.name,
+          creator: server.did,
+        });
 
-      this.db.prepare(
-        `INSERT INTO server_memberships (user, server) VALUES (
+      this.db
+        .prepare(
+          `INSERT INTO server_memberships (user, server) VALUES (
             :creator, :server
           ) ON CONFLICT(user, server) DO NOTHING`,
-      ).run({ creator: server.did, server: server.uri });
+        )
+        .run({ creator: server.did, server: server.uri });
 
       for (const channel of server.commit.record.channels) {
         createChannel.run({
@@ -53,12 +59,12 @@ export class Servers {
   public getServers({
     uris,
     did,
-    // viewer,
-  }: {
-    uris?: string[] | undefined;
-    did?: string | undefined;
-    viewer?: string | undefined;
-  }): ServerView[] {
+  }: // viewer,
+    {
+      uris?: string[] | undefined;
+      did?: string | undefined;
+      viewer?: string | undefined;
+    }): ServerView[] {
     let baseWhere = "";
     if (uris && uris.length > 0) {
       baseWhere = `uri IN (${uris.map((u) => `'${u}'`).join(", ")})`;
@@ -77,6 +83,17 @@ export class Servers {
       // sql: `SELECT * FROM ${viewer ? 'server_view_with_viewer' : 'server_view'} ${where ? `WHERE ${where}` : ""}`,
       sql: `SELECT * FROM  server_view ${where ? `WHERE ${where}` : ""}`,
       validate: validateServerView,
+    });
+  }
+
+  public findServers(
+    { query }: { query?: string | undefined },
+  ): ServerSummaryView[] {
+    console.log("Finding servers with query: ", query);
+    return fetchView<ServerSummaryView>({
+      db: this.db,
+      sql: "SELECT * FROM  server_view",
+      validate: validateServerSummaryView,
     });
   }
 }
@@ -176,4 +193,16 @@ Deno.test("getServers", () => {
   //   1,
   //   "got a server using empty query with viewer"
   // );
+});
+
+Deno.test("findServers", () => {
+  const db = getDatabase({ reset: true });
+  const servers = new Servers(db);
+  createDefaultTestUser({ db });
+  servers.createServer(s);
+  assertEquals(
+    servers.findServers({}).length,
+    1,
+    "found 1 server",
+  );
 });

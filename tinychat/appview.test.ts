@@ -279,7 +279,7 @@ app.get(`/xrpc/${ids.ChatTinychatServerGetServers}`, async (c) => {
 
 "";
 app.get(`/xrpc/${ids.ChatTinychatServerFindServers}`, (c) => {
-  const servers = new Messaging(c.var.ctx.db!).findServers({});
+  const servers = new Servers(c.var.ctx.db!).findServers({});
   return c.json({ servers });
 });
 

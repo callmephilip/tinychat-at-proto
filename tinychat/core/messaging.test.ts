@@ -3,11 +3,6 @@
 import type { Database } from "tinychat/db.ts";
 import { Record as Message } from "tinychat/api/types/chat/tinychat/core/message.ts";
 import {
-  ServerSummaryView,
-  ServerView,
-  validateServerSummaryView,
-} from "tinychat/api/types/chat/tinychat/server/defs.ts";
-import {
   MessageView,
   validateMessageView,
 } from "tinychat/api/types/chat/tinychat/server/defs.ts";
@@ -46,35 +41,6 @@ export class Messaging {
         `INSERT OR REPLACE INTO read_receipts (channel, server, user, time_us) VALUES (:channel, :server, :user, :time)`,
       )
       .run({ channel, user, server, time: get_time_us() });
-  }
-
-  public findServers({ query }: { query?: string | undefined }): ServerView[] {
-    console.log("Finding servers with query: ", query);
-    return this.db
-      .prepare(
-        `
-        SELECT uri, name, json_object(
-            'did', u.did,
-            'handle', u.handle,
-            'displayName', u.display_name,
-            'description', u.description,
-            'avatar', u.avatar
-        ) as creator
-        FROM servers
-        INNER JOIN users u ON u.did = servers.creator
-      `,
-      )
-      .all<ServerSummaryView>()
-      .map(removeNulls)
-      .map((s) => {
-        const v = validateServerSummaryView(s);
-        if (!v.success) {
-          console.error("Failed to validate server summary view", v);
-        }
-        // @ts-ignore yolo
-        return v.value;
-      })
-      .filter((s) => s);
   }
 
   public receiveMessage({
@@ -828,7 +794,3 @@ Deno.test(
     );
   },
 );
-Deno.test("findServers", () => {
-  const messaging = TestMessaging.setup();
-  assertEquals(messaging.findServers({}).length, 2, "found 2 servers");
-});

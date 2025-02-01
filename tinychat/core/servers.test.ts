@@ -43,6 +43,8 @@ export class Servers {
       sql: ({ uri }) => `SELECT uri FROM servers WHERE uri = '${uri}'`,
     });
 
+    await this.joinServer({ server: uri, tc });
+
     return (await this.getServers({ uris: [uri] }))[0];
   }
 
@@ -100,25 +102,47 @@ export class Servers {
         });
       }
     })();
-
-    // seed messages if needed
-    if (Deno.env.get("SEED_MESSAGES_AFTER_SERVER_CREATION")) {
-      setTimeout(() => {
-        seedMessages({ db: this.db, server: server.uri });
-      }, 1000);
-    }
   }
 
   public createMembership(m: NewMembershipRecord) {
-    this.db.prepare(
-      `INSERT INTO server_memberships (user, server, uri) VALUES (
+    console.log("Creating membership: ", m);
+
+    this.db
+      .prepare(
+        `INSERT INTO server_memberships (user, server, uri) VALUES (
         :user, :server, :uri
       )`,
-    ).run({
-      uri: m.uri,
-      user: m.did,
-      server: m.commit.record.server,
-    });
+      )
+      .run({
+        uri: m.uri,
+        user: m.did,
+        server: m.commit.record.server,
+      });
+
+    if (Deno.env.get("SEED_MESSAGES_AFTER_SERVER_CREATION")) {
+      console.log(
+        "SEED_MESSAGES_AFTER_SERVER_CREATION is set, checking if we need to seed messages",
+      );
+      const messageCount = this.db.prepare(
+        `SELECT COUNT(*) FROM messages WHERE server = '${m.commit.record.server}'`,
+      ).value()![0];
+
+      console.log(
+        "Message count: ",
+        messageCount,
+        "for server: ",
+        m.commit.record.server,
+      );
+
+      if (messageCount === 0) {
+        console.log("Seeding messages for server: ", m.commit.record.server);
+        seedMessages({ db: this.db, server: m.commit.record.server });
+      }
+    } else {
+      console.log(
+        "SEED_MESSAGES_AFTER_SERVER_CREATION is NOT set; not seeding messages",
+      );
+    }
   }
 
   deleteServer(server: DeleteServerRecord) {

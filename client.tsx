@@ -1,12 +1,11 @@
 import { serveStatic } from "hono/deno";
-import { TID } from "@atproto/common";
 import { app } from "tinychat/client.ts";
 import { ChatPage } from "@tinychat/ui/pages/chat.tsx";
 import { LoadMoreMessages, Message } from "@tinychat/ui/message.tsx";
 import { ServersPage } from "@tinychat/ui/pages/servers.tsx";
 import { ServerPage } from "@tinychat/ui/pages/server.tsx";
 import { ChannelPage } from "@tinychat/ui/pages/channel.tsx";
-import { sleep } from "tinychat/utils.ts";
+import { CreateServerPage } from "@tinychat/ui/pages/create-server.tsx";
 import { HTTPException } from "hono/http-exception";
 import {
   parseURLForChannelMessageList,
@@ -21,80 +20,64 @@ Deno.env.delete("TEST_AGENT_PASSWORD");
 
 app.use("/static/*", serveStatic({ root: "./" }));
 
-app.get("/chat/:did?/:rkey?", async (c) => {
-  const { did, rkey } = c.req.param();
+app.get("/chat/:did/:rkey", async (c) => {
+  // const { did, rkey } = c.req.param();
   const { ch } = c.req.query();
   const agent = await c.var.ctx.agent();
+  const user = await c.var.ctx.user();
+  const s = await agent?.chat.tinychat.server.getServers({
+    uris: [serverAtURIFromUrl(c.req.url)],
+  });
+  const serverData = s?.data.servers[0];
 
-  if (!agent) {
-    return c.redirect("/login");
+  if (!serverData) {
+    throw new HTTPException(404, { message: "Server not found" });
   }
 
-  // got a fully qualified route, let's go!
-  if (did && rkey) {
-    const user = await c.var.ctx.user();
-
-    if (user) {
-      await agent.chat.tinychat.server.joinServer({
-        server: serverAtURIFromUrl(c.req.url),
-      });
-    }
-
-    const s = await agent?.chat.tinychat.server.getServers({
-      uris: [serverAtURIFromUrl(c.req.url)],
-    });
-    const serverData = s?.data.servers[0];
-    console.log(">>>>>>>>>>>>>>>>>>>>>> serverData", serverData);
-
-    if (!serverData) {
-      throw new HTTPException(404, { message: "Server not found" });
-    }
-
-    return c.html(
-      ChatPage({
-        auth: {
-          user,
-        },
-        server: {
-          server: serverData,
-          currentChannel: ch
-            ? serverData.channels?.find((c) => c.id === ch)
-            : serverData.channels[0],
-        },
-      }),
-    );
-  }
+  return c.html(
+    ChatPage({
+      auth: {
+        user,
+      },
+      server: {
+        server: serverData,
+        currentChannel: ch
+          ? serverData.channels?.find((c) => c.id === ch)
+          : serverData.channels[0],
+      },
+    }),
+  );
 
   // XX: this is to get smth rolling quickly for test purposes
-  const availableServers = await agent?.chat.tinychat.server.findServers({});
+  // const availableServers = await agent?.chat.tinychat.server.findServers({});
 
-  if (availableServers?.data.servers.length === 0) {
-    console.log("no servers found, let's create one");
+  // if (availableServers?.data.servers.length === 0) {
+  //   console.log("no servers found, let's create one");
 
-    // this will throw if we are not logged in, btw
+  //   // this will throw if we are not logged in, btw
 
-    try {
-      const s = await agent?.chat.tinychat.core.server.create(
-        {
-          repo: agent?.agent.assertDid,
-        },
-        {
-          name: "tinychat-dev",
-          channels: [
-            { name: "general", id: TID.nextStr() },
-            { name: "random", id: TID.nextStr() },
-            { name: "meta", id: TID.nextStr() },
-          ],
-        },
-      );
-      await sleep(2000);
-      return c.redirect(urlFromServerAtURI(s?.uri!));
-    } catch {
-      return c.redirect("/login");
-    }
-  }
+  //   try {
+  //     const s = await agent?.chat.tinychat.core.server.create(
+  //       {
+  //         repo: agent?.agent.assertDid,
+  //       },
+  //       {
+  //         name: "tinychat-dev",
+  //         channels: [
+  //           { name: "general", id: TID.nextStr() },
+  //           { name: "random", id: TID.nextStr() },
+  //           { name: "meta", id: TID.nextStr() },
+  //         ],
+  //       }
+  //     );
+  //     await sleep(2000);
+  //     return c.redirect(urlFromServerAtURI(s?.uri!));
+  //   } catch {
+  //     return c.redirect("/login");
+  //   }
+  // }
 
-  return c.redirect(urlFromServerAtURI(availableServers?.data.servers[0].uri!));
+  // return c.redirect(urlFromServerAtURI(availableServers?.data.servers[0].uri!));
 });
 
 app.post("/messages/send", async (c) => {
@@ -210,6 +193,16 @@ app.get("/server/:did/:rkey/:slug/:channel", async (c) => {
       prevCursor={d?.data.prevCursor}
     />,
   );
+});
+
+app.get("/new", (c) => c.html(<CreateServerPage />));
+app.post("/new", async (c) => {
+  const data = await c.req.formData();
+  const agent = await c.var.ctx.agent();
+  const d = await agent?.chat.tinychat.server.createServer({
+    name: data.get("name")!.toString(),
+  });
+  return c.redirect(urlFromServerAtURI(d?.data.server.uri!));
 });
 
 export const runClient = () => {

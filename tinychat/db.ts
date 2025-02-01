@@ -150,6 +150,7 @@ export const getDatabase = (
   __db.prepare(`DROP VIEW IF EXISTS message_view;`).run();
   __db.prepare(`DROP VIEW IF EXISTS server_view;`).run();
   __db.prepare(`DROP VIEW IF EXISTS server_view_with_viewer;`).run();
+  __db.prepare(`DROP VIEW IF EXISTS server_with_members_view;`).run();
 
   __db
     .prepare(

@@ -163,6 +163,14 @@ export class Servers {
     });
   }
 
+  public getServersForMember({ did }: { did: string }): ServerView[] {
+    return fetchView<ServerView>({
+      db: this.db,
+      sql: `SELECT * FROM server_with_members_view WHERE member = '${did}'`,
+      validate: validateServerView,
+    });
+  }
+
   public findServers(
     { query }: { query?: string | undefined },
   ): ServerSummaryView[] {

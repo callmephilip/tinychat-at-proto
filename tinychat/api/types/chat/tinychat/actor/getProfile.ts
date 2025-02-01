@@ -14,7 +14,7 @@ export interface QueryParams {
 }
 
 export type InputSchema = undefined;
-export type OutputSchema = ChatTinychatActorDefs.ActorView;
+export type OutputSchema = ChatTinychatActorDefs.ActorViewWithDetails;
 
 export interface CallOptions {
   signal?: AbortSignal;

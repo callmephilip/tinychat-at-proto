@@ -163,6 +163,14 @@ export class Servers {
     });
   }
 
+  public getServersForMember({ did }: { did: string }): ServerView[] {
+    return fetchView<ServerView>({
+      db: this.db,
+      sql: `SELECT * FROM server_with_members_view WHERE member = '${did}'`,
+      validate: validateServerView,
+    });
+  }
+
   public findServers(
     { query }: { query?: string | undefined },
   ): ServerSummaryView[] {
@@ -359,5 +367,28 @@ Deno.test("delete server", () => {
       .all().length,
     0,
     "messages are gone",
+  );
+});
+
+Deno.test("getServersForMember", () => {
+  const testServers = TestDatabase.setup();
+  const db = testServers.db;
+  const servers = new Servers(db);
+  const serversForUser1 = servers.getServersForMember({
+    did: TestDatabase.user1,
+  });
+
+  assertEquals(
+    serversForUser1.length,
+    2,
+    `user1 (${TestDatabase.user1}) is in 2 servers`,
+  );
+  assert(
+    serversForUser1.find((s) => s.uri === TestDatabase.server),
+    "user1 is in server 1",
+  );
+  assert(
+    serversForUser1.find((s) => s.uri === TestDatabase.server2),
+    "user1 is in server 2",
   );
 });

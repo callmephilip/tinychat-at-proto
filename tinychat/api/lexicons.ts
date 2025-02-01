@@ -37,6 +37,42 @@ export const schemaDict = {
           },
         },
       },
+      actorViewWithDetails: {
+        type: "object",
+        description: "Chat server actor instance view",
+        required: ["did", "handle", "servers"],
+        properties: {
+          did: {
+            type: "string",
+            format: "did",
+          },
+          handle: {
+            type: "string",
+            format: "handle",
+          },
+          displayName: {
+            type: "string",
+            maxGraphemes: 64,
+            maxLength: 640,
+          },
+          description: {
+            type: "string",
+            maxGraphemes: 256,
+            maxLength: 2560,
+          },
+          avatar: {
+            type: "string",
+            format: "uri",
+          },
+          servers: {
+            type: "array",
+            items: {
+              type: "ref",
+              ref: "lex:chat.tinychat.server.defs#serverSummaryView",
+            },
+          },
+        },
+      },
     },
   },
   ChatTinychatActorGetProfile: {
@@ -61,7 +97,7 @@ export const schemaDict = {
           encoding: "application/json",
           schema: {
             type: "ref",
-            ref: "lex:chat.tinychat.actor.defs#actorView",
+            ref: "lex:chat.tinychat.actor.defs#actorViewWithDetails",
           },
         },
       },

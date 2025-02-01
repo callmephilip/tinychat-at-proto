@@ -3,6 +3,8 @@
 import { Database } from "@db/sqlite";
 
 export type { Database } from "@db/sqlite";
+
+import { TID } from "@atproto/common";
 import { ValidationResult } from "@atproto/lexicon";
 import { removeNulls } from "tinychat/utils.ts";
 
@@ -72,7 +74,7 @@ const tables: Record<string, string> = {
   FOREIGN KEY (server) REFERENCES servers(uri) ON DELETE CASCADE
 );`,
   server_memberships: `CREATE TABLE server_memberships (
-  uri TEXT PRIMARY KEY,
+  uri TEXT PRIMARY KEY NOT NULL,
   user TEXT NOT NULL,
   server TEXT NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -183,6 +185,34 @@ export const getDatabase = (
       INNER JOIN channels c ON c.server = s.uri
       INNER JOIN users u ON u.did = s.creator
       GROUP BY s.uri;
+    `,
+    )
+    .run();
+
+  // server view with members
+  __db
+    .prepare(
+      `CREATE VIEW server_with_members_view AS
+       SELECT s.uri, s.name,
+        u.did as creator__did,
+        u.handle as creator__handle,
+        u.display_name as creator__display_name,
+        u.avatar as creator__avatar,
+        u.description as creator__description,
+        json_group_array(
+          json_object(
+            'id', c.id,
+            'name', c.name,
+            'server', c.server,
+            'latestMessageReceivedTime', c.latest_message_received_time_us
+          )
+        ) as channels__channels,
+        sm.user as member  
+      FROM servers s
+      INNER JOIN channels c ON c.server = s.uri
+      INNER JOIN users u ON u.did = s.creator
+      INNER JOIN server_memberships sm ON sm.server = s.uri
+      GROUP BY sm.user, s.uri;
     `,
     )
     .run();
@@ -362,7 +392,6 @@ export const seedMessages = ({
     });
   });
 };
-import { TID } from "@atproto/common";
 import { getTimeus } from "tinychat/utils.ts";
 
 export class TestDatabase {
@@ -419,12 +448,14 @@ export class TestDatabase {
       service.db
         .prepare(
           `
-        INSERT INTO server_memberships (user, server) VALUES (
-          :user, :server
+        INSERT INTO server_memberships (uri, user, server) VALUES (
+          :uri, :user, :server
         )
       `,
         )
         .run({
+          uri:
+            `at://did:plc:ubdeopbbkbgedccgbum7dhsh/chat.tinychat.core.membership/${TID.nextStr()}`,
           user: [TestDatabase.user1, TestDatabase.user2][i],
           server: TestDatabase.server,
         });
@@ -467,12 +498,14 @@ export class TestDatabase {
       service.db
         .prepare(
           `
-        INSERT INTO server_memberships (user, server) VALUES (
-          :user, :server
+        INSERT INTO server_memberships (uri, user, server) VALUES (
+          :uri, :user, :server
         )
       `,
         )
         .run({
+          uri:
+            `at://did:plc:ubdeopbbkbgedccgbum7dhsh/chat.tinychat.core.membership/${TID.nextStr()}`,
           user,
           server: TestDatabase.server2,
         });

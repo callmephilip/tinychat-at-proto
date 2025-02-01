@@ -20,7 +20,7 @@
         "encoding": "application/json",
         "schema": {
           "type": "ref",
-          "ref": "chat.tinychat.actor.defs#actorView"
+          "ref": "chat.tinychat.actor.defs#actorViewWithDetails"
         }
       }
     }

@@ -256,7 +256,12 @@ app.get(`/xrpc/${ids.ChatTinychatActorGetProfile}`, async (c) => {
   }
   const { actor } = c.req.query();
   console.log(">>>>>>>>>>>>>. getting profile for actor", actor);
-  return c.json(await getProfile(actor));
+  const [profile, servers] = await Promise.all([
+    getProfile(actor),
+    new Servers(db!).getServersForMember({ did: actor }),
+  ]);
+
+  return c.json(Object.assign(profile, { servers }));
 });
 
 "";

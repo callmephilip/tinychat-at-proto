@@ -294,6 +294,42 @@ export const schemaDict = {
       },
     },
   },
+  ChatTinychatServerCreateServer: {
+    lexicon: 1,
+    id: "chat.tinychat.server.createServer",
+    defs: {
+      main: {
+        type: "procedure",
+        description: "User creates server.",
+        input: {
+          encoding: "application/json",
+          schema: {
+            type: "object",
+            required: ["name"],
+            properties: {
+              name: {
+                type: "string",
+                description: "Server name",
+              },
+            },
+          },
+        },
+        output: {
+          encoding: "application/json",
+          schema: {
+            type: "object",
+            required: ["server"],
+            properties: {
+              server: {
+                type: "ref",
+                ref: "lex:chat.tinychat.server.defs#serverView",
+              },
+            },
+          },
+        },
+      },
+    },
+  },
   ChatTinychatServerDefs: {
     lexicon: 1,
     id: "chat.tinychat.server.defs",
@@ -4759,6 +4795,7 @@ export const ids = {
   ChatTinychatCoreMessage: "chat.tinychat.core.message",
   ChatTinychatCoreServer: "chat.tinychat.core.server",
   ChatTinychatRichtextFacet: "chat.tinychat.richtext.facet",
+  ChatTinychatServerCreateServer: "chat.tinychat.server.createServer",
   ChatTinychatServerDefs: "chat.tinychat.server.defs",
   ChatTinychatServerFindServers: "chat.tinychat.server.findServers",
   ChatTinychatServerGetMessages: "chat.tinychat.server.getMessages",

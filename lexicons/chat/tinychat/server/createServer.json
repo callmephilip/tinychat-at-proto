@@ -1,0 +1,36 @@
+{
+  "lexicon": 1,
+  "id": "chat.tinychat.server.createServer",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "User creates server.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["name"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Server name"
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["server"],
+          "properties": {
+            "server": {
+              "type": "ref",
+              "ref": "chat.tinychat.server.defs#serverView"
+            }
+          }
+        }
+      }
+    }
+  }
+}

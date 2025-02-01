@@ -163,7 +163,7 @@ export const runAppView = (
   const shutdownJetstream = startJetstream({
     db,
     onNewServer: (m: NewServerRecord) => {
-      servers.createServer(m);
+      servers.syncServer(m);
     },
     onDeleteServer: (m: DeleteServerRecord) => {
       servers.deleteServer(m);
@@ -232,6 +232,23 @@ export const runAppView = (
     }
   };
 };
+app.post(`/xrpc/${ids.ChatTinychatServerCreateServer}`, async (c) => {
+  const agent = await c.var.ctx.agent();
+  const { name } = z
+    .object({
+      name: z.string(),
+    })
+    .parse(await c.req.json());
+
+  return c.json({
+    server: await (new Servers(c.var.ctx.db!).createServer({
+      name,
+      tc: agent!,
+    })),
+  });
+});
+
+"";
 app.get(`/xrpc/${ids.ChatTinychatActorGetProfile}`, async (c) => {
   const { db } = c.var.ctx;
   if (!db) {
@@ -363,23 +380,17 @@ app.post(`/xrpc/${ids.ChatTinychatServerMarkAllMessagesAsRead}`, async (c) => {
 "";
 app.post(`/xrpc/${ids.ChatTinychatServerJoinServer}`, async (c) => {
   const agent = await c.var.ctx.agent();
-
-  if (!agent) {
-    throw new HTTPException(401, { message: "Agent not available" });
-  }
-
   const { server } = z
     .object({
       server: z.string(),
     })
     .parse(await c.req.json());
 
-  await agent.chat.tinychat.core.membership.create(
-    { repo: agent.agent.assertDid },
-    {
+  await (
+    new Servers(c.var.ctx.db!).joinServer({
       server,
-      createdAt: new Date().toISOString(),
-    },
+      tc: agent!,
+    })
   );
 
   return c.json({});

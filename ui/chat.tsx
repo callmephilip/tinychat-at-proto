@@ -7,8 +7,9 @@ import { useServer } from "./context/server.tsx";
 import { urlForChannelMessageList } from "tinychat/utils.ts";
 
 export const Chat = () => {
-  const { user } = useAuth();
+  const { user, isMemberOf } = useAuth();
   const { server, currentChannel } = useServer();
+  const isMemberOfCurrentServer = isMemberOf(server?.uri!);
   const main = (
     <div
       id="main"
@@ -68,7 +69,7 @@ export const Chat = () => {
 
       <div class="pb-6 px-4 flex-none">
         {/* style="position: fixed; bottom: 0; width: 100%; background-color: white;" if is_mobile else "" */}
-        {user ? <Composer /> : null}
+        {isMemberOfCurrentServer ? <Composer /> : null}
       </div>
     </div>
   );
@@ -102,16 +103,31 @@ export const Chat = () => {
           </div>
           {nav}
         </div>
-        {!user
+        {!isMemberOfCurrentServer
           ? (
             <div class="px-3 py-8">
-              <a
-                href="/login"
-                type="button"
-                class="px-3 py-2 text-xs font-medium text-center inline-flex items-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-              >
-                Join the conversation
-              </a>
+              {!user
+                ? (
+                  <a
+                    href="/login"
+                    type="button"
+                    class="px-3 py-2 text-xs font-medium text-center inline-flex items-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                  >
+                    Join the conversation
+                  </a>
+                )
+                : (
+                  <a
+                    href="#"
+                    hx-post="/join"
+                    hx-swap="none"
+                    hx-vars={`{"server": "${server?.uri}"}`}
+                    type="button"
+                    class="px-3 py-2 text-xs font-medium text-center inline-flex items-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                  >
+                    Join the conversation
+                  </a>
+                )}
             </div>
           )
           : null}

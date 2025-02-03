@@ -38,6 +38,12 @@ app.get("/chat/:did/:rkey", async (c) => {
     ChatPage({
       auth: {
         user,
+        isMemberOf: (server) => {
+          if (!user) {
+            return false;
+          }
+          return user.servers?.some((s) => s.uri === server);
+        },
       },
       server: {
         server: serverData,
@@ -203,6 +209,15 @@ app.post("/new", async (c) => {
     name: data.get("name")!.toString(),
   });
   return c.redirect(urlFromServerAtURI(d?.data.server.uri!));
+});
+
+app.post("/join", async (c) => {
+  const data = await c.req.formData();
+  const agent = await c.var.ctx.agent();
+  await agent?.chat.tinychat.server.joinServer({
+    server: data.get("server")!.toString(),
+  });
+  return c.redirect(urlFromServerAtURI(data.get("server")!.toString()));
 });
 
 export const runClient = () => {

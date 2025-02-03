@@ -1,11 +1,14 @@
 import { createContext, useContext } from "hono/jsx";
-import { ActorView } from "tinychat/api/types/chat/tinychat/actor/defs.ts";
+import { ActorViewWithDetails } from "tinychat/api/types/chat/tinychat/actor/defs.ts";
 
 export interface AuthContext {
-  user?: ActorView | undefined;
+  user?: ActorViewWithDetails | undefined;
+  isMemberOf: (server: string) => boolean;
 }
 
-export const AppAuthContext = createContext<AuthContext>({});
+export const AppAuthContext = createContext<AuthContext>({
+  isMemberOf: () => false,
+});
 
 export const useAuth = (): AuthContext => {
   return useContext(AppAuthContext);

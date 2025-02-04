@@ -4,7 +4,10 @@ import { Channel } from "@tinychat/ui/channel.tsx";
 import { Logo } from "@tinychat/ui/logo.tsx";
 import { useAuth } from "./context/auth.tsx";
 import { useServer } from "./context/server.tsx";
-import { urlForChannelMessageList } from "tinychat/utils.ts";
+import {
+  urlForChannelMessageList,
+  urlFromServerAtURI,
+} from "tinychat/utils.ts";
 
 export const Chat = () => {
   const { user, isMemberOf } = useAuth();
@@ -109,9 +112,14 @@ export const Chat = () => {
               {!user
                 ? (
                   <a
-                    href="/login"
+                    href={`/login?r=${
+                      encodeURIComponent(
+                        urlFromServerAtURI(server?.uri!),
+                      )
+                    }`}
                     type="button"
                     class="px-3 py-2 text-xs font-medium text-center inline-flex items-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                    data-testid="login"
                   >
                     Join the conversation
                   </a>
@@ -122,8 +130,10 @@ export const Chat = () => {
                     hx-post="/join"
                     hx-swap="none"
                     hx-vars={`{"server": "${server?.uri}"}`}
+                    {...{ "hx-on::after-request": "window.location.reload()" }}
                     type="button"
                     class="px-3 py-2 text-xs font-medium text-center inline-flex items-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                    data-testid="join-server"
                   >
                     Join the conversation
                   </a>

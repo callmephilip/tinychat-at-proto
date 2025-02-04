@@ -12,6 +12,7 @@ import { LoginForm } from "@tinychat/ui/login.tsx";
 
 export type Session = {
   did: string | undefined;
+  redirectAfterLogin: string | undefined;
   // testing purposes
   t: string | undefined;
 };
@@ -131,13 +132,29 @@ app.get("/oauth/callback", async (c) => {
   const { session: oauthSession } = await oauthClient.callback(
     params,
   );
+  const r = session?.redirectAfterLogin
+    ? `${session?.redirectAfterLogin}`
+    : "/chat";
+
   console.log("oauth callback: oauthSession", oauthSession);
+  console.log("gonna redirect to", r);
   session!.did = oauthSession.did;
+  session!.redirectAfterLogin = undefined;
   await session?.save();
-  return c.redirect("/chat");
+  return c.redirect(r);
 });
 
-app.get("/login", (c) => c.html(LoginForm()));
+app.get("/login", async (c) => {
+  const { session } = c.var.ctx;
+  const { r } = c.req.query();
+
+  if (session && r) {
+    session.redirectAfterLogin = r;
+    await session?.save();
+  }
+
+  return c.html(LoginForm());
+});
 
 app.post("/login", async (c) => {
   try {

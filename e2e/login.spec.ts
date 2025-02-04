@@ -1,28 +1,24 @@
-import { test, expect } from "playwright/test";
+import { test, expect, Page } from "playwright/test";
+import { settings } from "./settings.ts";
+import { user1Login, user2Login } from "./helpers.ts";
 
-const settings = {
-  baseUrl: process.env["PUBLIC_URL"]!,
-  testUserService: process.env["TEST_AGENT_SERVICE"]!,
-  testUserIdentifier: process.env["TEST_AGENT_IDENTIFIER"]!,
-  testUserPassword: process.env["TEST_AGENT_PASSWORD"]!,
-};
-
-test("login flow", async ({ page }) => {
+test("login flow: agent 1", async ({ page }) => {
   await page.goto(settings.baseUrl + "/login");
 
-  await page.getByTestId("login-handle").focus();
-  await page.keyboard.type(settings.testUserIdentifier);
-  await page.keyboard.press("Enter");
+  await user1Login({
+    page,
+  });
 
-  // find input with placeholder "password"
-  await page.getByPlaceholder("password").focus();
-  await page.keyboard.type(settings.testUserPassword);
+  await page.waitForURL("**/chat/**");
+  expect(page.locator("#main")).toContainText("#general");
+});
 
-  // press next button
-  await page.getByRole("button", { name: /next/gi }).click();
+test("login flow: agent 2", async ({ page }) => {
+  await page.goto(settings.baseUrl + "/login");
 
-  // press accept button
-  await page.getByRole("Button", { name: /accept/gi }).click();
+  await user2Login({
+    page,
+  });
 
   await page.waitForURL("**/chat/**");
 

@@ -43,6 +43,7 @@
     "npm:linkify-string@^4.2.0": "4.2.0_linkifyjs@4.2.0",
     "npm:linkifyjs@^4.2.0": "4.2.0",
     "npm:multiformats@^13.3.1": "13.3.1",
+    "npm:playwright@*": "1.50.1",
     "npm:playwright@^1.50.1": "1.50.1",
     "npm:typescript@^5.7.3": "5.7.3",
     "npm:zod@^3.23.8": "3.24.1",

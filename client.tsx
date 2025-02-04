@@ -20,6 +20,12 @@ Deno.env.delete("TEST_AGENT_PASSWORD");
 
 app.use("/static/*", serveStatic({ root: "./" }));
 
+app.get("/logout", async (c) => {
+  const { session } = c.var.ctx;
+  await session?.destroy();
+  return c.redirect("/login");
+});
+
 app.get("/chat/:did/:rkey", async (c) => {
   // const { did, rkey } = c.req.param();
   const { ch } = c.req.query();
@@ -201,7 +207,15 @@ app.get("/server/:did/:rkey/:slug/:channel", async (c) => {
   );
 });
 
-app.get("/new", (c) => c.html(<CreateServerPage />));
+app.get("/new", async (c) => {
+  const user = await c.var.ctx.user();
+
+  if (!user) {
+    return c.redirect("/login");
+  }
+
+  return c.html(<CreateServerPage />);
+});
 app.post("/new", async (c) => {
   const data = await c.req.formData();
   const agent = await c.var.ctx.agent();

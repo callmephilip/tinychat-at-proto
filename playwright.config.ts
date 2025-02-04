@@ -6,4 +6,5 @@ export default defineConfig({
 
   // Glob patterns or regular expressions that match test files.
   testMatch: "e2e/*.spec.ts",
+  timeout: 2 * 30000,
 });

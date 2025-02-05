@@ -5,7 +5,7 @@ import { BlobRef, ValidationResult } from "@atproto/lexicon";
 import { hasProp, isObj } from "../../../../util.ts";
 import { lexicons } from "../../../../lexicons.ts";
 import { CID } from "multiformats/cid";
-import * as ChatTinychatRichtextFacet from "../richtext/facet.ts";
+import * as AppBskyRichtextFacet from "../../../app/bsky/richtext/facet.ts";
 import * as ComAtprotoRepoStrongRef from "../../../com/atproto/repo/strongRef.ts";
 
 export interface Record {
@@ -16,7 +16,7 @@ export interface Record {
   /** Reference (tid) to the channel within server record. */
   channel: string;
   /** Annotations of text (mentions, URLs, hashtags, etc) */
-  facets?: ChatTinychatRichtextFacet.Main[];
+  facets?: AppBskyRichtextFacet.Main[];
   reply?: ReplyRef;
   /** Client-declared timestamp when this post was originally created. */
   createdAt: string;

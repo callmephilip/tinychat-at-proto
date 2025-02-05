@@ -5,6 +5,8 @@ import { LoadMoreMessages, Message } from "@tinychat/ui/message.tsx";
 import { ServersPage } from "@tinychat/ui/pages/servers.tsx";
 import { ServerPage } from "@tinychat/ui/pages/server.tsx";
 import { ChannelPage } from "@tinychat/ui/pages/channel.tsx";
+import { LexiconPage } from "@tinychat/ui/pages/lexicon.tsx";
+import { LexiconDefinition } from "@tinychat/ui/lexicon/definition.tsx";
 import { CreateServerPage } from "@tinychat/ui/pages/create-server.tsx";
 import { HTTPException } from "hono/http-exception";
 import {
@@ -19,6 +21,15 @@ Deno.env.delete("TEST_AGENT_IDENTIFIER");
 Deno.env.delete("TEST_AGENT_PASSWORD");
 
 app.use("/static/*", serveStatic({ root: "./" }));
+app.get("/lexicon", (c) => c.render(<LexiconPage />));
+app.get("/lexicon/def", (c) => {
+  const { n } = c.req.query();
+  // detect if request is from htmx
+  if (c.req.header("hx-request")) {
+    return c.html(<LexiconDefinition name={n} />);
+  }
+  return c.html(<LexiconPage name={n} />);
+});
 
 app.get("/logout", async (c) => {
   const { session } = c.var.ctx;

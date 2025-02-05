@@ -29,7 +29,7 @@
           "facets": {
             "type": "array",
             "description": "Annotations of text (mentions, URLs, hashtags, etc)",
-            "items": { "type": "ref", "ref": "chat.tinychat.richtext.facet" }
+            "items": { "type": "ref", "ref": "app.bsky.richtext.facet" }
           },
           "reply": { "type": "ref", "ref": "#replyRef" },
           "createdAt": {

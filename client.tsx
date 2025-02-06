@@ -30,6 +30,11 @@ app.get("/lexicon/def", (c) => {
   }
   return c.html(<LexiconPage name={n} />);
 });
+app.get("/whiteboard", (c) =>
+  c.redirect(
+    "https://excalidraw.com/#json=9Z1KtoikPYsGGdQf1J9Sx,CELw-Ytc9nXuIC6Z7H_l2A"
+  )
+);
 
 app.get("/logout", async (c) => {
   const { session } = c.var.ctx;
@@ -68,7 +73,7 @@ app.get("/chat/:did/:rkey", async (c) => {
           ? serverData.channels?.find((c) => c.id === ch)
           : serverData.channels[0],
       },
-    }),
+    })
   );
 
   // XX: this is to get smth rolling quickly for test purposes
@@ -129,19 +134,17 @@ app.get("/messages/list/:did/:rkey1/:rkey2", async (c) => {
     limit,
     cursor: c.req.query("cursor"),
   });
-  const loadMore = d?.data.prevCursor
-    ? (
-      <LoadMoreMessages
-        messages={d?.data.messages || []}
-        url={c.req.path + `?cursor=${d?.data.prevCursor}`}
-      />
-    )
-    : null;
+  const loadMore = d?.data.prevCursor ? (
+    <LoadMoreMessages
+      messages={d?.data.messages || []}
+      url={c.req.path + `?cursor=${d?.data.prevCursor}`}
+    />
+  ) : null;
 
   return c.html(
     (d?.data.messages || [])
       .map((message) => (<Message message={message} oob={false} />).toString())
-      .join("") + (loadMore ? loadMore.toString() : ""),
+      .join("") + (loadMore ? loadMore.toString() : "")
   );
 });
 
@@ -162,9 +165,9 @@ app.get("/servers", async (c) => {
   return c.html(
     <ServersPage
       servers={(availableServers?.data.servers || []).filter(
-        (s) => s.name === "tinychat-dev",
+        (s) => s.name === "tinychat-dev"
       )}
-    />,
+    />
   );
 });
 
@@ -214,7 +217,7 @@ app.get("/server/:did/:rkey/:slug/:channel", async (c) => {
       messages={d?.data.messages || []}
       nextCursor={d?.data.nextCursor}
       prevCursor={d?.data.prevCursor}
-    />,
+    />
   );
 });
 
@@ -250,7 +253,7 @@ export const runClient = () => {
     {
       port: parseInt(Deno.env.get("CLIENT_PORT") || "8000"),
     },
-    app.fetch,
+    app.fetch
   );
 };
 

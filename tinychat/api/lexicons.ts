@@ -6009,19 +6009,13 @@ export const schemaDict = {
     defs: {
       main: {
         type: "record",
-        description: "Chat message from a given channel",
+        description:
+          "Chat message from a given channel. A bunch of fields are copied from app.bsky.feed.post",
         key: "any",
         record: {
           type: "object",
           required: ["text", "server", "channel", "createdAt"],
           properties: {
-            text: {
-              type: "string",
-              maxLength: 3000,
-              maxGraphemes: 300,
-              description:
-                "The primary message content. May be an empty string, if there are embeds.",
-            },
             server: {
               type: "string",
               format: "at-uri",
@@ -6034,6 +6028,13 @@ export const schemaDict = {
               description:
                 "Reference (tid) to the channel within server record.",
             },
+            text: {
+              type: "string",
+              maxLength: 3000,
+              maxGraphemes: 300,
+              description:
+                "The primary post content. May be an empty string, if there are embeds.",
+            },
             facets: {
               type: "array",
               description:
@@ -6045,7 +6046,44 @@ export const schemaDict = {
             },
             reply: {
               type: "ref",
-              ref: "lex:chat.tinychat.core.message#replyRef",
+              ref: "lex:app.bsky.feed.post#replyRef",
+            },
+            embed: {
+              type: "union",
+              refs: [
+                "lex:app.bsky.embed.images",
+                "lex:app.bsky.embed.video",
+                "lex:app.bsky.embed.external",
+                "lex:app.bsky.embed.record",
+                "lex:app.bsky.embed.recordWithMedia",
+              ],
+            },
+            langs: {
+              type: "array",
+              description:
+                "Indicates human language of post primary text content.",
+              maxLength: 3,
+              items: {
+                type: "string",
+                format: "language",
+              },
+            },
+            labels: {
+              type: "union",
+              description:
+                "Self-label values for this post. Effectively content warnings.",
+              refs: ["lex:com.atproto.label.defs#selfLabels"],
+            },
+            tags: {
+              type: "array",
+              description:
+                "Additional hashtags, in addition to any included in post text and facets.",
+              maxLength: 8,
+              items: {
+                type: "string",
+                maxLength: 640,
+                maxGraphemes: 64,
+              },
             },
             createdAt: {
               type: "string",
@@ -6053,20 +6091,6 @@ export const schemaDict = {
               description:
                 "Client-declared timestamp when this post was originally created.",
             },
-          },
-        },
-      },
-      replyRef: {
-        type: "object",
-        required: ["root", "parent"],
-        properties: {
-          root: {
-            type: "ref",
-            ref: "lex:com.atproto.repo.strongRef",
-          },
-          parent: {
-            type: "ref",
-            ref: "lex:com.atproto.repo.strongRef",
           },
         },
       },

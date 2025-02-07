@@ -91,25 +91,38 @@ const diagram = (
     return Object.entries(o.properties).map((prop) => {
       const [name, d] = prop;
 
-      if (d.type === "string") {
-        let t: string = d.type;
-        if (d.format) {
-          t = `${t}(${d.format})`;
+      const propEntry = (
+        { name, type, description, format }: {
+          name: string;
+          type: string;
+          description?: string | undefined;
+          format?: string | undefined;
+        },
+      ) => {
+        let t = type;
+        if (format) {
+          t = `${t}(${format})`;
         }
-        return `${name} ${t} ${d.description ? `"${d.description}"` : ""}`;
-      }
+        return `${name} ${t} ${description ? `"${description}"` : ""}`;
+      };
 
       if (d.type === "ref") {
         mapRef(name, d.ref);
-      }
-
-      if (d.type === "array") {
+      } else if (d.type === "array") {
         if (d.items.type === "ref") {
           mapRef(name, d.items.ref);
         }
+      } else if (d.type === "union") {
+        d.refs.forEach((r) => mapRef(name, r));
       }
 
-      return `${name} ${d.type}`;
+      return propEntry({
+        name,
+        type: d.type,
+        description: d.description,
+        // @ts-ignore yolo, i got it babe
+        format: d.format!,
+      });
     });
   };
 
@@ -146,7 +159,6 @@ export const getDiagram = (name: string) => {
     name.startsWith("lex:") ? name : `lex:${name}`,
   );
   const dc = diagram(item!.name, item!.def);
-  console.log(dc);
   return `---
 config:
 fontSize: 18
@@ -166,8 +178,9 @@ erDiagram
 //     "lex:chat.tinychat.core.message#main",
 //     "lex:chat.tinychat.server.getServers",
 //     "lex:chat.tinychat.server.createServer",
+//     "chat.tinychat.core.message",
 //   ].map(getDiagram),
-//   `<strong>Legend:</strong>hello<hr/>`
+//   `<strong>Legend:</strong>hello<hr/>`,
 // );
 
 /** ----------------tests ---------------- **/

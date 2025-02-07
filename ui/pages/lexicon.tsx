@@ -11,9 +11,9 @@ export const LexiconPage = ({ name }: { name?: string | undefined }) => {
   const lexicon = getLocalLexicon();
   const lazyLoadData = name
     ? {
-        "hx-get": `/lexicon/def?n=${encodeURIComponent(name)}`,
-        "hx-trigger": "load",
-      }
+      "hx-get": `/lexicon/def?n=${encodeURIComponent(name)}`,
+      "hx-trigger": "load",
+    }
     : {};
   return (
     <html lang="en">

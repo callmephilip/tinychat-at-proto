@@ -47,6 +47,8 @@ const diagram = (name: string, def: LexUserType): string | undefined => {
     def: LexUserType,
     defAliases: Record<string, string> = {},
   ): string | undefined => {
+    console.log(">>>>>>>>>>>", name);
+
     defAliases[name] = genAlias();
     const links: string[][] = [];
     const linkedEntities: string[] = [];
@@ -126,6 +128,8 @@ const diagram = (name: string, def: LexUserType): string | undefined => {
         } else if (d.type === "array") {
           if (d.items.type === "ref") {
             mapRef(name, d.items.ref);
+          } else if (d.items.type === "union") {
+            d.items.refs.forEach((r) => mapRef(name, r));
           }
         } else if (d.type === "union") {
           d.refs.forEach((r) => mapRef(name, r));

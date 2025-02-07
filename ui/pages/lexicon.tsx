@@ -11,9 +11,9 @@ export const LexiconPage = ({ name }: { name?: string | undefined }) => {
   const lexicon = getLocalLexicon();
   const lazyLoadData = name
     ? {
-      "hx-get": `/lexicon/def?n=${encodeURIComponent(name)}`,
-      "hx-trigger": "load",
-    }
+        "hx-get": `/lexicon/def?n=${encodeURIComponent(name)}`,
+        "hx-trigger": "load",
+      }
     : {};
   return (
     <html lang="en">
@@ -38,7 +38,7 @@ export const LexiconPage = ({ name }: { name?: string | undefined }) => {
           ))}
         </div>
         <div className="flex h-full pb-14">
-          <div className="w-1/3 border-r border-gray-200 overflow-y-auto p-4">
+          <div className="w-1/4 border-r border-gray-200 overflow-y-auto p-4">
             {lexicon.map(([name, def]) => (
               <div className="mb-4 text-xs">
                 <a
@@ -60,7 +60,7 @@ export const LexiconPage = ({ name }: { name?: string | undefined }) => {
           <div
             id="main"
             {...lazyLoadData}
-            className="w-2/3 overflow-y-auto p-4"
+            className="w-3/4 overflow-y-auto p-4"
           >
             {/* Main content */}
           </div>

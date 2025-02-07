@@ -8,7 +8,9 @@ export const getLocalLexicon = (): ([string, LexUserType])[] => {
   return lexicons.defs
     .entries()
     .toArray()
-    .filter(([name]) => name.startsWith("lex:chat.tinychat")).map((
+    .filter(([name]) =>
+      name.startsWith("lex:chat.tinychat") && !name.endsWith("#main")
+    ).map((
       [name, def],
     ) => [name.replace("lex:", ""), def]);
 };
@@ -37,121 +39,134 @@ const genAlias = (length: number = 10) => {
   return result;
 };
 
-const diagram = (
-  name: string,
-  def: LexUserType,
-  defAliases: Record<string, string> = {},
-): string | undefined => {
-  defAliases[name] = genAlias();
-  const links: string[][] = [];
-  const linkedEntities: string[] = [];
+const diagram = (name: string, def: LexUserType): string | undefined => {
+  const renderedEntities: string[] = [];
 
-  const entity = (name: string, props: string[]) => {
-    const n = defAliases[name] ? `${defAliases[name]}["${name}"]` : name;
-    return `${n} {
-      ${props.join("\n")}
-    }`;
-  };
-
-  const mapRef = (
+  const _diagram = (
     name: string,
-    ref: string,
-    refObj: LexUserType | undefined = undefined,
-  ) => {
-    // most of the time ref points to an existing type
-    // but sometimes we need a synthetic type that does not really exist by itself (e.g. query returns an object)
-    // this is what refObj is for
+    def: LexUserType,
+    defAliases: Record<string, string> = {},
+  ): string | undefined => {
+    defAliases[name] = genAlias();
+    const links: string[][] = [];
+    const linkedEntities: string[] = [];
 
-    // if there is existing ref, skip
-    if (links.find(([, l]) => l === ref)) {
-      return;
-    }
+    const entity = (name: string, props: string[]) => {
+      const n = defAliases[name] ? `${defAliases[name]}["${name}"]` : name;
+      return [`${n.replace("lex:", "")} {`, props.join("\n"), "}"].join("\n");
+    };
 
-    links.push([name, ref]);
-    linkedEntities.push(
-      diagram(ref, refObj || getLexiconDefByName(ref)!.def, defAliases)!,
-    );
-  };
+    const mapRef = (
+      name: string,
+      ref: string,
+      refObj: LexUserType | undefined = undefined,
+    ) => {
+      // most of the time ref points to an existing type
+      // but sometimes we need a synthetic type that does not really exist by itself (e.g. query returns an object)
+      // this is what refObj is for
 
-  const renderRefs = () => {
-    return (
-      links
-        .map(([n, l]) => [
-          n,
-          Object.entries(defAliases).find(([k]) => k === l)![1],
-        ])
-        .map(([n, l]) => `${defAliases[name]} ||--o| ${l} : ${n}`)
-        .join("\n\n") +
-      "\n\n" +
-      linkedEntities.join("\n\n")
-    );
-  };
+      // if there is existing ref, skip
+      if (links.find(([, l]) => l === ref)) {
+        return;
+      }
 
-  const processObject = (o: LexiconObjectType): string[] => {
-    return Object.entries(o.properties).map((prop) => {
-      const [name, d] = prop;
+      links.push([name, ref]);
 
-      const propEntry = (
-        { name, type, description, format }: {
+      if (!refObj && renderedEntities.includes(ref)) {
+        return;
+      }
+
+      linkedEntities.push(
+        _diagram(ref, refObj || getLexiconDefByName(ref)!.def, defAliases)!,
+      );
+
+      if (!refObj) {
+        renderedEntities.push(ref);
+      }
+    };
+
+    const renderRefs = () => {
+      return (
+        links
+          .map(([n, l]) => [
+            n,
+            Object.entries(defAliases).find(([k]) => k === l)![1],
+          ])
+          .map(([n, l]) => `${defAliases[name]} ||--o| ${l} : ${n}`)
+          .join("\n\n") +
+        "\n\n" +
+        linkedEntities.join("\n\n")
+      );
+    };
+
+    const processObject = (o: LexiconObjectType): string[] => {
+      return Object.entries(o.properties).map((prop) => {
+        const [name, d] = prop;
+
+        const propEntry = ({
+          name,
+          type,
+          description,
+          format,
+        }: {
           name: string;
           type: string;
           description?: string | undefined;
           format?: string | undefined;
-        },
-      ) => {
-        let t = type;
-        if (format) {
-          t = `${t}(${format})`;
-        }
-        return `${name} ${t} ${description ? `"${description}"` : ""}`;
-      };
+        }) => {
+          let t = type;
+          if (format) {
+            t = `${t}(${format})`;
+          }
+          return `${name} ${t} ${description ? `"${description}"` : ""}`;
+        };
 
-      if (d.type === "ref") {
-        mapRef(name, d.ref);
-      } else if (d.type === "array") {
-        if (d.items.type === "ref") {
-          mapRef(name, d.items.ref);
+        if (d.type === "ref") {
+          mapRef(name, d.ref);
+        } else if (d.type === "array") {
+          if (d.items.type === "ref") {
+            mapRef(name, d.items.ref);
+          }
+        } else if (d.type === "union") {
+          d.refs.forEach((r) => mapRef(name, r));
         }
-      } else if (d.type === "union") {
-        d.refs.forEach((r) => mapRef(name, r));
-      }
 
-      return propEntry({
-        name,
-        type: d.type,
-        description: d.description,
-        // @ts-ignore yolo, i got it babe
-        format: d.format!,
+        return propEntry({
+          name,
+          type: d.type,
+          description: d.description,
+          // @ts-ignore yolo, i got it babe
+          format: d.format!,
+        });
       });
-    });
+    };
+
+    if (def.type === "object") {
+      const props = processObject(def);
+
+      return [
+        renderRefs(),
+        entity(name, props),
+      ].join("\n");
+    } else if (def.type === "record") {
+      return _diagram(name, def.record, defAliases);
+    } else if (def.type === "query" || def.type === "procedure") {
+      if (def.output?.schema?.type === "ref") {
+        mapRef("returns", def.output.schema.ref);
+      } else if (def.output?.schema?.type === "object") {
+        mapRef("returns", "returns", def.output.schema);
+      }
+      return [
+        renderRefs(),
+        // procedure body
+        // @ts-ignore yolo
+        entity(name, def.parameters ? processObject(def.parameters) : []),
+      ].join("\n");
+    }
+    return "";
   };
 
-  if (def.type === "object") {
-    const props = processObject(def);
-
-    return [
-      renderRefs() +
-      `
-    ${defAliases[name]}["${name}"] {
-      ${props.join("\n")}
-     }`,
-    ].join("\n");
-  } else if (def.type === "record") {
-    return diagram(name, def.record, defAliases);
-  } else if (def.type === "query" || def.type === "procedure") {
-    if (def.output?.schema?.type === "ref") {
-      mapRef("returns", def.output.schema.ref);
-    } else if (def.output?.schema?.type === "object") {
-      mapRef("returns", "returns", def.output.schema);
-    }
-    return [
-      renderRefs(),
-      // procedure body
-      // @ts-ignore yolo
-      entity(name, def.parameters ? processObject(def.parameters) : []),
-    ].join("\n");
-  }
-  return "";
+  return _diagram(name, def, {});
 };
 
 export const getDiagram = (name: string) => {
@@ -175,7 +190,6 @@ erDiagram
 // merman(
 //   [
 //     "lex:chat.tinychat.actor.getProfile",
-//     "lex:chat.tinychat.core.message#main",
 //     "lex:chat.tinychat.server.getServers",
 //     "lex:chat.tinychat.server.createServer",
 //     "chat.tinychat.core.message",

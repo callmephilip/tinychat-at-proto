@@ -46,7 +46,7 @@
               "type": "array",
               "items": {
                 "type": "ref",
-                "ref": "chat.tinychat.server.defs#messageView"
+                "ref": "chat.tinychat.core.defs#messageView"
               }
             },
             "prevCursor": {

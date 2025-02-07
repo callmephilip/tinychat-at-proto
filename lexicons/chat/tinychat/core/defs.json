@@ -1,0 +1,67 @@
+{
+  "lexicon": 1,
+  "id": "chat.tinychat.core.defs",
+  "defs": {
+    "messageView": {
+      "type": "object",
+      "required": ["uri", "cid", "author", "record", "indexedAt"],
+      "properties": {
+        "uri": { "type": "string", "format": "at-uri" },
+        "cid": { "type": "string", "format": "cid" },
+        "author": {
+          "type": "ref",
+          "ref": "chat.tinychat.actor.defs#actorView"
+        },
+        "record": {
+          "type": "unknown",
+          "description": "Instance of chat.tinychat.core.message record"
+        },
+        "threadSummary": {
+          "type": "ref",
+          "ref": "#threadSummaryView"
+        },
+        "indexedAt": { "type": "string", "format": "datetime" },
+        "reactions": {
+          "type": "array",
+          "items": { "type": "ref", "ref": "#messageReaction" }
+        }
+      }
+    },
+    "messageReaction": {
+      "type": "object",
+      "required": ["count", "content"],
+      "properties": {
+        "count": { "type": "integer" },
+        "content": {
+          "type": "union",
+          "refs": ["#emojiReaction"]
+        }
+      }
+    },
+    "emojiReaction": {
+      "type": "object",
+      "required": ["emoji"],
+      "properties": {
+        "emoji": { "type": "string" }
+      }
+    },
+    "threadSummaryView": {
+      "type": "object",
+      "required": ["participants", "size"],
+      "description": "Overview of the thread associated with a message - includes participants and overall message count",
+      "properties": {
+        "size": {
+          "type": "integer",
+          "description": "Number of messages in the thread"
+        },
+        "participants": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "chat.tinychat.actor.defs#actorView"
+          }
+        }
+      }
+    }
+  }
+}

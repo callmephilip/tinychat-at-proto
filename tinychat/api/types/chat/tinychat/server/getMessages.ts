@@ -1,48 +1,48 @@
 /**
  * GENERATED CODE - DO NOT MODIFY
  */
-import { HeadersMap, XRPCError } from "@atproto/xrpc";
-import { BlobRef, ValidationResult } from "@atproto/lexicon";
-import { hasProp, isObj } from "../../../../util.ts";
-import { lexicons } from "../../../../lexicons.ts";
-import { CID } from "multiformats/cid";
-import * as ChatTinychatServerDefs from "./defs.ts";
+import { HeadersMap, XRPCError } from '@atproto/xrpc'
+import { ValidationResult, BlobRef } from '@atproto/lexicon'
+import { isObj, hasProp } from '../../../../util.ts'
+import { lexicons } from '../../../../lexicons.ts'
+import { CID } from 'multiformats/cid'
+import * as ChatTinychatCoreDefs from '../core/defs.ts'
 
 export interface QueryParams {
   /** Server AT-URI */
-  server: string;
+  server: string
   /** Channel id */
-  channel: string;
+  channel: string
   /** Maximum number of messages to return */
-  limit: number;
+  limit: number
   /** Cursor for pagination. Pagination goes backwards - from more recent messages to older ones */
-  cursor?: string;
+  cursor?: string
   /** Specifies how to sort messages: latest first VS chronological order */
-  sort?: "latest" | "chronological" | (string & {});
+  sort?: 'latest' | 'chronological' | (string & {})
 }
 
-export type InputSchema = undefined;
+export type InputSchema = undefined
 
 export interface OutputSchema {
-  messages: ChatTinychatServerDefs.MessageView[];
+  messages: ChatTinychatCoreDefs.MessageView[]
   /** Cursor for fetching previous page */
-  prevCursor?: string;
+  prevCursor?: string
   /** Cursor for fetching next page */
-  nextCursor?: string;
-  [k: string]: unknown;
+  nextCursor?: string
+  [k: string]: unknown
 }
 
 export interface CallOptions {
-  signal?: AbortSignal;
-  headers?: HeadersMap;
+  signal?: AbortSignal
+  headers?: HeadersMap
 }
 
 export interface Response {
-  success: boolean;
-  headers: HeadersMap;
-  data: OutputSchema;
+  success: boolean
+  headers: HeadersMap
+  data: OutputSchema
 }
 
 export function toKnownErr(e: any) {
-  return e;
+  return e
 }

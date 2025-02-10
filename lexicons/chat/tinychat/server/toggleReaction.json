@@ -1,0 +1,45 @@
+{
+  "lexicon": 1,
+  "id": "chat.tinychat.server.toggleReaction",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "User toggles reaction to a message.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["message", "reaction"],
+          "properties": {
+            "server": {
+              "type": "string",
+              "format": "at-uri",
+              "description": "Server AT-URI"
+            },
+            "channel": {
+              "type": "string",
+              "format": "tid",
+              "description": "Channel ID"
+            },
+            "message": {
+              "type": "string",
+              "format": "at-uri",
+              "description": "Message AT-URI"
+            },
+            "reaction": {
+              "type": "union",
+              "refs": ["chat.tinychat.core.defs#emojiReaction"]
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "properties": {}
+        }
+      }
+    }
+  }
+}

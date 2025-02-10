@@ -1,7 +1,7 @@
 import { serveStatic } from "hono/deno";
 import { app } from "tinychat/client.ts";
 import { ChatPage } from "@tinychat/ui/pages/chat.tsx";
-import { LoadMoreMessages, Message } from "@tinychat/ui/message.tsx";
+import { LoadMoreMessages } from "@tinychat/ui/message.tsx";
 import { ServersPage } from "@tinychat/ui/pages/servers.tsx";
 import { ServerPage } from "@tinychat/ui/pages/server.tsx";
 import { ChannelPage } from "@tinychat/ui/pages/channel.tsx";
@@ -32,9 +32,8 @@ app.get("/lexicon/def", (c) => {
 });
 app.get("/whiteboard", (c) =>
   c.redirect(
-    "https://excalidraw.com/#json=qltyZElm1reuCbWSC3m2A,zeIkHAYscWs4k9bOjy1cRw"
-  )
-);
+    "https://excalidraw.com/#json=0m7kFsHTC4Pg9e1IW2Pp-,zsWy4awOAjtVX8gJNa_vYw",
+  ));
 
 app.get("/logout", async (c) => {
   const { session } = c.var.ctx;
@@ -73,7 +72,7 @@ app.get("/chat/:did/:rkey", async (c) => {
           ? serverData.channels?.find((c) => c.id === ch)
           : serverData.channels[0],
       },
-    })
+    }),
   );
 
   // XX: this is to get smth rolling quickly for test purposes
@@ -115,13 +114,14 @@ app.post("/messages/send", async (c) => {
     return c.redirect("/login");
   }
 
-  const data = await c.req.formData();
-  const d = await agent?.chat.tinychat.server.sendMessage({
-    channel: data.get("channel")!.toString(),
-    text: data.get("msg")!.toString(),
-    server: data.get("server")!.toString(),
-  });
-  return c.html(<Message message={d?.data.message!} oob={false} />);
+  // const data = await c.req.formData();
+  // const d = await agent?.chat.tinychat.server.sendMessage({
+  //   channel: data.get("channel")!.toString(),
+  //   text: data.get("msg")!.toString(),
+  //   server: data.get("server")!.toString(),
+  // });
+  // return c.html(<Message message={d?.data.message!} oob={false} />);
+  return c.html("hello");
 });
 
 app.get("/messages/list/:did/:rkey1/:rkey2", async (c) => {
@@ -134,17 +134,20 @@ app.get("/messages/list/:did/:rkey1/:rkey2", async (c) => {
     limit,
     cursor: c.req.query("cursor"),
   });
-  const loadMore = d?.data.prevCursor ? (
-    <LoadMoreMessages
-      messages={d?.data.messages || []}
-      url={c.req.path + `?cursor=${d?.data.prevCursor}`}
-    />
-  ) : null;
+  const loadMore = d?.data.prevCursor
+    ? (
+      <LoadMoreMessages
+        messages={[]} // d?.data.messages
+        url={c.req.path + `?cursor=${d?.data.prevCursor}`}
+      />
+    )
+    : null;
 
   return c.html(
     (d?.data.messages || [])
-      .map((message) => (<Message message={message} oob={false} />).toString())
-      .join("") + (loadMore ? loadMore.toString() : "")
+      // .map((message) => (<Message message={message} oob={false} />).toString())
+      .map(() => <strong>hello</strong>)
+      .join("") + (loadMore ? loadMore.toString() : ""),
   );
 });
 
@@ -165,9 +168,9 @@ app.get("/servers", async (c) => {
   return c.html(
     <ServersPage
       servers={(availableServers?.data.servers || []).filter(
-        (s) => s.name === "tinychat-dev"
+        (s) => s.name === "tinychat-dev",
       )}
-    />
+    />,
   );
 });
 
@@ -214,10 +217,10 @@ app.get("/server/:did/:rkey/:slug/:channel", async (c) => {
     <ChannelPage
       server={r.data.servers[0]}
       channel={channel}
-      messages={d?.data.messages || []}
+      messages={[]} // d?.data.messages ||
       nextCursor={d?.data.nextCursor}
       prevCursor={d?.data.prevCursor}
-    />
+    />,
   );
 });
 
@@ -253,7 +256,7 @@ export const runClient = () => {
     {
       port: parseInt(Deno.env.get("CLIENT_PORT") || "8000"),
     },
-    app.fetch
+    app.fetch,
   );
 };
 

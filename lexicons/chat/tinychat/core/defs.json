@@ -32,6 +32,13 @@
       "required": ["count", "content"],
       "properties": {
         "count": { "type": "integer" },
+        "authors": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "chat.tinychat.actor.defs#actorView"
+          }
+        },
         "content": {
           "type": "union",
           "refs": ["#emojiReaction"]
@@ -60,6 +67,43 @@
             "type": "ref",
             "ref": "chat.tinychat.actor.defs#actorView"
           }
+        }
+      }
+    },
+    "notification": {
+      "type": "object",
+      "required": ["createdAt", "server", "channel"],
+      "properties": {
+        "server": {
+          "type": "string",
+          "format": "at-uri",
+          "description": "Reference (AT-URI) to the server record (chat.tinychat.core.server)."
+        },
+        "channel": {
+          "type": "ref",
+          "ref": "chat.tinychat.core.server#channelRef"
+        },
+        "details": {
+          "type": "union",
+          "refs": ["#newMessageNotification", "#mentionNotification"]
+        },
+        "createdAt": { "type": "string", "format": "datetime" }
+      }
+    },
+    "newMessageNotification": {
+      "type": "object",
+      "required": ["count"],
+      "properties": {
+        "count": { "type": "integer" }
+      }
+    },
+    "mentionNotification": {
+      "type": "object",
+      "required": ["messageUri"],
+      "properties": {
+        "messageUri": {
+          "type": "string",
+          "format": "at-uri"
         }
       }
     }

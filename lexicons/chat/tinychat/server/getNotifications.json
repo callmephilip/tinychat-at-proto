@@ -1,0 +1,42 @@
+{
+  "lexicon": 1,
+  "id": "chat.tinychat.server.getNotifications",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "Gets a list of of notifications for a given channel. Requires authentication",
+      "parameters": {
+        "type": "params",
+        "required": ["server", "channel"],
+        "properties": {
+          "server": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "Server AT-URI"
+          },
+          "channel": {
+            "type": "string",
+            "format": "tid",
+            "description": "Channel id"
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["notifications"],
+          "properties": {
+            "notifications": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "chat.tinychat.core.defs#notification"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

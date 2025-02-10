@@ -1,0 +1,41 @@
+{
+  "lexicon": 1,
+  "id": "chat.tinychat.core.reaction",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "User reacts to a message",
+      "key": "any",
+      "record": {
+        "type": "object",
+        "required": ["server", "channel", "message", "content", "createdAt"],
+        "properties": {
+          "server": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "Reference (AT-URI) to the server record (chat.tinychat.core.server)."
+          },
+          "channel": {
+            "type": "string",
+            "format": "tid",
+            "description": "Channel id."
+          },
+          "message": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "Message URI."
+          },
+          "content": {
+            "type": "union",
+            "refs": ["chat.tinychat.core.defs#emojiReaction"]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Client-declared timestamp."
+          }
+        }
+      }
+    }
+  }
+}

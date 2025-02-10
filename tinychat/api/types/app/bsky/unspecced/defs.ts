@@ -1,48 +1,48 @@
 /**
  * GENERATED CODE - DO NOT MODIFY
  */
-import { ValidationResult, BlobRef } from '@atproto/lexicon'
-import { isObj, hasProp } from '../../../../util.ts'
-import { lexicons } from '../../../../lexicons.ts'
-import { CID } from 'multiformats/cid'
+import { BlobRef, ValidationResult } from "@atproto/lexicon";
+import { hasProp, isObj } from "../../../../util.ts";
+import { lexicons } from "../../../../lexicons.ts";
+import { CID } from "multiformats/cid";
 
 export interface SkeletonSearchPost {
-  uri: string
-  [k: string]: unknown
+  uri: string;
+  [k: string]: unknown;
 }
 
 export function isSkeletonSearchPost(v: unknown): v is SkeletonSearchPost {
   return (
     isObj(v) &&
-    hasProp(v, '$type') &&
-    v.$type === 'app.bsky.unspecced.defs#skeletonSearchPost'
-  )
+    hasProp(v, "$type") &&
+    v.$type === "app.bsky.unspecced.defs#skeletonSearchPost"
+  );
 }
 
 export function validateSkeletonSearchPost(v: unknown): ValidationResult {
-  return lexicons.validate('app.bsky.unspecced.defs#skeletonSearchPost', v)
+  return lexicons.validate("app.bsky.unspecced.defs#skeletonSearchPost", v);
 }
 
 export interface SkeletonSearchActor {
-  did: string
-  [k: string]: unknown
+  did: string;
+  [k: string]: unknown;
 }
 
 export function isSkeletonSearchActor(v: unknown): v is SkeletonSearchActor {
   return (
     isObj(v) &&
-    hasProp(v, '$type') &&
-    v.$type === 'app.bsky.unspecced.defs#skeletonSearchActor'
-  )
+    hasProp(v, "$type") &&
+    v.$type === "app.bsky.unspecced.defs#skeletonSearchActor"
+  );
 }
 
 export function validateSkeletonSearchActor(v: unknown): ValidationResult {
-  return lexicons.validate('app.bsky.unspecced.defs#skeletonSearchActor', v)
+  return lexicons.validate("app.bsky.unspecced.defs#skeletonSearchActor", v);
 }
 
 export interface SkeletonSearchStarterPack {
-  uri: string
-  [k: string]: unknown
+  uri: string;
+  [k: string]: unknown;
 }
 
 export function isSkeletonSearchStarterPack(
@@ -50,36 +50,36 @@ export function isSkeletonSearchStarterPack(
 ): v is SkeletonSearchStarterPack {
   return (
     isObj(v) &&
-    hasProp(v, '$type') &&
-    v.$type === 'app.bsky.unspecced.defs#skeletonSearchStarterPack'
-  )
+    hasProp(v, "$type") &&
+    v.$type === "app.bsky.unspecced.defs#skeletonSearchStarterPack"
+  );
 }
 
 export function validateSkeletonSearchStarterPack(
   v: unknown,
 ): ValidationResult {
   return lexicons.validate(
-    'app.bsky.unspecced.defs#skeletonSearchStarterPack',
+    "app.bsky.unspecced.defs#skeletonSearchStarterPack",
     v,
-  )
+  );
 }
 
 export interface TrendingTopic {
-  topic: string
-  displayName?: string
-  description?: string
-  link: string
-  [k: string]: unknown
+  topic: string;
+  displayName?: string;
+  description?: string;
+  link: string;
+  [k: string]: unknown;
 }
 
 export function isTrendingTopic(v: unknown): v is TrendingTopic {
   return (
     isObj(v) &&
-    hasProp(v, '$type') &&
-    v.$type === 'app.bsky.unspecced.defs#trendingTopic'
-  )
+    hasProp(v, "$type") &&
+    v.$type === "app.bsky.unspecced.defs#trendingTopic"
+  );
 }
 
 export function validateTrendingTopic(v: unknown): ValidationResult {
-  return lexicons.validate('app.bsky.unspecced.defs#trendingTopic', v)
+  return lexicons.validate("app.bsky.unspecced.defs#trendingTopic", v);
 }

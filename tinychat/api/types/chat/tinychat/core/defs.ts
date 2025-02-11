@@ -11,6 +11,8 @@ import * as ChatTinychatCoreServer from "./server.ts";
 export interface MessageView {
   uri: string;
   cid: string;
+  /** Message timestamp */
+  ts: string;
   author: ChatTinychatActorDefs.ActorView;
   /** Instance of chat.tinychat.core.message record */
   record: {};

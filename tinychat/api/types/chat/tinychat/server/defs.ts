@@ -69,28 +69,3 @@ export function isChannelView(v: unknown): v is ChannelView {
 export function validateChannelView(v: unknown): ValidationResult {
   return lexicons.validate("chat.tinychat.server.defs#channelView", v);
 }
-
-/** Message view */
-export interface MessageView {
-  uri: string;
-  server?: string;
-  channel?: string;
-  sender: ChatTinychatActorDefs.ActorView;
-  text: string;
-  /** timestamp in us */
-  ts: string;
-  createdAt: string;
-  [k: string]: unknown;
-}
-
-export function isMessageView(v: unknown): v is MessageView {
-  return (
-    isObj(v) &&
-    hasProp(v, "$type") &&
-    v.$type === "chat.tinychat.server.defs#messageView"
-  );
-}
-
-export function validateMessageView(v: unknown): ValidationResult {
-  return lexicons.validate("chat.tinychat.server.defs#messageView", v);
-}

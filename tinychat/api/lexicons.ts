@@ -5981,7 +5981,7 @@ export const schemaDict = {
     defs: {
       messageView: {
         type: "object",
-        required: ["uri", "cid", "author", "record", "indexedAt"],
+        required: ["uri", "cid", "ts", "author", "record", "indexedAt"],
         properties: {
           uri: {
             type: "string",
@@ -5990,6 +5990,10 @@ export const schemaDict = {
           cid: {
             type: "string",
             format: "cid",
+          },
+          ts: {
+            type: "string",
+            description: "Message timestamp",
           },
           author: {
             type: "ref",
@@ -6429,40 +6433,6 @@ export const schemaDict = {
           },
           lastMessageReadTime: {
             type: "string",
-          },
-        },
-      },
-      messageView: {
-        type: "object",
-        description: "Message view",
-        required: ["uri", "sender", "text", "createdAt", "ts"],
-        properties: {
-          uri: {
-            type: "string",
-            format: "at-uri",
-          },
-          server: {
-            type: "string",
-            format: "at-uri",
-          },
-          channel: {
-            type: "string",
-            format: "tid",
-          },
-          sender: {
-            type: "ref",
-            ref: "lex:chat.tinychat.actor.defs#actorView",
-          },
-          text: {
-            type: "string",
-          },
-          ts: {
-            type: "string",
-            description: "timestamp in us",
-          },
-          createdAt: {
-            type: "string",
-            format: "datetime",
           },
         },
       },

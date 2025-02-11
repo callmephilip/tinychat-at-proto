@@ -4,10 +4,11 @@
   "defs": {
     "messageView": {
       "type": "object",
-      "required": ["uri", "cid", "author", "record", "indexedAt"],
+      "required": ["uri", "cid", "ts", "author", "record", "indexedAt"],
       "properties": {
         "uri": { "type": "string", "format": "at-uri" },
         "cid": { "type": "string", "format": "cid" },
+        "ts": { "type": "string", "description": "Message timestamp" },
         "author": {
           "type": "ref",
           "ref": "chat.tinychat.actor.defs#actorView"

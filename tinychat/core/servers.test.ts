@@ -145,7 +145,7 @@ export class Servers {
       if (event.commit.operation === "create") {
         const data = newMembershipRecordSchema.parse(event);
         await syncUser({ did: event.did, db: this.db });
-        this.syncMembership(data);
+        await this.syncMembership(data);
       } else if (event.commit.operation === "delete") {
         this.deleteMembership(deleteMembershipRecordSchema.parse(event));
       }
@@ -236,7 +236,7 @@ export class Servers {
     })();
   }
 
-  public syncMembership(m: NewMembershipRecord) {
+  public async syncMembership(m: NewMembershipRecord) {
     this.db
       .prepare(
         `INSERT INTO server_memberships (user, server, uri) VALUES (
@@ -268,7 +268,7 @@ export class Servers {
 
       if (messageCount === 0) {
         console.log("Seeding messages for server: ", m.commit.record.server);
-        seedMessages({ db: this.db, server: m.commit.record.server });
+        await seedMessages({ db: this.db, server: m.commit.record.server });
       }
     } else {
       console.log(
@@ -313,7 +313,6 @@ export class Servers {
 
     return fetchView<ServerView>({
       db: this.db,
-      // sql: `SELECT * FROM ${viewer ? 'server_view_with_viewer' : 'server_view'} ${where ? `WHERE ${where}` : ""}`,
       sql: `SELECT * FROM  server_view ${where ? `WHERE ${where}` : ""}`,
       validate: validateServerView,
     });
@@ -466,8 +465,8 @@ Deno.test("findServers", () => {
   );
 });
 
-Deno.test("delete server", () => {
-  const testServers = TestDatabase.setup();
+Deno.test("delete server", async () => {
+  const testServers = await TestDatabase.setup();
   const db = testServers.db;
   const servers = new Servers(db);
 
@@ -546,8 +545,8 @@ Deno.test("delete server", () => {
   );
 });
 
-Deno.test("getServersForMember", () => {
-  const testServers = TestDatabase.setup();
+Deno.test("getServersForMember", async () => {
+  const testServers = await TestDatabase.setup();
   const db = testServers.db;
   const servers = new Servers(db);
   const serversForUser1 = servers.getServersForMember({

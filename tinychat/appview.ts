@@ -65,10 +65,6 @@ export default class ChatServer {
   }
 }
 
-// import {
-//   validateMessageView,
-// } from "tinychat/api/types/chat/tinychat/server/defs.ts";
-
 export type AppContext = {
   agent: () => Promise<TinychatAgent | undefined>;
   user: () => Promise<ActorView | undefined>;
@@ -144,7 +140,7 @@ export const runAppView = async (
     const msgHTML = Message({ message: m, oob: true }).toString();
 
     chatServer.broadcastFn((c: ChatServerClient) => {
-      const s = servers.getServers({ uris: [m.server!], viewer: c.did });
+      const s = servers.getServers({ uris: [m.record.server], viewer: c.did });
       const channels = s.length !== 0 ? s[0].channels : [];
       return JSON.stringify({
         data: { message: messages[0], channels },
@@ -272,63 +268,15 @@ app.get(`/xrpc/${ids.ChatTinychatServerFindServers}`, (c) => {
 "";
 app.get(`/xrpc/${ids.ChatTinychatServerGetMessages}`, (c) => {
   const { channel, server, cursor, limit, sort } = c.req.query();
-  console.log(">>>>>>>>>>>>>. getting messages for channel", c.req.query());
-  const messages = new Messaging(c.var.ctx.db!).getMessages({
+  return c.json(new Messaging(c.var.ctx.db!).getMessages({
     channel,
     server,
     cursor,
     limit: limit ? parseInt(limit) : 10,
     // @ts-ignore "latest" | "chronological" | undefined
     sort,
-  });
-  console.log(">>>>>>>>>>>>>. messages", messages);
-  return c.json(messages);
+  }));
 });
-
-"";
-// app.post(`/xrpc/${ids.ChatTinychatServerSendMessage}`, async (c) => {
-//   const agent = await c.var.ctx.agent();
-
-//   if (!agent) {
-//     throw new HTTPException(401, { message: "Agent not available" });
-//   }
-
-//   const { server, channel, text } = z.object({
-//     channel: z.string(),
-//     server: z.string(),
-//     text: z.string(),
-//   }).parse(await c.req.json());
-
-//   const createdAt = new Date().toISOString();
-//   const d = await agent.chat.tinychat.core.message.create(
-//     { repo: agent.agent.assertDid },
-//     {
-//       server,
-//       channel,
-//       text,
-//       createdAt,
-//     },
-//   );
-
-//   const v = validateMessageView({
-//     uri: d.uri,
-//     channel,
-//     server,
-//     text,
-//     createdAt,
-//     sender: await getProfile(agent.agent.assertDid),
-//     ts: `${new Date().getTime() * 1000}`,
-//   });
-
-//   if (!v.success) {
-//     console.error("Error validating message in sendMessage", v);
-//   }
-
-//   return c.json({
-//     // @ts-ignore yolo
-//     message: v.value,
-//   });
-// });
 
 "";
 app.post(`/xrpc/${ids.ChatTinychatServerMarkAllMessagesAsRead}`, async (c) => {

@@ -47,29 +47,6 @@
         "latestMessageReceivedTime": { "type": "string" },
         "lastMessageReadTime": { "type": "string" }
       }
-    },
-    "messageView": {
-      "type": "object",
-      "description": "Message view",
-      "required": ["uri", "sender", "text", "createdAt", "ts"],
-      "properties": {
-        "uri": { "type": "string", "format": "at-uri" },
-        "server": {
-          "type": "string",
-          "format": "at-uri"
-        },
-        "channel": {
-          "type": "string",
-          "format": "tid"
-        },
-        "sender": {
-          "type": "ref",
-          "ref": "chat.tinychat.actor.defs#actorView"
-        },
-        "text": { "type": "string" },
-        "ts": { "type": "string", "description": "timestamp in us" },
-        "createdAt": { "type": "string", "format": "datetime" }
-      }
     }
   }
 }

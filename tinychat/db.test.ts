@@ -84,14 +84,21 @@ const tables: Record<string, string> = {
   FOREIGN KEY (user) REFERENCES users(did) ON DELETE CASCADE
 );`,
   messages: `CREATE TABLE messages (
-  uri TEXT PRIMARY KEY,
+  uri TEXT NOT NULL PRIMARY KEY,
+  cid TEXT NOT NULL,
   channel TEXT NOT NULL,
   server TEXT NOT NULL,
   text TEXT NOT NULL,
   sender TEXT NOT NULL,
+  facets TEXT,
+  embed TEXT,
+  langs TEXT,
+  labels TEXT,
+  tags TEXT,
   created_at DATETIME NOT NULL,
   deleted_at DATETIME,
   time_us TEXT NOT NULL,
+  reply_to TEXT REFERENCES messages(uri),
   FOREIGN KEY (channel, server) REFERENCES channels(id, server),
   FOREIGN KEY (server) REFERENCES servers(uri) ON DELETE CASCADE
   FOREIGN KEY (sender) REFERENCES users(did) ON DELETE CASCADE
@@ -263,7 +270,7 @@ export const getDatabase = (
   __db
     .prepare(
       `CREATE VIEW message_view AS
-       SELECT uri, channel, server, text, sender, created_at as createdAt, time_us, users.did, users.handle, users.display_name as displayName,
+       SELECT uri, cid, channel, server, text, sender, created_at as createdAt, time_us, users.did, users.handle, users.display_name as displayName,
               users.avatar, users.description
        FROM messages
        INNER JOIN users ON messages.sender = users.did`,
@@ -380,12 +387,13 @@ export const seedMessages = ({
 
   messagingSeed.split("\n").forEach((text, i) => {
     db.prepare(
-      `INSERT INTO messages (uri, channel, server, text, sender, created_at, time_us) VALUES (
-      :uri, :channel, :server, :text, :sender, :created_at, :time_us
+      `INSERT INTO messages (uri, cid, channel, server, text, sender, created_at, time_us) VALUES (
+      :uri, :cid, :channel, :server, :text, :sender, :created_at, :time_us
     )`,
     ).run({
       uri:
         `at://did:plc:ubdeopbbkbgedccgbum7dhsh/chat.tinychat.core.message/${TID.nextStr()}`,
+      cid: TID.nextStr(),
       channel,
       server,
       text: `[${i + 1}] ${text}`,
@@ -545,6 +553,7 @@ export class TestDatabase {
       createdAt: new Date().toISOString(),
       uri:
         `at://did:plc:ubdeopbbkbgedccgbum7dhsh/chat.tinychat.core.message/${TID.nextStr()}`,
+      cid: TID.nextStr(),
       sender: TestDatabase.user1,
       time_us: timestamp,
     });
@@ -556,6 +565,7 @@ export class TestDatabase {
     text,
     createdAt,
     uri,
+    cid,
     sender,
     time_us,
   }: {
@@ -564,18 +574,20 @@ export class TestDatabase {
     text: string;
     createdAt: string;
     uri: string;
+    cid: string;
     sender: string;
     time_us: string;
   }) {
     this.db
       .prepare(
         `
-      INSERT INTO messages (uri, channel, server, text, sender, created_at, time_us) VALUES (
-        :uri, :channel, :server, :text, :sender, :created_at, :time_us
+      INSERT INTO messages (uri, cid, channel, server, text, sender, created_at, time_us) VALUES (
+        :uri, :cid, :channel, :server, :text, :sender, :created_at, :time_us
       )`,
       )
       .run({
         uri,
+        cid,
         channel,
         server,
         text,

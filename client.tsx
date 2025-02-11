@@ -5,6 +5,7 @@ import { LoadMoreMessages } from "@tinychat/ui/message.tsx";
 import { ServersPage } from "@tinychat/ui/pages/servers.tsx";
 import { ServerPage } from "@tinychat/ui/pages/server.tsx";
 import { ChannelPage } from "@tinychat/ui/pages/channel.tsx";
+import { Message } from "@tinychat/ui/message.tsx";
 import { LexiconPage } from "@tinychat/ui/pages/lexicon.tsx";
 import { LexiconDefinition } from "@tinychat/ui/lexicon/definition.tsx";
 import { CreateServerPage } from "@tinychat/ui/pages/create-server.tsx";
@@ -74,54 +75,44 @@ app.get("/chat/:did/:rkey", async (c) => {
       },
     }),
   );
-
-  // XX: this is to get smth rolling quickly for test purposes
-  // const availableServers = await agent?.chat.tinychat.server.findServers({});
-
-  // if (availableServers?.data.servers.length === 0) {
-  //   console.log("no servers found, let's create one");
-
-  //   // this will throw if we are not logged in, btw
-
-  //   try {
-  //     const s = await agent?.chat.tinychat.core.server.create(
-  //       {
-  //         repo: agent?.agent.assertDid,
-  //       },
-  //       {
-  //         name: "tinychat-dev",
-  //         channels: [
-  //           { name: "general", id: TID.nextStr() },
-  //           { name: "random", id: TID.nextStr() },
-  //           { name: "meta", id: TID.nextStr() },
-  //         ],
-  //       }
-  //     );
-  //     await sleep(2000);
-  //     return c.redirect(urlFromServerAtURI(s?.uri!));
-  //   } catch {
-  //     return c.redirect("/login");
-  //   }
-  // }
-
-  // return c.redirect(urlFromServerAtURI(availableServers?.data.servers[0].uri!));
 });
 
 app.post("/messages/send", async (c) => {
   const agent = await c.var.ctx.agent();
+  const user = await c.var.ctx.user();
 
-  if (!agent) {
+  if (!agent || !user) {
     return c.redirect("/login");
   }
 
-  // const data = await c.req.formData();
-  // const d = await agent?.chat.tinychat.server.sendMessage({
-  //   channel: data.get("channel")!.toString(),
-  //   text: data.get("msg")!.toString(),
-  //   server: data.get("server")!.toString(),
-  // });
-  // return c.html(<Message message={d?.data.message!} oob={false} />);
-  return c.html("hello");
+  const data = await c.req.formData();
+  const rec = {
+    server: data.get("server")!.toString(),
+    channel: data.get("channel")!.toString(),
+    text: data.get("msg")!.toString(),
+    createdAt: new Date().toISOString(),
+  };
+
+  const { uri, cid } = await agent.chat.tinychat.core.message.create(
+    {
+      repo: agent.agent.assertDid,
+    },
+    rec,
+  );
+
+  return c.html(
+    <Message
+      message={{
+        ts: `${new Date().getTime() * 1000}`,
+        indexedAt: new Date().toISOString(),
+        uri,
+        cid,
+        author: user,
+        record: rec,
+      }}
+      oob={false}
+    />,
+  );
 });
 
 app.get("/messages/list/:did/:rkey1/:rkey2", async (c) => {
@@ -137,7 +128,8 @@ app.get("/messages/list/:did/:rkey1/:rkey2", async (c) => {
   const loadMore = d?.data.prevCursor
     ? (
       <LoadMoreMessages
-        messages={[]} // d?.data.messages
+        // @ts-ignore yolo
+        messages={d.data.messages}
         url={c.req.path + `?cursor=${d?.data.prevCursor}`}
       />
     )
@@ -145,8 +137,8 @@ app.get("/messages/list/:did/:rkey1/:rkey2", async (c) => {
 
   return c.html(
     (d?.data.messages || [])
-      // .map((message) => (<Message message={message} oob={false} />).toString())
-      .map(() => <strong>hello</strong>)
+      // @ts-ignore yolo
+      .map((message) => (<Message message={message} oob={false} />).toString())
       .join("") + (loadMore ? loadMore.toString() : ""),
   );
 });

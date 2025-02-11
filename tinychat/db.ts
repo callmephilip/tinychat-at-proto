@@ -235,36 +235,6 @@ export const getDatabase = (
     )
     .run();
 
-  // server view with viewer
-  __db
-    .prepare(
-      `CREATE VIEW server_view_with_viewer AS
-        SELECT 
-          s.uri,
-          s.name,
-          u.did as creator__did,
-          u.handle as creator__handle,
-          u.display_name as creator__display_name,
-          u.avatar as creator__avatar,
-          u.description as creator__description,
-          c.user as viewer,
-          json_group_array(
-            json_object(
-              'id', c.id,
-              'name', c.name,
-              'server', c.server,
-              'lastMessageReadTime', c.last_message_read_time_us,
-              'latestMessageReceivedTime', c.latest_message_received_time_us
-            )
-          ) as channels__channels
-          FROM servers s
-          LEFT OUTER JOIN channel_view c ON c.server = s.uri
-          INNER JOIN users u ON u.did = s.creator
-          GROUP BY s.uri;
-      `,
-    )
-    .run();
-
   __db
     .prepare(
       `CREATE VIEW channel_view AS

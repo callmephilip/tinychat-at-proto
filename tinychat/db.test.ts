@@ -248,7 +248,7 @@ export const getDatabase = (
   __db
     .prepare(
       `CREATE VIEW message_view AS
-       SELECT uri, cid, created_at as indexedAt, time_us as ts, channel, server,
+       SELECT uri, cid, created_at as indexedAt, time_us as ts, channel, server, reply_to,
               json_object(
                 'createdAt', m.created_at,
                 'server', m.server,
@@ -264,7 +264,31 @@ export const getDatabase = (
               users.handle as author__handle, 
               users.display_name as author__displayName,
               users.avatar as author__avatar,
-              users.description as author__description
+              users.description as author__description,
+              CASE 
+                WHEN m.uri IN (SELECT reply_to FROM messages WHERE reply_to IS NOT NULL)
+                THEN json_object(
+                'size', (SELECT COUNT(*) FROM messages WHERE reply_to = m.uri),
+                'participants', (
+                    SELECT json_group_array(
+                        json_object(
+                            'did', u.did,
+                            'handle', u.handle,
+                            'displayName', u.display_name,
+                            'avatar', u.avatar,
+                            'description', u.description
+                        )
+                    ) FROM (
+                        SELECT DISTINCT sender 
+                        FROM messages 
+                        WHERE reply_to = m.uri
+                        UNION SELECT m.sender
+                    ) participants
+                    JOIN users u ON u.did = participants.sender
+                )
+                )
+                ELSE NULL
+              END as json__threadSummary
        FROM messages m
        INNER JOIN users ON m.sender = users.did`,
     )
@@ -543,23 +567,47 @@ export class TestDatabase {
   public async user1MessagesChannel1(
     text: string,
     timestamp: string = getTimeus(),
-  ) {
+  ): Promise<string> {
+    const uri =
+      `at://did:plc:ubdeopbbkbgedccgbum7dhsh/chat.tinychat.core.message/${TID.nextStr()}`;
     this.receiveMessage({
       channel: TestDatabase.channel1,
       server: TestDatabase.server,
       text,
       createdAt: new Date().toISOString(),
-      uri:
-        `at://did:plc:ubdeopbbkbgedccgbum7dhsh/chat.tinychat.core.message/${TID.nextStr()}`,
+      uri,
       cid: await makeCID({ text }),
       sender: TestDatabase.user1,
       time_us: timestamp,
     });
+    return uri;
+  }
+
+  public async user1RespondsToMessage(
+    text: string,
+    replyTo: string,
+    timestamp: string = getTimeus(),
+  ): Promise<string> {
+    const uri =
+      `at://did:plc:ubdeopbbkbgedccgbum7dhsh/chat.tinychat.core.message/${TID.nextStr()}`;
+    this.receiveMessage({
+      channel: TestDatabase.channel1,
+      server: TestDatabase.server,
+      replyTo,
+      text,
+      createdAt: new Date().toISOString(),
+      uri,
+      cid: await makeCID({ text }),
+      sender: TestDatabase.user1,
+      time_us: timestamp,
+    });
+    return uri;
   }
 
   public receiveMessage({
     channel,
     server,
+    replyTo,
     text,
     createdAt,
     uri,
@@ -569,6 +617,7 @@ export class TestDatabase {
   }: {
     channel: string;
     server: string;
+    replyTo?: string;
     text: string;
     createdAt: string;
     uri: string;
@@ -579,8 +628,8 @@ export class TestDatabase {
     this.db
       .prepare(
         `
-      INSERT INTO messages (uri, cid, channel, server, text, sender, created_at, time_us) VALUES (
-        :uri, :cid, :channel, :server, :text, :sender, :created_at, :time_us
+      INSERT INTO messages (uri, cid, channel, server, text, sender, created_at, time_us, reply_to) VALUES (
+        :uri, :cid, :channel, :server, :text, :sender, :created_at, :time_us, :replyTo
       )`,
       )
       .run({
@@ -592,6 +641,7 @@ export class TestDatabase {
         sender,
         created_at: createdAt,
         time_us: time_us,
+        replyTo: replyTo || null,
       });
   }
 

@@ -168,6 +168,7 @@ export class Messaging extends EventEmitter {
   public getMessages({
     server,
     channel,
+    parent,
     uri,
     cursor,
     limit,
@@ -175,6 +176,7 @@ export class Messaging extends EventEmitter {
   }: {
     server?: string;
     channel?: string;
+    parent?: string;
     uri?: string;
     cursor?: string;
     limit?: number;
@@ -204,12 +206,13 @@ export class Messaging extends EventEmitter {
     } else {
       messages = fetchView<MessageView>({
         db: this.db,
-        sql:
-          `SELECT * FROM message_view WHERE channel = '${channel}' AND server = '${server}' ${
-            parsedCursor ? `AND ${cursorWhere(parsedCursor)}` : ""
-          } ORDER BY ${sort === "chronological" ? "ts ASC" : "ts DESC"} LIMIT ${
-            limit || 10
-          }`,
+        sql: `SELECT * FROM message_view WHERE ${
+          parent ? `reply_to = '${parent}'` : "reply_to IS NULL"
+        } AND channel = '${channel}' AND server = '${server}' ${
+          parsedCursor ? `AND ${cursorWhere(parsedCursor)}` : ""
+        } ORDER BY ${sort === "chronological" ? "ts ASC" : "ts DESC"} LIMIT ${
+          limit || 10
+        }`,
         validate: validateMessageView,
       });
     }
@@ -245,7 +248,9 @@ export class Messaging extends EventEmitter {
       this.db
           .prepare(
             `SELECT uri FROM message_view
-          WHERE channel = :channel AND server = :server AND ts < :time_us
+          WHERE ${
+              parent ? `reply_to = '${parent}'` : "reply_to IS NULL"
+            } AND channel = :channel AND server = :server AND ts < :time_us
           ORDER BY ts DESC LIMIT :limit`,
           )
           .all<{ uri: string }>({

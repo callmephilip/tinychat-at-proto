@@ -168,6 +168,7 @@ export class Messaging extends EventEmitter {
   public getMessages({
     server,
     channel,
+    parent,
     uri,
     cursor,
     limit,
@@ -175,6 +176,7 @@ export class Messaging extends EventEmitter {
   }: {
     server?: string;
     channel?: string;
+    parent?: string;
     uri?: string;
     cursor?: string;
     limit?: number;
@@ -204,12 +206,13 @@ export class Messaging extends EventEmitter {
     } else {
       messages = fetchView<MessageView>({
         db: this.db,
-        sql:
-          `SELECT * FROM message_view WHERE channel = '${channel}' AND server = '${server}' ${
-            parsedCursor ? `AND ${cursorWhere(parsedCursor)}` : ""
-          } ORDER BY ${sort === "chronological" ? "ts ASC" : "ts DESC"} LIMIT ${
-            limit || 10
-          }`,
+        sql: `SELECT * FROM message_view WHERE ${
+          parent ? `reply_to = '${parent}'` : "reply_to IS NULL"
+        } AND channel = '${channel}' AND server = '${server}' ${
+          parsedCursor ? `AND ${cursorWhere(parsedCursor)}` : ""
+        } ORDER BY ${sort === "chronological" ? "ts ASC" : "ts DESC"} LIMIT ${
+          limit || 10
+        }`,
         validate: validateMessageView,
       });
     }
@@ -245,7 +248,9 @@ export class Messaging extends EventEmitter {
       this.db
           .prepare(
             `SELECT uri FROM message_view
-          WHERE channel = :channel AND server = :server AND ts < :time_us
+          WHERE ${
+              parent ? `reply_to = '${parent}'` : "reply_to IS NULL"
+            } AND channel = :channel AND server = :server AND ts < :time_us
           ORDER BY ts DESC LIMIT :limit`,
           )
           .all<{ uri: string }>({
@@ -685,3 +690,50 @@ Deno.test(
     );
   },
 );
+
+Deno.test("threads", async () => {
+  const tdb = await TestDatabase.setup({ messages: false });
+  const messaging = new Messaging(tdb.db);
+
+  const messageURI = await tdb.user1MessagesChannel1("hello");
+  await tdb.user1RespondsToMessage("re: hello", messageURI);
+
+  // top level messages by default
+  const topLevelMessages = messaging.getMessages({
+    server: TestDatabase.server,
+    channel: TestDatabase.channel1,
+    limit: 10,
+    sort: "chronological",
+  });
+
+  assertEquals(topLevelMessages.messages.length, 1, "got 1 top level message");
+  assertEquals(
+    topLevelMessages.messages[0].record.text,
+    "hello",
+    "got the right top level message",
+  );
+  assert(
+    topLevelMessages.messages[0].threadSummary,
+    "top level messages have thread summary",
+  );
+
+  // pull thread
+  const thread = messaging.getMessages({
+    server: TestDatabase.server,
+    channel: TestDatabase.channel1,
+    parent: messageURI,
+    limit: 10,
+    sort: "chronological",
+  });
+
+  assertEquals(thread.messages.length, 1, "got 1 thread message");
+  assertEquals(
+    thread.messages[0].record.text,
+    "re: hello",
+    "got the right thread message",
+  );
+  assert(
+    !thread.messages[0].threadSummary,
+    "messages inside thread do not have thread summary",
+  );
+});

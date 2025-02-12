@@ -18,6 +18,7 @@ export const getLocalLexicon = (): ([string, LexUserType])[] => {
 // import { merman } from "tinychat/tools/merman.ts";
 
 type LexiconObjectType = Extract<
+  //@ts-ignore Type instantiation is excessively deep and possibly infinite.
   z.infer<typeof lexUserType>,
   { type: "object" }
 >;

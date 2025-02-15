@@ -5,7 +5,7 @@ import { LoadMoreMessages } from "@tinychat/ui/message.tsx";
 import { ServersPage } from "@tinychat/ui/pages/servers.tsx";
 import { ServerPage } from "@tinychat/ui/pages/server.tsx";
 import { ChannelPage } from "@tinychat/ui/pages/channel.tsx";
-import { Message } from "@tinychat/ui/message.tsx";
+import { Message, MessageThread } from "@tinychat/ui/message.tsx";
 import { LexiconPage } from "@tinychat/ui/pages/lexicon.tsx";
 import { LexiconDefinition } from "@tinychat/ui/lexicon/definition.tsx";
 import { CreateServerPage } from "@tinychat/ui/pages/create-server.tsx";
@@ -15,6 +15,7 @@ import {
   serverAtURIFromUrl,
   urlFromServerAtURI,
 } from "tinychat/utils.ts";
+import { validateRecord } from "tinychat/api/types/chat/tinychat/core/message.ts";
 
 // reset env vars - if we want to test oauth properly
 Deno.env.delete("TEST_AGENT_SERVICE");
@@ -86,12 +87,16 @@ app.post("/messages/send", async (c) => {
   }
 
   const data = await c.req.formData();
-  const rec = {
+  const rec = validateRecord({
     server: data.get("server")!.toString(),
     channel: data.get("channel")!.toString(),
     text: data.get("msg")!.toString(),
     createdAt: new Date().toISOString(),
-  };
+    reply: data.get("reply")
+      ? JSON.parse(data.get("reply")!.toString())
+      : undefined,
+    // @ts-ignore yolo
+  }).value!;
 
   const { uri, cid } = await agent.chat.tinychat.core.message.create(
     {
@@ -119,11 +124,14 @@ app.get("/messages/list/:did/:rkey1/:rkey2", async (c) => {
   const limit = 40;
   const { server, channel } = parseURLForChannelMessageList(c.req.path);
   const agent = await c.var.ctx.agent();
+  const parent = c.req.query("parent");
   const d = await agent?.chat.tinychat.server.getMessages({
     server,
     channel,
     limit,
     cursor: c.req.query("cursor"),
+    parent,
+    sort: c.req.query("sort"),
   });
   const loadMore = d?.data.prevCursor
     ? (
@@ -134,6 +142,12 @@ app.get("/messages/list/:did/:rkey1/:rkey2", async (c) => {
       />
     )
     : null;
+
+  if (parent) {
+    console.log("thread data", d?.data.messages);
+    // @ts-ignore yolo
+    return c.html(<MessageThread messages={d?.data.messages || []} />);
+  }
 
   return c.html(
     (d?.data.messages || [])

@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+export const start = () => {
   window.tc = {
     onChannelChange: (selctedChannelId) => {
       document
@@ -68,4 +68,4 @@ document.addEventListener("DOMContentLoaded", () => {
       document.querySelector("#msg").focus();
     });
   });
-});
+};

@@ -97,17 +97,13 @@ const tables: Record<string, string> = {
   cid TEXT NOT NULL,
   channel TEXT NOT NULL,
   server TEXT NOT NULL,
-  text TEXT NOT NULL,
   sender TEXT NOT NULL,
-  facets TEXT,
-  embed TEXT,
-  langs TEXT,
-  labels TEXT,
-  tags TEXT,
+  record TEXT NOT NULL,
   created_at DATETIME NOT NULL,
   deleted_at DATETIME,
   time_us TEXT NOT NULL,
   reply_to TEXT REFERENCES messages(uri),
+  reply_to_root TEXT REFERENCES messages(uri),
   FOREIGN KEY (channel, server) REFERENCES channels(id, server),
   FOREIGN KEY (server) REFERENCES servers(uri) ON DELETE CASCADE
   FOREIGN KEY (sender) REFERENCES users(did) ON DELETE CASCADE
@@ -248,27 +244,17 @@ export const getDatabase = (
   __db
     .prepare(
       `CREATE VIEW message_view AS
-       SELECT uri, cid, created_at as indexedAt, time_us as ts, channel, server, reply_to,
-              json_object(
-                'createdAt', m.created_at,
-                'server', m.server,
-                'channel', m.channel,
-                'text', m.text,
-                'facets', m.facets,
-                'embed', m.embed,
-                'langs', m.langs,
-                'labels', m.labels,
-                'tags', m.tags
-              ) as json__record, 
+       SELECT uri, cid, created_at as indexedAt, time_us as ts, channel, server, reply_to as replyTo, reply_to_root as replyToRoot,
+              m.record as json__record, 
               users.did as author__did, 
               users.handle as author__handle, 
               users.display_name as author__displayName,
               users.avatar as author__avatar,
               users.description as author__description,
               CASE 
-                WHEN m.uri IN (SELECT reply_to FROM messages WHERE reply_to IS NOT NULL)
+                WHEN m.uri IN (SELECT reply_to_root FROM messages WHERE reply_to_root IS NOT NULL)
                 THEN json_object(
-                'size', (SELECT COUNT(*) FROM messages WHERE reply_to = m.uri),
+                'size', (SELECT COUNT(*) FROM messages WHERE reply_to_root = m.uri),
                 'participants', (
                     SELECT json_group_array(
                         json_object(
@@ -281,7 +267,7 @@ export const getDatabase = (
                     ) FROM (
                         SELECT DISTINCT sender 
                         FROM messages 
-                        WHERE reply_to = m.uri
+                        WHERE reply_to_root = m.uri
                         UNION SELECT m.sender
                     ) participants
                     JOIN users u ON u.did = participants.sender
@@ -405,9 +391,10 @@ export const seedMessages = async ({
   const cid = await makeCID({ channel, server });
 
   messagingSeed.split("\n").forEach((text, i) => {
+    const createdAt = new Date().toISOString();
     db.prepare(
-      `INSERT INTO messages (uri, cid, channel, server, text, sender, created_at, time_us) VALUES (
-      :uri, :cid, :channel, :server, :text, :sender, :created_at, :time_us
+      `INSERT INTO messages (record, uri, cid, channel, server, sender, created_at, time_us) VALUES (
+      :record, :uri, :cid, :channel, :server, :sender, :created_at, :time_us
     )`,
     ).run({
       uri:
@@ -415,9 +402,14 @@ export const seedMessages = async ({
       cid,
       channel,
       server,
-      text: `[${i + 1}] ${text}`,
+      record: JSON.stringify({
+        createdAt,
+        server,
+        channel,
+        text: `[${i + 1}] ${text}`,
+      }),
       sender: user,
-      created_at: new Date().toISOString(),
+      created_at: createdAt,
       time_us: `${new Date().getTime() * 1000 + 60 * (i * 1000)}`, // add offset that is based on minute * i
     });
   });
@@ -628,20 +620,21 @@ export class TestDatabase {
     this.db
       .prepare(
         `
-      INSERT INTO messages (uri, cid, channel, server, text, sender, created_at, time_us, reply_to) VALUES (
-        :uri, :cid, :channel, :server, :text, :sender, :created_at, :time_us, :replyTo
+      INSERT INTO messages (record, uri, cid, channel, server, sender, created_at, time_us, reply_to, reply_to_root) VALUES (
+        :record, :uri, :cid, :channel, :server, :sender, :created_at, :time_us, :replyTo, :replyToRoot
       )`,
       )
       .run({
+        record: JSON.stringify({ text, createdAt, server, channel }),
         uri,
         cid,
         channel,
         server,
-        text,
         sender,
         created_at: createdAt,
         time_us: time_us,
         replyTo: replyTo || null,
+        replyToRoot: replyTo || null,
       });
   }
 
@@ -849,4 +842,14 @@ Deno.test("waitForSync", async () => {
       }),
     "throws when timeout is reached",
   );
+});
+Deno.test("TestDatabase", async () => {
+  // how meta?
+  const tdb = await TestDatabase.setup();
+  assert(
+    tdb.db.prepare("SELECT * FROM messages").all().length > 0,
+    "got test messages in",
+  );
+  const messageURI = await tdb.user1MessagesChannel1("hello");
+  await tdb.user1RespondsToMessage("re: hello", messageURI);
 });

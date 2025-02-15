@@ -5991,6 +5991,14 @@ export const schemaDict = {
             type: "string",
             format: "cid",
           },
+          replyTo: {
+            type: "string",
+            format: "at-uri",
+          },
+          replyToRoot: {
+            type: "string",
+            format: "at-uri",
+          },
           ts: {
             type: "string",
             description: "Message timestamp",

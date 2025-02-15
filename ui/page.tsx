@@ -36,6 +36,7 @@ export const Page = ({
         <script src="https://cdn.tailwindcss.com" />
         <style href="/static/styles.css" />
         <script src="https://unpkg.com/htmx.org@2.0.4" />
+        <script src={`/static/store.js?${Math.random() * 10000}`} />
         <script src="/static/htmx-ws.js" />
         <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" />
         <style
@@ -69,7 +70,20 @@ export const Page = ({
       <body {...htmxAttrs} className={bodyClasses}>
         {children}
         {tcScripts
-          ? <script src={`/static/tc.js?${Math.random() * 100000}`} />
+          ? (
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `          
+              document.addEventListener('DOMContentLoaded', async (event) => {
+                const module = await import("/static/tc.js?${
+                  Math.random() * 100000
+                }");
+                module.start();
+              });
+          `,
+              }}
+            />
+          )
           : null}
       </body>
     </html>

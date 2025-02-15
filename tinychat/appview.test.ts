@@ -267,10 +267,11 @@ app.get(`/xrpc/${ids.ChatTinychatServerFindServers}`, (c) => {
 
 "";
 app.get(`/xrpc/${ids.ChatTinychatServerGetMessages}`, (c) => {
-  const { channel, server, cursor, limit, sort } = c.req.query();
+  const { channel, server, cursor, limit, sort, parent } = c.req.query();
   return c.json(new Messaging(c.var.ctx.db!).getMessages({
     channel,
     server,
+    parent,
     cursor,
     limit: limit ? parseInt(limit) : 10,
     // @ts-ignore "latest" | "chronological" | undefined

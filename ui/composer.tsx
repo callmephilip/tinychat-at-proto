@@ -6,6 +6,9 @@ export const Composer = () => {
   const { server, currentChannel } = useServer();
   return (
     <>
+      <template x-if="$store.replyTo.message">
+        <strong x-text="$store.replyTo.message.record.text" />
+      </template>
       <form
         enctype="multipart/form-data"
         hx-post="/messages/send"
@@ -15,7 +18,6 @@ export const Composer = () => {
         id="composer"
         class="w-full"
       >
-        {" "}
         <input
           type="text"
           autofocus
@@ -27,6 +29,9 @@ export const Composer = () => {
         />
         <input type="hidden" name="channel" value={currentChannel?.id} />
         <input type="hidden" name="server" value={server?.uri} />
+        <template x-if="$store.replyTo.reply">
+          <input type="hidden" name="reply" x-model="$store.replyTo.reply" />
+        </template>
       </form>
       <script src={`/static/composer.js?${Math.random() * 10000}`} />
     </>

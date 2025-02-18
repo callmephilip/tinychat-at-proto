@@ -16,6 +16,7 @@ import {
   urlFromServerAtURI,
 } from "tinychat/utils.ts";
 import { validateRecord } from "tinychat/api/types/chat/tinychat/core/message.ts";
+import { getRichText } from "tinychat/bsky.ts";
 
 // reset env vars - if we want to test oauth properly
 Deno.env.delete("TEST_AGENT_SERVICE");
@@ -87,10 +88,12 @@ app.post("/messages/send", async (c) => {
   }
 
   const data = await c.req.formData();
+  const rt = await getRichText(data.get("msg")!.toString());
   const rec = validateRecord({
     server: data.get("server")!.toString(),
     channel: data.get("channel")!.toString(),
-    text: data.get("msg")!.toString(),
+    text: rt.text,
+    facets: rt.facets,
     createdAt: new Date().toISOString(),
     reply: data.get("reply")
       ? JSON.parse(data.get("reply")!.toString())

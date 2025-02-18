@@ -137,3 +137,31 @@ export const parseURLForChannelMessageList = (
     channel: parts[2],
   };
 };
+// const TRIM_HOST_RE = /^www\./;
+// const TRIM_URLTEXT_RE = /^\s*(https?:\/\/)?(?:www\.)?/;
+// const PATH_MAX_LENGTH = 18;
+
+// export const toShortUrl = (uri: string): string => {
+//   try {
+//     const url = new URL(uri);
+//     const protocol = url.protocol;
+
+//     const host = url.host.replace(TRIM_HOST_RE, "");
+//     const pathname = url.pathname;
+
+//     const path = (pathname === "/" ? "" : pathname) + url.search + url.hash;
+
+//     if (protocol === "http:" || protocol === "https:") {
+//       if (path.length > PATH_MAX_LENGTH) {
+//         return host + path.slice(0, PATH_MAX_LENGTH - 1) + "…";
+//       }
+
+//       return host + path;
+//     }
+//   } catch {}
+
+//   return uri;
+// };
+// toShortUrl(
+//   "https://github.com/mary-ext/skeetdeck/blob/aa0cb74c0ace489b79d2671c4b9e740ec21623c7/app/api/richtext/renderer.ts"
+// );

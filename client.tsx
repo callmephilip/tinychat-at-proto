@@ -1,4 +1,5 @@
 import { serveStatic } from "hono/deno";
+import { TID } from "@atproto/common";
 import { app } from "tinychat/client.ts";
 import { ChatPage } from "@tinychat/ui/pages/chat.tsx";
 import { LoadMoreMessages } from "@tinychat/ui/message.tsx";
@@ -29,10 +30,7 @@ app.get("/lexicon/def", (c) => {
   }
   return c.html(<LexiconPage name={n} />);
 });
-app.get("/whiteboard", (c) =>
-  c.redirect(
-    "https://excalidraw.com/#json=0m7kFsHTC4Pg9e1IW2Pp-,zsWy4awOAjtVX8gJNa_vYw",
-  ));
+app.get("/whiteboard", (c) => c.redirect("https://excalidraw.com/#json=0m7kFsHTC4Pg9e1IW2Pp-,zsWy4awOAjtVX8gJNa_vYw"));
 
 app.get("/logout", async (c) => {
   const { session } = c.var.ctx;
@@ -69,7 +67,7 @@ app.get("/chat/:did/:rkey", async (c) => {
         server: serverData,
         currentChannel: ch ? serverData.channels?.find((c) => c.id === ch) : serverData.channels[0],
       },
-    }),
+    })
   );
 });
 
@@ -84,6 +82,7 @@ app.post("/messages/send", async (c) => {
   const data = await c.req.formData();
   const rt = await getRichText(data.get("msg")!.toString());
   const rec = validateRecord({
+    id: TID.nextStr(),
     server: data.get("server")!.toString(),
     channel: data.get("channel")!.toString(),
     text: rt.text,
@@ -93,12 +92,9 @@ app.post("/messages/send", async (c) => {
     // @ts-ignore yolo
   }).value!;
 
-  const { uri, cid } = await agent.chat.tinychat.core.message.create(
-    {
-      repo: agent.agent.assertDid,
-    },
-    rec,
-  );
+  console.log("send message", rec);
+
+  const { uri, cid } = await agent.chat.tinychat.core.message.create({ repo: agent.agent.assertDid }, rec);
 
   return c.html(
     <Message
@@ -111,7 +107,7 @@ app.post("/messages/send", async (c) => {
         record: rec,
       }}
       oob={false}
-    />,
+    />
   );
 });
 
@@ -128,15 +124,13 @@ app.get("/messages/list/:did/:rkey1/:rkey2", async (c) => {
     parent,
     sort: c.req.query("sort"),
   });
-  const loadMore = d?.data.prevCursor
-    ? (
-      <LoadMoreMessages
-        // @ts-ignore yolo
-        messages={d.data.messages}
-        url={c.req.path + `?cursor=${d?.data.prevCursor}`}
-      />
-    )
-    : null;
+  const loadMore = d?.data.prevCursor ? (
+    <LoadMoreMessages
+      // @ts-ignore yolo
+      messages={d.data.messages}
+      url={c.req.path + `?cursor=${d?.data.prevCursor}`}
+    />
+  ) : null;
 
   if (parent) {
     console.log("thread data", d?.data.messages);
@@ -148,7 +142,7 @@ app.get("/messages/list/:did/:rkey1/:rkey2", async (c) => {
     (d?.data.messages || [])
       // @ts-ignore yolo
       .map((message) => (<Message message={message} oob={false} />).toString())
-      .join("") + (loadMore ? loadMore.toString() : ""),
+      .join("") + (loadMore ? loadMore.toString() : "")
   );
 });
 
@@ -166,13 +160,7 @@ app.post("/mark-all-as-read", async (c) => {
 app.get("/servers", async (c) => {
   const agent = await c.var.ctx.agent();
   const availableServers = await agent?.chat.tinychat.server.findServers({});
-  return c.html(
-    <ServersPage
-      servers={(availableServers?.data.servers || []).filter(
-        (s) => s.name === "tinychat-dev",
-      )}
-    />,
-  );
+  return c.html(<ServersPage servers={(availableServers?.data.servers || []).filter((s) => s.name === "tinychat-dev")} />);
 });
 
 app.get("/server/:did/:rkey/:slug", async (c) => {
@@ -221,7 +209,7 @@ app.get("/server/:did/:rkey/:slug/:channel", async (c) => {
       messages={[]} // d?.data.messages ||
       nextCursor={d?.data.nextCursor}
       prevCursor={d?.data.prevCursor}
-    />,
+    />
   );
 });
 
@@ -257,7 +245,7 @@ export const runClient = () => {
     {
       port: parseInt(Deno.env.get("CLIENT_PORT") || "8000"),
     },
-    app.fetch,
+    app.fetch
   );
 };
 

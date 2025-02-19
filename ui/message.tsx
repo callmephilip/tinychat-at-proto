@@ -1,7 +1,7 @@
 import { MessageView } from "tinychat/core/base.ts";
 import { PropsWithChildren } from "hono/jsx";
-import { parse as parseMd } from "marked";
-import { linkify, shortIdFromAtUri, urlForMessageThread } from "tinychat/utils.ts";
+import { shortIdFromAtUri, urlForMessageThread } from "tinychat/utils.ts";
+import { RichText } from "@tinychat/ui/rich-text.tsx";
 
 interface MessageProps {
   message: MessageView;
@@ -10,13 +10,7 @@ interface MessageProps {
 
 const messageId = (message: MessageView) => `chat-message-${shortIdFromAtUri(message.uri)}`;
 
-export const LoadMoreMessages = ({
-  messages,
-  url,
-}: {
-  messages: MessageView[];
-  url: string;
-}) => (
+export const LoadMoreMessages = ({ messages, url }: { messages: MessageView[]; url: string }) => (
   <div
     class="messages-loading htmx-indicator"
     hx-get={url}
@@ -43,13 +37,7 @@ export const MessageThread = ({ messages }: { messages: MessageView[] }) => {
   console.log(">>>>>>>>> threadsMap", threadsMap);
 
   // Recursive component to render thread branches
-  const ThreadBranch = ({
-    message,
-    level = 0,
-  }: {
-    message: MessageView;
-    level?: number;
-  }) => {
+  const ThreadBranch = ({ message, level = 0 }: { message: MessageView; level?: number }) => {
     const childMessages = threadsMap.get(message.uri) || [];
 
     return (
@@ -74,13 +62,7 @@ export const MessageThread = ({ messages }: { messages: MessageView[] }) => {
           <Message message={message} oob={false} />
           {childMessages.length > 0 && (
             <div class="ml-4">
-              {childMessages.map((childMessage) => (
-                <ThreadBranch
-                  key={childMessage.uri}
-                  message={childMessage}
-                  level={level + 1}
-                />
-              ))}
+              {childMessages.map((childMessage) => <ThreadBranch key={childMessage.uri} message={childMessage} level={level + 1} />)}
             </div>
           )}
         </div>
@@ -108,35 +90,16 @@ export const MessageThread = ({ messages }: { messages: MessageView[] }) => {
   );
 };
 
-const Avatar = ({
-  message,
-  mini = false,
-}: {
-  message: MessageView;
-  mini?: boolean;
-}) => {
+const Avatar = ({ message, mini = false }: { message: MessageView; mini?: boolean }) => {
   const avatar = message.author.avatar ||
-    `https://ui-avatars.com/api/?name=${
-      encodeURI(
-        message.author.displayName || message.author.handle,
-      )
-    }&background=random&size=256`;
-  return (
-    <img
-      src={avatar}
-      class={`w-${mini ? "4" : "8"} h-${mini ? "4" : "8"} rounded-full mr-3`}
-    />
-  );
+    `https://ui-avatars.com/api/?name=${encodeURI(message.author.displayName || message.author.handle)}&background=random&size=256`;
+  return <img src={avatar} class={`w-${mini ? "4" : "8"} h-${mini ? "4" : "8"} rounded-full mr-3`} />;
 };
 
 export const Message = ({ message, oob = false }: MessageProps) => {
   const Wrapper = oob
     ? ({ children }: PropsWithChildren) => (
-      <div
-        id={`channel-${message.record.channel}`}
-        hx-swap="scroll:bottom"
-        hx-swap-oob="afterbegin"
-      >
+      <div id={`channel-${message.record.channel}`} hx-swap="scroll:bottom" hx-swap-oob="afterbegin">
         {children}
       </div>
     )
@@ -145,34 +108,19 @@ export const Message = ({ message, oob = false }: MessageProps) => {
   const threadId = `thread-${shortIdFromAtUri(message.uri)}`;
   return (
     <Wrapper>
-      <div
-        id={messageId(message)}
-        class="chat-message flex items-start mb-4 text-sm relative group"
-      >
+      <div id={messageId(message)} class="chat-message flex items-start mb-4 text-sm relative group">
         <Avatar message={message} />{" "}
-        <div
-          x-data={`${JSON.stringify(message)}`}
-          class="flex-1 overflow-hidden pt-1"
-        >
+        <div x-data={`${JSON.stringify(message)}`} class="flex-1 overflow-hidden pt-1">
           <div class="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
             <div class="flex gap-2 p-2">
-              <button
-                x-on:click="$store.replyTo.set($data)"
-                class="text-gray-600 hover:text-gray-900"
-              >
+              <button x-on:click="$store.replyTo.set($data)" class="text-gray-600 hover:text-gray-900">
                 Reply
               </button>
             </div>
           </div>
           <div>
-            <span class="font-bold">
-              {message.author.displayName || message.author.handle}
-            </span>{" "}
-            <a
-              class="text-sm muted"
-              style={{ "text-decoration": "none" }}
-              href={`https://bsky.app/profile/${message.author.handle}`}
-            >
+            <span class="font-bold">{message.author.displayName || message.author.handle}</span>{" "}
+            <a class="text-sm muted" style={{ "text-decoration": "none" }} href={`https://bsky.app/profile/${message.author.handle}`}>
               @{message.author.handle}
             </a>{" "}
             •{" "}
@@ -185,24 +133,11 @@ export const Message = ({ message, oob = false }: MessageProps) => {
             {" "}
           </div>
           <div class="leading-relaxed mt-2">
-            <p
-              dangerouslySetInnerHTML={{
-                // @ts-ignore yolo
-                __html: parseMd(
-                  linkify(message.record.text, "font-bold underline"),
-                ),
-              }}
-            />
+            <RichText text={message.record.text} facets={message.record.facets} />
             {message.threadSummary
               ? (
                 <div class="py-2" id={threadId}>
-                  <a
-                    href="#"
-                    hx-get={urlForMessageThread(message)}
-                    hx-target={`#${threadId}`}
-                    hx-swap="innerHTML"
-                    class="underline font-bold"
-                  >
+                  <a href="#" hx-get={urlForMessageThread(message)} hx-target={`#${threadId}`} hx-swap="innerHTML" class="underline font-bold">
                     view {message.threadSummary.size} replies
                   </a>
                 </div>

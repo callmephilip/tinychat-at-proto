@@ -134,34 +134,64 @@ export const parseURLForChannelMessageList = (
     channel: parts[2],
   };
 };
-// const TRIM_HOST_RE = /^www\./;
-// const TRIM_URLTEXT_RE = /^\s*(https?:\/\/)?(?:www\.)?/;
-// const PATH_MAX_LENGTH = 18;
+/**
+ * Javascript uses utf16-encoded strings while most environments and specs
+ * have standardized around utf8 (including JSON).
+ *
+ * After some lengthy debated we decided that richtext facets need to use
+ * utf8 indices. This means we need tools to convert indices between utf8
+ * and utf16, and that's precisely what this library handles.
+ */
 
-// export const toShortUrl = (uri: string): string => {
-//   try {
-//     const url = new URL(uri);
-//     const protocol = url.protocol;
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
 
-//     const host = url.host.replace(TRIM_HOST_RE, "");
-//     const pathname = url.pathname;
+export interface UtfString {
+  u16: string;
+  u8: Uint8Array;
+}
 
-//     const path = (pathname === "/" ? "" : pathname) + url.search + url.hash;
+export const createUtfString = (utf16: string): UtfString => {
+  return {
+    u16: utf16,
+    u8: encoder.encode(utf16),
+  };
+};
 
-//     if (protocol === "http:" || protocol === "https:") {
-//       if (path.length > PATH_MAX_LENGTH) {
-//         return host + path.slice(0, PATH_MAX_LENGTH - 1) + "…";
-//       }
+export const getUtf8Length = (utf: UtfString) => {
+  return utf.u8.byteLength;
+};
 
-//       return host + path;
-//     }
-//   } catch {}
+export const sliceUtf8 = (utf: UtfString, start?: number, end?: number) => {
+  return decoder.decode(utf.u8.slice(start, end));
+};
 
-//   return uri;
-// };
-// toShortUrl(
-//   "https://github.com/mary-ext/skeetdeck/blob/aa0cb74c0ace489b79d2671c4b9e740ec21623c7/app/api/richtext/renderer.ts"
-// );
+const TRIM_HOST_RE = /^www\./;
+const PATH_MAX_LENGTH = 18;
+
+export const toShortUrl = (uri: string): string => {
+  try {
+    const url = new URL(uri);
+    const protocol = url.protocol;
+
+    const host = url.host.replace(TRIM_HOST_RE, "");
+    const pathname = url.pathname;
+
+    const path = (pathname === "/" ? "" : pathname) + url.search + url.hash;
+
+    if (protocol === "http:" || protocol === "https:") {
+      if (path.length > PATH_MAX_LENGTH) {
+        return host + path.slice(0, PATH_MAX_LENGTH - 1) + "…";
+      }
+
+      return host + path;
+    }
+  } catch {
+    // noop
+  }
+
+  return uri;
+};
 
 /** ----------------tests ---------------- **/
 

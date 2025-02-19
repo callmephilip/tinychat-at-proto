@@ -1,6 +1,6 @@
 import { PropsWithChildren } from "hono/jsx";
 import { getNotificationsWsUrl } from "tinychat/config.ts";
-import { ActorView } from "tinychat/api/types/chat/tinychat/actor/defs.ts";
+import { ActorView } from "@tinychat/lexicons/types/chat/tinychat/actor/defs.ts";
 
 type PageProps = PropsWithChildren<{
   hideOverflow?: boolean;

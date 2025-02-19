@@ -15,7 +15,7 @@ import {
   serverAtURIFromUrl,
   urlFromServerAtURI,
 } from "tinychat/utils.ts";
-import { validateRecord } from "tinychat/api/types/chat/tinychat/core/message.ts";
+import { validateRecord } from "@tinychat/lexicons/types/chat/tinychat/core/message.ts";
 import { getRichText } from "tinychat/bsky.ts";
 
 // reset env vars - if we want to test oauth properly

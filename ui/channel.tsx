@@ -1,4 +1,4 @@
-import { ChannelView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
+import { ChannelView } from "@tinychat/lexicons/types/chat/tinychat/server/defs.ts";
 import { urlForChannelMessageList } from "tinychat/utils.ts";
 
 const hasUnreadMessages = (channel: ChannelView): boolean => {

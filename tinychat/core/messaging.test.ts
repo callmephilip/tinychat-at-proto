@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { Record as Message } from "tinychat/api/types/chat/tinychat/core/message.ts";
+import { Record as Message } from "@tinychat/lexicons/types/chat/tinychat/core/message.ts";
 import { atURIFromParts, getTimeus } from "tinychat/utils.ts";
 import { Jetstream } from "@skyware/jetstream";
-import { ids } from "tinychat/api/lexicons.ts";
+import { ids } from "@tinychat/lexicons/lexicons.ts";
 import type { Database } from "tinychat/db.ts";
 import { fetchView } from "tinychat/db.ts";
 import { MessageView, validateMessageView } from "tinychat/core/base.ts";

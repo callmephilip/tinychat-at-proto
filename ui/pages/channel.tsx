@@ -1,4 +1,4 @@
-import { ServerView } from "tinychat/api/types/chat/tinychat/server/defs.ts";
+import { ServerView } from "@tinychat/lexicons/types/chat/tinychat/server/defs.ts";
 import { MessageView } from "tinychat/core/base.ts";
 import { Message } from "@tinychat/ui/message.tsx";
 import { slugify, urlFromServerAtURI } from "tinychat/utils.ts";

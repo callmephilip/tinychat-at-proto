@@ -1,5 +1,5 @@
 import { createContext, useContext } from "hono/jsx";
-import { ActorViewWithDetails } from "tinychat/api/types/chat/tinychat/actor/defs.ts";
+import { ActorViewWithDetails } from "@tinychat/lexicons/types/chat/tinychat/actor/defs.ts";
 
 export interface AuthContext {
   user?: ActorViewWithDetails | undefined;

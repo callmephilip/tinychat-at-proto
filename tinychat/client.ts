@@ -63,8 +63,7 @@ app.use(
     console.log(">>>>>>> client middleware session is", session);
 
     const oauthClient = new TinychatOAuthClient();
-    const getAgent = async () =>
-      await TinychatAgent.create(oauthClient, session.did);
+    const getAgent = async () => await TinychatAgent.create(oauthClient, session.did);
 
     c.set("ctx", {
       session,
@@ -132,9 +131,7 @@ app.get("/oauth/callback", async (c) => {
   const { session: oauthSession } = await oauthClient.callback(
     params,
   );
-  const r = session?.redirectAfterLogin
-    ? `${session?.redirectAfterLogin}`
-    : "/chat";
+  const r = session?.redirectAfterLogin ? `${session?.redirectAfterLogin}` : "/chat";
 
   console.log("oauth callback: oauthSession", oauthSession);
   console.log("gonna redirect to", r);

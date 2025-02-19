@@ -20,9 +20,7 @@ export const DigestCard = ({
           <div class="rounded-xl border bg-white text-card-foreground shadow">
             <div class="flex flex-col space-y-1.5 p-6 text-center">
               <div class="font-semibold tracking-tight text-xl">{title}</div>
-              {subtitle
-                ? <div class="text-sm text-muted-foreground">{subtitle}</div>
-                : null}
+              {subtitle ? <div class="text-sm text-muted-foreground">{subtitle}</div> : null}
             </div>
             <div class="p-6 pt-0">{children}</div>
           </div>

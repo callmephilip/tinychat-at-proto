@@ -24,9 +24,7 @@ export const Page = ({
       "ws-connect": getNotificationsWsUrl({ user }),
     }
     : {};
-  const bodyClasses = `font-sans antialiased h-dvh bg-background ${
-    hideOverflow ? "overflow-hidden" : ""
-  } ${flex ? "flex" : ""}`;
+  const bodyClasses = `font-sans antialiased h-dvh bg-background ${hideOverflow ? "overflow-hidden" : ""} ${flex ? "flex" : ""}`;
   return (
     <html lang="en">
       <head>
@@ -75,9 +73,7 @@ export const Page = ({
               dangerouslySetInnerHTML={{
                 __html: `          
               document.addEventListener('DOMContentLoaded', async (event) => {
-                const module = await import("/static/tc.js?${
-                  Math.random() * 100000
-                }");
+                const module = await import("/static/tc.js?${Math.random() * 100000}");
                 module.start();
               });
           `,

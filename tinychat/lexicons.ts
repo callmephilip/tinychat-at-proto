@@ -8,9 +8,7 @@ export const getLocalLexicon = (): ([string, LexUserType])[] => {
   return lexicons.defs
     .entries()
     .toArray()
-    .filter(([name]) =>
-      name.startsWith("lex:chat.tinychat") && !name.endsWith("#main")
-    ).map((
+    .filter(([name]) => name.startsWith("lex:chat.tinychat") && !name.endsWith("#main")).map((
       [name, def],
     ) => [name.replace("lex:", ""), def]);
 };

@@ -11,7 +11,8 @@
     "generate:lexicons": "lex gen-api --yes lexicons-api lexicons/**/* && deno task unslopify",
     "unslopify": "deno run --unstable-sloppy-imports --allow-read --allow-write ./bin/unslopify.ts ./lexicons-api",
     "playwright:install": "deno run --allow-all npm:playwright install",
-    "test:e2e": "deno run --allow-all npm:playwright test"
+    "test:e2e": "deno run --allow-all npm:playwright test",
+    "copy": "npx mandark ./tinychat -a -c"
   },
   "imports": {
     "@atcute/lex-cli": "npm:@atcute/lex-cli@^1.0.4",
@@ -48,6 +49,10 @@
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
     "checkJs": false
+  },
+  "fmt": {
+    "lineWidth": 150,
+    "proseWrap": "never"
   },
   "publish": { "exclude": ["nbs/", "docs/"] },
   "lint": { "exclude": ["./lexicons-api", "static"] },

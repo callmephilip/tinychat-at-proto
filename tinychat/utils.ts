@@ -75,8 +75,7 @@ export const unslopifyModules = async (dir: string) => {
   }
 };
 export const getTimeus = (): string => `${new Date().getTime() * 1000}`;
-export const sleep = (ms: number) =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export const shortIdFromAtUri = (atUri: string) => {
   return atUri.split("/").pop();
 };
@@ -131,9 +130,7 @@ export const parseURLForChannelMessageList = (
   // "/messages/list/ubdeopbbkbgedccgbum7dhsh/3lgawfvbbtx2b/abc";
   console.log(parts);
   return {
-    server: `at://did:plc:${parts[0]}/${ids.ChatTinychatCoreServer}/${
-      parts[1]
-    }`,
+    server: `at://did:plc:${parts[0]}/${ids.ChatTinychatCoreServer}/${parts[1]}`,
     channel: parts[2],
   };
 };

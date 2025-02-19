@@ -76,12 +76,7 @@ export interface Account {
   /** Indicates that the account has a repository which can be fetched from the host that emitted this event. */
   active: boolean;
   /** If active=false, this optional field indicates a reason for why the account is not active. */
-  status?:
-    | "takendown"
-    | "suspended"
-    | "deleted"
-    | "deactivated"
-    | (string & {});
+  status?: "takendown" | "suspended" | "deleted" | "deactivated" | (string & {});
   [k: string]: unknown;
 }
 

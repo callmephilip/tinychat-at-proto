@@ -193,8 +193,7 @@ export class Messaging extends EventEmitter {
     }
 
     const parsedCursor = cursor && MessageCursor.fromString(cursor);
-    const cursorWhere = (c: MessageCursor) =>
-      c.direction === "past" ? `ts < ${c.timestamp}` : `ts > ${c.timestamp}`;
+    const cursorWhere = (c: MessageCursor) => c.direction === "past" ? `ts < ${c.timestamp}` : `ts > ${c.timestamp}`;
     let messages: MessageView[] = [];
 
     if (uri) {
@@ -208,11 +207,9 @@ export class Messaging extends EventEmitter {
         db: this.db,
         sql: `SELECT * FROM message_view WHERE ${
           parent ? `replyToRoot = '${parent}'` : "replyToRoot IS NULL"
-        } AND channel = '${channel}' AND server = '${server}' ${
-          parsedCursor ? `AND ${cursorWhere(parsedCursor)}` : ""
-        } ORDER BY ${sort === "chronological" ? "ts ASC" : "ts DESC"} LIMIT ${
-          limit || 10
-        }`,
+        } AND channel = '${channel}' AND server = '${server}' ${parsedCursor ? `AND ${cursorWhere(parsedCursor)}` : ""} ORDER BY ${
+          sort === "chronological" ? "ts ASC" : "ts DESC"
+        } LIMIT ${limit || 10}`,
         validate: validateMessageView,
       });
     }
@@ -248,9 +245,7 @@ export class Messaging extends EventEmitter {
       this.db
           .prepare(
             `SELECT uri FROM message_view
-          WHERE ${
-              parent ? `replyToRoot = '${parent}'` : "replyToRoot IS NULL"
-            } AND channel = :channel AND server = :server AND ts < :time_us
+          WHERE ${parent ? `replyToRoot = '${parent}'` : "replyToRoot IS NULL"} AND channel = :channel AND server = :server AND ts < :time_us
           ORDER BY ts DESC LIMIT :limit`,
           )
           .all<{ uri: string }>({

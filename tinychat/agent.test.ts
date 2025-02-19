@@ -133,9 +133,7 @@ export class TinychatAgent {
             service: Deno.env.get("APPVIEW_URL")!,
             fetch: async (input, init) => {
               // fallbackAgent.dispatchUrl.toString();
-              const alternativeServiceUrl = fallbackAgent.did
-                ? await getPdsForDid(fallbackAgent.assertDid)
-                : "https://public.api.bsky.app";
+              const alternativeServiceUrl = fallbackAgent.did ? await getPdsForDid(fallbackAgent.assertDid) : "https://public.api.bsky.app";
 
               const u = routeRequest(
                 // @ts-ignore input should be URL

@@ -779,12 +779,7 @@ export class AppBskyFeedNS {
     params?: AppBskyFeedGetQuotes.QueryParams,
     opts?: AppBskyFeedGetQuotes.CallOptions,
   ): Promise<AppBskyFeedGetQuotes.Response> {
-    return this._client.call(
-      "app.bsky.feed.getQuotes",
-      params,
-      undefined,
-      opts,
-    );
+    return this._client.call("app.bsky.feed.getQuotes", params, undefined, opts);
   }
 
   getRepostedBy(
@@ -1331,24 +1326,14 @@ export class AppBskyGraphNS {
     params?: AppBskyGraphGetLists.QueryParams,
     opts?: AppBskyGraphGetLists.CallOptions,
   ): Promise<AppBskyGraphGetLists.Response> {
-    return this._client.call(
-      "app.bsky.graph.getLists",
-      params,
-      undefined,
-      opts,
-    );
+    return this._client.call("app.bsky.graph.getLists", params, undefined, opts);
   }
 
   getMutes(
     params?: AppBskyGraphGetMutes.QueryParams,
     opts?: AppBskyGraphGetMutes.CallOptions,
   ): Promise<AppBskyGraphGetMutes.Response> {
-    return this._client.call(
-      "app.bsky.graph.getMutes",
-      params,
-      undefined,
-      opts,
-    );
+    return this._client.call("app.bsky.graph.getMutes", params, undefined, opts);
   }
 
   getRelationships(
@@ -1440,12 +1425,7 @@ export class AppBskyGraphNS {
     data?: AppBskyGraphUnmuteActor.InputSchema,
     opts?: AppBskyGraphUnmuteActor.CallOptions,
   ): Promise<AppBskyGraphUnmuteActor.Response> {
-    return this._client.call(
-      "app.bsky.graph.unmuteActor",
-      opts?.qp,
-      data,
-      opts,
-    );
+    return this._client.call("app.bsky.graph.unmuteActor", opts?.qp, data, opts);
   }
 
   unmuteActorList(
@@ -2156,12 +2136,7 @@ export class AppBskyVideoNS {
     data?: AppBskyVideoUploadVideo.InputSchema,
     opts?: AppBskyVideoUploadVideo.CallOptions,
   ): Promise<AppBskyVideoUploadVideo.Response> {
-    return this._client.call(
-      "app.bsky.video.uploadVideo",
-      opts?.qp,
-      data,
-      opts,
-    );
+    return this._client.call("app.bsky.video.uploadVideo", opts?.qp, data, opts);
   }
 }
 

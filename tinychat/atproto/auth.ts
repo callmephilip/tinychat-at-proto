@@ -1,19 +1,5 @@
-import type {
-  GenerateKeyPairOptions,
-  GenerateKeyPairResult,
-  JWK,
-  JWTVerifyOptions,
-  KeyLike,
-} from "https://deno.land/x/jose@v5.9.6/index.ts";
-import {
-  errors,
-  exportJWK,
-  generateKeyPair,
-  importJWK,
-  importPKCS8,
-  jwtVerify,
-  SignJWT,
-} from "https://deno.land/x/jose@v5.9.6/index.ts";
+import type { GenerateKeyPairOptions, GenerateKeyPairResult, JWK, JWTVerifyOptions, KeyLike } from "https://deno.land/x/jose@v5.9.6/index.ts";
+import { errors, exportJWK, generateKeyPair, importJWK, importPKCS8, jwtVerify, SignJWT } from "https://deno.land/x/jose@v5.9.6/index.ts";
 import {
   Jwk,
   JwkError,

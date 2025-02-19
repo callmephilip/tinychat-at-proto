@@ -193,8 +193,7 @@ export class Messaging extends EventEmitter {
     }
 
     const parsedCursor = cursor && MessageCursor.fromString(cursor);
-    const cursorWhere = (c: MessageCursor) =>
-      c.direction === "past" ? `ts < ${c.timestamp}` : `ts > ${c.timestamp}`;
+    const cursorWhere = (c: MessageCursor) => c.direction === "past" ? `ts < ${c.timestamp}` : `ts > ${c.timestamp}`;
     let messages: MessageView[] = [];
 
     if (uri) {
@@ -208,11 +207,9 @@ export class Messaging extends EventEmitter {
         db: this.db,
         sql: `SELECT * FROM message_view WHERE ${
           parent ? `replyToRoot = '${parent}'` : "replyToRoot IS NULL"
-        } AND channel = '${channel}' AND server = '${server}' ${
-          parsedCursor ? `AND ${cursorWhere(parsedCursor)}` : ""
-        } ORDER BY ${sort === "chronological" ? "ts ASC" : "ts DESC"} LIMIT ${
-          limit || 10
-        }`,
+        } AND channel = '${channel}' AND server = '${server}' ${parsedCursor ? `AND ${cursorWhere(parsedCursor)}` : ""} ORDER BY ${
+          sort === "chronological" ? "ts ASC" : "ts DESC"
+        } LIMIT ${limit || 10}`,
         validate: validateMessageView,
       });
     }
@@ -248,9 +245,7 @@ export class Messaging extends EventEmitter {
       this.db
           .prepare(
             `SELECT uri FROM message_view
-          WHERE ${
-              parent ? `replyToRoot = '${parent}'` : "replyToRoot IS NULL"
-            } AND channel = :channel AND server = :server AND ts < :time_us
+          WHERE ${parent ? `replyToRoot = '${parent}'` : "replyToRoot IS NULL"} AND channel = :channel AND server = :server AND ts < :time_us
           ORDER BY ts DESC LIMIT :limit`,
           )
           .all<{ uri: string }>({
@@ -367,8 +362,7 @@ Deno.test("ingesting messages", async () => {
           },
         },
       ),
-    sql: (m) =>
-      `SELECT * FROM messages WHERE uri = '${m.uri}' AND reply_to = '${messageURI}'`,
+    sql: (m) => `SELECT * FROM messages WHERE uri = '${m.uri}' AND reply_to = '${messageURI}'`,
   });
 
   // delete message
@@ -380,8 +374,7 @@ Deno.test("ingesting messages", async () => {
         repo,
         rkey: messageURI.split("/").pop(),
       }),
-    sql:
-      `SELECT * FROM messages WHERE uri = '${messageURI}' AND deleted_at is NOT NULL`,
+    sql: `SELECT * FROM messages WHERE uri = '${messageURI}' AND deleted_at is NOT NULL`,
   });
 
   // confirm content is cleaned up
@@ -402,8 +395,7 @@ Deno.test("ingesting messages", async () => {
         repo,
         rkey: replyURI.split("/").pop(),
       }),
-    sql:
-      `SELECT * FROM messages WHERE uri = '${replyURI}' AND deleted_at is NOT NULL`,
+    sql: `SELECT * FROM messages WHERE uri = '${replyURI}' AND deleted_at is NOT NULL`,
   });
 
   assertEquals(receivedMessages.length, 2, "received 2 messages");
@@ -439,8 +431,7 @@ Deno.test("message loading and pagination with default latest sorting", async (t
   }
 
   await t.step("test get by uri", () => {
-    const uri =
-      db.prepare("SELECT uri FROM messages").get<{ uri: string }>()!.uri;
+    const uri = db.prepare("SELECT uri FROM messages").get<{ uri: string }>()!.uri;
     const { messages } = messaging.getMessages({ uri });
     assertEquals(messages.length, 1, "got 1 message");
     assertEquals(messages[0].uri, uri, "got the right message");

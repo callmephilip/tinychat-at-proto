@@ -1,19 +1,14 @@
 import { MessageView } from "tinychat/core/base.ts";
 import { PropsWithChildren } from "hono/jsx";
 import { parse as parseMd } from "marked";
-import {
-  linkify,
-  shortIdFromAtUri,
-  urlForMessageThread,
-} from "tinychat/utils.ts";
+import { linkify, shortIdFromAtUri, urlForMessageThread } from "tinychat/utils.ts";
 
 interface MessageProps {
   message: MessageView;
   oob: boolean;
 }
 
-const messageId = (message: MessageView) =>
-  `chat-message-${shortIdFromAtUri(message.uri)}`;
+const messageId = (message: MessageView) => `chat-message-${shortIdFromAtUri(message.uri)}`;
 
 export const LoadMoreMessages = ({
   messages,
@@ -108,9 +103,7 @@ export const MessageThread = ({ messages }: { messages: MessageView[] }) => {
   console.log(">>>>>>>>> rootMessages", rootMessages);
   return (
     <div class="thread-view space-y-4">
-      {rootMessages.map((message) => (
-        <ThreadBranch key={message.uri} message={message} />
-      ))}
+      {rootMessages.map((message) => <ThreadBranch key={message.uri} message={message} />)}
     </div>
   );
 };

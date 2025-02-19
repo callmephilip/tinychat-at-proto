@@ -84,9 +84,7 @@ app.use(
   "*",
   createMiddleware(async (c, next) => {
     const authorization = c.req.header("Authorization");
-    const { client: oauthClient, user } = authorization
-      ? await TinychatOAuthClient.fromAuthorizationHeader(authorization)
-      : {};
+    const { client: oauthClient, user } = authorization ? await TinychatOAuthClient.fromAuthorizationHeader(authorization) : {};
     c.set("ctx", {
       oauthClient,
       session: undefined,

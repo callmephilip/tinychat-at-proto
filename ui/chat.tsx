@@ -4,10 +4,7 @@ import { Channel } from "@tinychat/ui/channel.tsx";
 import { Logo } from "@tinychat/ui/logo.tsx";
 import { useAuth } from "./context/auth.tsx";
 import { useServer } from "./context/server.tsx";
-import {
-  urlForChannelMessageList,
-  urlFromServerAtURI,
-} from "tinychat/utils.ts";
+import { urlForChannelMessageList, urlFromServerAtURI } from "tinychat/utils.ts";
 
 export const Chat = () => {
   const { user, isMemberOf } = useAuth();
@@ -86,9 +83,7 @@ export const Chat = () => {
             <Channel
               key={channel.id}
               channel={channel}
-              isSelected={currentChannel
-                ? currentChannel.id === channel.id
-                : i === 0}
+              isSelected={currentChannel ? currentChannel.id === channel.id : i === 0}
             />
           ))}
         </div>

@@ -10,11 +10,7 @@ import { LexiconPage } from "@tinychat/ui/pages/lexicon.tsx";
 import { LexiconDefinition } from "@tinychat/ui/lexicon/definition.tsx";
 import { CreateServerPage } from "@tinychat/ui/pages/create-server.tsx";
 import { HTTPException } from "hono/http-exception";
-import {
-  parseURLForChannelMessageList,
-  serverAtURIFromUrl,
-  urlFromServerAtURI,
-} from "tinychat/utils.ts";
+import { parseURLForChannelMessageList, serverAtURIFromUrl, urlFromServerAtURI } from "tinychat/utils.ts";
 import { validateRecord } from "@tinychat/lexicons/types/chat/tinychat/core/message.ts";
 import { getRichText } from "tinychat/bsky.ts";
 
@@ -71,9 +67,7 @@ app.get("/chat/:did/:rkey", async (c) => {
       },
       server: {
         server: serverData,
-        currentChannel: ch
-          ? serverData.channels?.find((c) => c.id === ch)
-          : serverData.channels[0],
+        currentChannel: ch ? serverData.channels?.find((c) => c.id === ch) : serverData.channels[0],
       },
     }),
   );
@@ -95,9 +89,7 @@ app.post("/messages/send", async (c) => {
     text: rt.text,
     facets: rt.facets,
     createdAt: new Date().toISOString(),
-    reply: data.get("reply")
-      ? JSON.parse(data.get("reply")!.toString())
-      : undefined,
+    reply: data.get("reply") ? JSON.parse(data.get("reply")!.toString()) : undefined,
     // @ts-ignore yolo
   }).value!;
 

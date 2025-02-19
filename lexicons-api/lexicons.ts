@@ -296,8 +296,7 @@ export const schemaDict = {
         properties: {
           labelerDid: {
             type: "string",
-            description:
-              "Which labeler does this preference apply to? If undefined, applies globally.",
+            description: "Which labeler does this preference apply to? If undefined, applies globally.",
             format: "did",
           },
           label: {
@@ -380,8 +379,7 @@ export const schemaDict = {
         properties: {
           feed: {
             type: "string",
-            description:
-              "The URI of the feed, or an identifier which describes the feed.",
+            description: "The URI of the feed, or an identifier which describes the feed.",
           },
           hideReplies: {
             type: "boolean",
@@ -389,14 +387,12 @@ export const schemaDict = {
           },
           hideRepliesByUnfollowed: {
             type: "boolean",
-            description:
-              "Hide replies in the feed if they are not by followed users.",
+            description: "Hide replies in the feed if they are not by followed users.",
             default: true,
           },
           hideRepliesByLikeCount: {
             type: "integer",
-            description:
-              "Hide replies in the feed if they do not have this number of likes.",
+            description: "Hide replies in the feed if they do not have this number of likes.",
           },
           hideReposts: {
             type: "boolean",
@@ -440,8 +436,7 @@ export const schemaDict = {
               maxLength: 640,
               maxGraphemes: 64,
             },
-            description:
-              "A list of tags which describe the account owner's interests gathered during onboarding.",
+            description: "A list of tags which describe the account owner's interests gathered during onboarding.",
           },
         },
       },
@@ -475,16 +470,14 @@ export const schemaDict = {
           },
           actorTarget: {
             type: "string",
-            description:
-              "Groups of users to apply the muted word to. If undefined, applies to all users.",
+            description: "Groups of users to apply the muted word to. If undefined, applies to all users.",
             knownValues: ["all", "exclude-following"],
             default: "all",
           },
           expiresAt: {
             type: "string",
             format: "datetime",
-            description:
-              "The date and time at which the muted word will expire and no longer be applied.",
+            description: "The date and time at which the muted word will expire and no longer be applied.",
           },
         },
       },
@@ -512,8 +505,7 @@ export const schemaDict = {
               type: "string",
               format: "at-uri",
             },
-            description:
-              "A list of URIs of posts the account owner has hidden.",
+            description: "A list of URIs of posts the account owner has hidden.",
           },
         },
       },
@@ -541,8 +533,7 @@ export const schemaDict = {
         },
       },
       bskyAppStatePref: {
-        description:
-          "A grab bag of state that's specific to the bsky.app program. Third-party apps shouldn't use this.",
+        description: "A grab bag of state that's specific to the bsky.app program. Third-party apps shouldn't use this.",
         type: "object",
         properties: {
           activeProgressGuide: {
@@ -550,8 +541,7 @@ export const schemaDict = {
             ref: "lex:app.bsky.actor.defs#bskyAppProgressGuide",
           },
           queuedNudges: {
-            description:
-              "An array of tokens which identify nudges (modals, popups, tours, highlight dots) that should be shown to the user.",
+            description: "An array of tokens which identify nudges (modals, popups, tours, highlight dots) that should be shown to the user.",
             type: "array",
             maxLength: 1000,
             items: {
@@ -571,8 +561,7 @@ export const schemaDict = {
         },
       },
       bskyAppProgressGuide: {
-        description:
-          "If set, an active progress guide. Once completed, can be set to undefined. Should have unspecced fields tracking progress.",
+        description: "If set, an active progress guide. Once completed, can be set to undefined. Should have unspecced fields tracking progress.",
         type: "object",
         required: ["guide"],
         properties: {
@@ -596,8 +585,7 @@ export const schemaDict = {
             default: false,
           },
           data: {
-            description:
-              "Arbitrary data for the NUX. The structure is defined by the NUX itself. Limited to 300 characters.",
+            description: "Arbitrary data for the NUX. The structure is defined by the NUX itself. Limited to 300 characters.",
             type: "string",
             maxLength: 3000,
             maxGraphemes: 300,
@@ -605,8 +593,7 @@ export const schemaDict = {
           expiresAt: {
             type: "string",
             format: "datetime",
-            description:
-              "The date and time at which the NUX will expire and should be considered completed.",
+            description: "The date and time at which the NUX will expire and should be considered completed.",
           },
         },
       },
@@ -646,8 +633,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get detailed profile view of an actor. Does not require auth, but contains relevant metadata with auth.",
+        description: "Get detailed profile view of an actor. Does not require auth, but contains relevant metadata with auth.",
         parameters: {
           type: "params",
           required: ["actor"],
@@ -715,8 +701,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get a list of suggested actors. Expected use is discovery of accounts to follow during new account onboarding.",
+        description: "Get a list of suggested actors. Expected use is discovery of accounts to follow during new account onboarding.",
         parameters: {
           type: "params",
           properties: {
@@ -749,8 +734,7 @@ export const schemaDict = {
               },
               recId: {
                 type: "integer",
-                description:
-                  "Snowflake for this recommendation, use when submitting recommendation events.",
+                description: "Snowflake for this recommendation, use when submitting recommendation events.",
               },
             },
           },
@@ -782,22 +766,19 @@ export const schemaDict = {
             },
             avatar: {
               type: "blob",
-              description:
-                "Small image to be displayed next to posts from account. AKA, 'profile picture'",
+              description: "Small image to be displayed next to posts from account. AKA, 'profile picture'",
               accept: ["image/png", "image/jpeg"],
               maxSize: 1000000,
             },
             banner: {
               type: "blob",
-              description:
-                "Larger horizontal image to display behind profile view.",
+              description: "Larger horizontal image to display behind profile view.",
               accept: ["image/png", "image/jpeg"],
               maxSize: 1000000,
             },
             labels: {
               type: "union",
-              description:
-                "Self-label values, specific to the Bluesky application, on the overall account.",
+              description: "Self-label values, specific to the Bluesky application, on the overall account.",
               refs: ["lex:com.atproto.label.defs#selfLabels"],
             },
             joinedViaStarterPack: {
@@ -846,8 +827,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Find actors (profiles) matching search criteria. Does not require auth.",
+        description: "Find actors (profiles) matching search criteria. Does not require auth.",
         parameters: {
           type: "params",
           properties: {
@@ -857,8 +837,7 @@ export const schemaDict = {
             },
             q: {
               type: "string",
-              description:
-                "Search query string. Syntax, phrase, boolean, and faceting is unspecified, but Lucene query syntax is recommended.",
+              description: "Search query string. Syntax, phrase, boolean, and faceting is unspecified, but Lucene query syntax is recommended.",
             },
             limit: {
               type: "integer",
@@ -967,8 +946,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "object",
-        description:
-          "A representation of some externally linked content (eg, a URL and 'card'), embedded in a Bluesky record (eg, a post).",
+        description: "A representation of some externally linked content (eg, a URL and 'card'), embedded in a Bluesky record (eg, a post).",
         required: ["external"],
         properties: {
           external: {
@@ -1060,8 +1038,7 @@ export const schemaDict = {
           },
           alt: {
             type: "string",
-            description:
-              "Alt text description of the image, for accessibility.",
+            description: "Alt text description of the image, for accessibility.",
           },
           aspectRatio: {
             type: "ref",
@@ -1090,8 +1067,7 @@ export const schemaDict = {
           thumb: {
             type: "string",
             format: "uri",
-            description:
-              "Fully-qualified URL where a thumbnail of the image can be fetched. For example, CDN location provided by the App View.",
+            description: "Fully-qualified URL where a thumbnail of the image can be fetched. For example, CDN location provided by the App View.",
           },
           fullsize: {
             type: "string",
@@ -1101,8 +1077,7 @@ export const schemaDict = {
           },
           alt: {
             type: "string",
-            description:
-              "Alt text description of the image, for accessibility.",
+            description: "Alt text description of the image, for accessibility.",
           },
           aspectRatio: {
             type: "ref",
@@ -1321,8 +1296,7 @@ export const schemaDict = {
           },
           alt: {
             type: "string",
-            description:
-              "Alt text description of the video, for accessibility.",
+            description: "Alt text description of the video, for accessibility.",
             maxGraphemes: 1000,
             maxLength: 10000,
           },
@@ -1471,8 +1445,7 @@ export const schemaDict = {
       },
       threadContext: {
         type: "object",
-        description:
-          "Metadata about this post within the context of the thread it is in.",
+        description: "Metadata about this post within the context of the thread it is in.",
         properties: {
           rootAuthorLike: {
             type: "string",
@@ -1501,8 +1474,7 @@ export const schemaDict = {
           },
           feedContext: {
             type: "string",
-            description:
-              "Context provided by feed generator that may be passed back alongside interactions.",
+            description: "Context provided by feed generator that may be passed back alongside interactions.",
             maxLength: 2000,
           },
         },
@@ -1530,8 +1502,7 @@ export const schemaDict = {
           grandparentAuthor: {
             type: "ref",
             ref: "lex:app.bsky.actor.defs#profileViewBasic",
-            description:
-              "When parent is a reply to another post, this is the author of that post.",
+            description: "When parent is a reply to another post, this is the author of that post.",
           },
         },
       },
@@ -1728,8 +1699,7 @@ export const schemaDict = {
           },
           feedContext: {
             type: "string",
-            description:
-              "Context that will be passed through to client and may be passed to feed generator back alongside interactions.",
+            description: "Context that will be passed through to client and may be passed to feed generator back alongside interactions.",
             maxLength: 2000,
           },
         },
@@ -1797,21 +1767,18 @@ export const schemaDict = {
           },
           feedContext: {
             type: "string",
-            description:
-              "Context on a feed item that was originally supplied by the feed generator on getFeedSkeleton.",
+            description: "Context on a feed item that was originally supplied by the feed generator on getFeedSkeleton.",
             maxLength: 2000,
           },
         },
       },
       requestLess: {
         type: "token",
-        description:
-          "Request that less content like the given feed item be shown in the feed",
+        description: "Request that less content like the given feed item be shown in the feed",
       },
       requestMore: {
         type: "token",
-        description:
-          "Request that more content like the given feed item be shown in the feed",
+        description: "Request that more content like the given feed item be shown in the feed",
       },
       clickthroughItem: {
         type: "token",
@@ -1827,8 +1794,7 @@ export const schemaDict = {
       },
       clickthroughEmbed: {
         type: "token",
-        description:
-          "User clicked through to the embedded content of the feed item",
+        description: "User clicked through to the embedded content of the feed item",
       },
       contentModeUnspecified: {
         type: "token",
@@ -1836,8 +1802,7 @@ export const schemaDict = {
       },
       contentModeVideo: {
         type: "token",
-        description:
-          "Declares the feed generator returns posts containing app.bsky.embed.video embeds.",
+        description: "Declares the feed generator returns posts containing app.bsky.embed.video embeds.",
       },
       interactionSeen: {
         type: "token",
@@ -1962,8 +1927,7 @@ export const schemaDict = {
             },
             acceptsInteractions: {
               type: "boolean",
-              description:
-                "Declaration that a feed accepts feedback interactions from a client through app.bsky.feed.sendInteractions",
+              description: "Declaration that a feed accepts feedback interactions from a client through app.bsky.feed.sendInteractions",
             },
             labels: {
               type: "union",
@@ -1992,8 +1956,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get a list of feeds (feed generator records) created by the actor (in the actor's repo).",
+        description: "Get a list of feeds (feed generator records) created by the actor (in the actor's repo).",
         parameters: {
           type: "params",
           required: ["actor"],
@@ -2041,8 +2004,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get a list of posts liked by an actor. Requires auth, actor must be the requesting account.",
+        description: "Get a list of posts liked by an actor. Requires auth, actor must be the requesting account.",
         parameters: {
           type: "params",
           required: ["actor"],
@@ -2098,8 +2060,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get a view of an actor's 'author feed' (post and reposts by the author). Does not require auth.",
+        description: "Get a view of an actor's 'author feed' (post and reposts by the author). Does not require auth.",
         parameters: {
           type: "params",
           required: ["actor"],
@@ -2119,8 +2080,7 @@ export const schemaDict = {
             },
             filter: {
               type: "string",
-              description:
-                "Combinations of post/repost types to include in response.",
+              description: "Combinations of post/repost types to include in response.",
               knownValues: [
                 "posts_with_replies",
                 "posts_no_replies",
@@ -2172,8 +2132,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get a hydrated feed from an actor's selected feed generator. Implemented by App View.",
+        description: "Get a hydrated feed from an actor's selected feed generator. Implemented by App View.",
         parameters: {
           type: "params",
           required: ["feed"],
@@ -2226,8 +2185,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get information about a feed generator. Implemented by AppView.",
+        description: "Get information about a feed generator. Implemented by AppView.",
         parameters: {
           type: "params",
           required: ["feed"],
@@ -2251,13 +2209,11 @@ export const schemaDict = {
               },
               isOnline: {
                 type: "boolean",
-                description:
-                  "Indicates whether the feed generator service has been online recently, or else seems to be inactive.",
+                description: "Indicates whether the feed generator service has been online recently, or else seems to be inactive.",
               },
               isValid: {
                 type: "boolean",
-                description:
-                  "Indicates whether the feed generator service is compatible with the record declaration.",
+                description: "Indicates whether the feed generator service is compatible with the record declaration.",
               },
             },
           },
@@ -2319,8 +2275,7 @@ export const schemaDict = {
             feed: {
               type: "string",
               format: "at-uri",
-              description:
-                "Reference to feed generator record describing the specific feed being requested.",
+              description: "Reference to feed generator record describing the specific feed being requested.",
             },
             limit: {
               type: "integer",
@@ -2366,8 +2321,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get like records which reference a subject (by AT-URI and CID).",
+        description: "Get like records which reference a subject (by AT-URI and CID).",
         parameters: {
           type: "params",
           required: ["uri"],
@@ -2380,8 +2334,7 @@ export const schemaDict = {
             cid: {
               type: "string",
               format: "cid",
-              description:
-                "CID of the subject record (aka, specific version of record), to filter likes.",
+              description: "CID of the subject record (aka, specific version of record), to filter likes.",
             },
             limit: {
               type: "integer",
@@ -2448,8 +2401,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get a feed of recent posts from a list (posts and reposts from any actors on the list). Does not require auth.",
+        description: "Get a feed of recent posts from a list (posts and reposts from any actors on the list). Does not require auth.",
         parameters: {
           type: "params",
           required: ["list"],
@@ -2503,8 +2455,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get posts in a thread. Does not require auth, but additional metadata and filtering will be applied for authed requests.",
+        description: "Get posts in a thread. Does not require auth, but additional metadata and filtering will be applied for authed requests.",
         parameters: {
           type: "params",
           required: ["uri"],
@@ -2516,16 +2467,14 @@ export const schemaDict = {
             },
             depth: {
               type: "integer",
-              description:
-                "How many levels of reply depth should be included in response.",
+              description: "How many levels of reply depth should be included in response.",
               default: 6,
               minimum: 0,
               maximum: 1000,
             },
             parentHeight: {
               type: "integer",
-              description:
-                "How many levels of parent (and grandparent, etc) post to include.",
+              description: "How many levels of parent (and grandparent, etc) post to include.",
               default: 80,
               minimum: 0,
               maximum: 1000,
@@ -2567,8 +2516,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Gets post views for a specified list of posts (by AT-URI). This is sometimes referred to as 'hydrating' a 'feed skeleton'.",
+        description: "Gets post views for a specified list of posts (by AT-URI). This is sometimes referred to as 'hydrating' a 'feed skeleton'.",
         parameters: {
           type: "params",
           required: ["uris"],
@@ -2622,8 +2570,7 @@ export const schemaDict = {
             cid: {
               type: "string",
               format: "cid",
-              description:
-                "If supplied, filters to quotes of specific version (by CID) of the post record.",
+              description: "If supplied, filters to quotes of specific version (by CID) of the post record.",
             },
             limit: {
               type: "integer",
@@ -2685,8 +2632,7 @@ export const schemaDict = {
             cid: {
               type: "string",
               format: "cid",
-              description:
-                "If supplied, filters to reposts of specific version (by CID) of the post record.",
+              description: "If supplied, filters to reposts of specific version (by CID) of the post record.",
             },
             limit: {
               type: "integer",
@@ -2735,8 +2681,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get a list of suggested feeds (feed generators) for the requesting account.",
+        description: "Get a list of suggested feeds (feed generators) for the requesting account.",
         parameters: {
           type: "params",
           properties: {
@@ -2779,8 +2724,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get a view of the requesting account's home timeline. This is expected to be some form of reverse-chronological feed.",
+        description: "Get a view of the requesting account's home timeline. This is expected to be some form of reverse-chronological feed.",
         parameters: {
           type: "params",
           properties: {
@@ -2863,8 +2807,7 @@ export const schemaDict = {
               type: "string",
               maxLength: 3000,
               maxGraphemes: 300,
-              description:
-                "The primary post content. May be an empty string, if there are embeds.",
+              description: "The primary post content. May be an empty string, if there are embeds.",
             },
             entities: {
               type: "array",
@@ -2876,8 +2819,7 @@ export const schemaDict = {
             },
             facets: {
               type: "array",
-              description:
-                "Annotations of text (mentions, URLs, hashtags, etc)",
+              description: "Annotations of text (mentions, URLs, hashtags, etc)",
               items: {
                 type: "ref",
                 ref: "lex:app.bsky.richtext.facet",
@@ -2899,8 +2841,7 @@ export const schemaDict = {
             },
             langs: {
               type: "array",
-              description:
-                "Indicates human language of post primary text content.",
+              description: "Indicates human language of post primary text content.",
               maxLength: 3,
               items: {
                 type: "string",
@@ -2909,14 +2850,12 @@ export const schemaDict = {
             },
             labels: {
               type: "union",
-              description:
-                "Self-label values for this post. Effectively content warnings.",
+              description: "Self-label values for this post. Effectively content warnings.",
               refs: ["lex:com.atproto.label.defs#selfLabels"],
             },
             tags: {
               type: "array",
-              description:
-                "Additional hashtags, in addition to any included in post text and facets.",
+              description: "Additional hashtags, in addition to any included in post text and facets.",
               maxLength: 8,
               items: {
                 type: "string",
@@ -2927,8 +2866,7 @@ export const schemaDict = {
             createdAt: {
               type: "string",
               format: "datetime",
-              description:
-                "Client-declared timestamp when this post was originally created.",
+              description: "Client-declared timestamp when this post was originally created.",
             },
           },
         },
@@ -3012,8 +2950,7 @@ export const schemaDict = {
                 type: "string",
                 format: "at-uri",
               },
-              description:
-                "List of AT-URIs embedding this post that the author has detached from.",
+              description: "List of AT-URIs embedding this post that the author has detached from.",
             },
             embeddingRules: {
               type: "array",
@@ -3038,8 +2975,7 @@ export const schemaDict = {
     id: "app.bsky.feed.repost",
     defs: {
       main: {
-        description:
-          "Record representing a 'repost' of an existing Bluesky post.",
+        description: "Record representing a 'repost' of an existing Bluesky post.",
         type: "record",
         key: "tid",
         record: {
@@ -3065,16 +3001,14 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Find posts matching search criteria, returning views of those posts.",
+        description: "Find posts matching search criteria, returning views of those posts.",
         parameters: {
           type: "params",
           required: ["q"],
           properties: {
             q: {
               type: "string",
-              description:
-                "Search query string; syntax, phrase, boolean, and faceting is unspecified, but Lucene query syntax is recommended.",
+              description: "Search query string; syntax, phrase, boolean, and faceting is unspecified, but Lucene query syntax is recommended.",
             },
             sort: {
               type: "string",
@@ -3101,8 +3035,7 @@ export const schemaDict = {
             author: {
               type: "string",
               format: "at-identifier",
-              description:
-                "Filter to posts by the given account. Handles are resolved to DID before query-time.",
+              description: "Filter to posts by the given account. Handles are resolved to DID before query-time.",
             },
             lang: {
               type: "string",
@@ -3139,8 +3072,7 @@ export const schemaDict = {
             },
             cursor: {
               type: "string",
-              description:
-                "Optional pagination mechanism; may not necessarily allow scrolling through entire result set.",
+              description: "Optional pagination mechanism; may not necessarily allow scrolling through entire result set.",
             },
           },
         },
@@ -3155,8 +3087,7 @@ export const schemaDict = {
               },
               hitsTotal: {
                 type: "integer",
-                description:
-                  "Count of search hits. Optional, may be rounded/truncated, and may not be possible to paginate through all hits.",
+                description: "Count of search hits. Optional, may be rounded/truncated, and may not be possible to paginate through all hits.",
               },
               posts: {
                 type: "array",
@@ -3182,8 +3113,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Send information about interactions with feed items back to the feed generator that served them.",
+        description: "Send information about interactions with feed items back to the feed generator that served them.",
         input: {
           encoding: "application/json",
           schema: {
@@ -3546,18 +3476,15 @@ export const schemaDict = {
       },
       modlist: {
         type: "token",
-        description:
-          "A list of actors to apply an aggregate moderation action (mute/block) on.",
+        description: "A list of actors to apply an aggregate moderation action (mute/block) on.",
       },
       curatelist: {
         type: "token",
-        description:
-          "A list of actors used for curation purposes such as list feeds or interaction gating.",
+        description: "A list of actors used for curation purposes such as list feeds or interaction gating.",
       },
       referencelist: {
         type: "token",
-        description:
-          "A list of actors used for only for reference purposes such as within a starter pack.",
+        description: "A list of actors used for only for reference purposes such as within a starter pack.",
       },
       listViewerState: {
         type: "object",
@@ -3599,14 +3526,12 @@ export const schemaDict = {
           following: {
             type: "string",
             format: "at-uri",
-            description:
-              "if the actor follows this DID, this is the AT-URI of the follow record",
+            description: "if the actor follows this DID, this is the AT-URI of the follow record",
           },
           followedBy: {
             type: "string",
             format: "at-uri",
-            description:
-              "if the actor is followed by this DID, contains the AT-URI of the follow record",
+            description: "if the actor is followed by this DID, contains the AT-URI of the follow record",
           },
         },
       },
@@ -3618,8 +3543,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "record",
-        description:
-          "Record declaring a social 'follow' relationship of another account. Duplicate follows will be ignored by the AppView.",
+        description: "Record declaring a social 'follow' relationship of another account. Duplicate follows will be ignored by the AppView.",
         key: "tid",
         record: {
           type: "object",
@@ -3692,8 +3616,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Enumerates which accounts the requesting account is currently blocking. Requires auth.",
+        description: "Enumerates which accounts the requesting account is currently blocking. Requires auth.",
         parameters: {
           type: "params",
           properties: {
@@ -3736,8 +3659,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Enumerates accounts which follow a specified account (actor).",
+        description: "Enumerates accounts which follow a specified account (actor).",
         parameters: {
           type: "params",
           required: ["actor"],
@@ -3789,8 +3711,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Enumerates accounts which a specified account (actor) follows.",
+        description: "Enumerates accounts which a specified account (actor) follows.",
         parameters: {
           type: "params",
           required: ["actor"],
@@ -3842,8 +3763,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Enumerates accounts which follow a specified account (actor) and are followed by the viewer.",
+        description: "Enumerates accounts which follow a specified account (actor) and are followed by the viewer.",
         parameters: {
           type: "params",
           required: ["actor"],
@@ -3895,8 +3815,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Gets a 'view' (with additional context) of a specified list.",
+        description: "Gets a 'view' (with additional context) of a specified list.",
         parameters: {
           type: "params",
           required: ["list"],
@@ -3949,8 +3868,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get mod lists that the requesting account (actor) is blocking. Requires auth.",
+        description: "Get mod lists that the requesting account (actor) is blocking. Requires auth.",
         parameters: {
           type: "params",
           properties: {
@@ -3993,8 +3911,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Enumerates mod lists that the requesting account (actor) currently has muted. Requires auth.",
+        description: "Enumerates mod lists that the requesting account (actor) currently has muted. Requires auth.",
         parameters: {
           type: "params",
           properties: {
@@ -4037,8 +3954,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Enumerates the lists created by a specified account (actor).",
+        description: "Enumerates the lists created by a specified account (actor).",
         parameters: {
           type: "params",
           required: ["actor"],
@@ -4087,8 +4003,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Enumerates accounts that the requesting account (actor) currently has muted. Requires auth.",
+        description: "Enumerates accounts that the requesting account (actor) currently has muted. Requires auth.",
         parameters: {
           type: "params",
           properties: {
@@ -4131,8 +4046,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Enumerates public relationships between one account, and a list of other accounts. Does not require auth.",
+        description: "Enumerates public relationships between one account, and a list of other accounts. Does not require auth.",
         parameters: {
           type: "params",
           required: ["actor"],
@@ -4144,8 +4058,7 @@ export const schemaDict = {
             },
             others: {
               type: "array",
-              description:
-                "List of 'other' accounts to be related back to the primary.",
+              description: "List of 'other' accounts to be related back to the primary.",
               maxLength: 30,
               items: {
                 type: "string",
@@ -4180,8 +4093,7 @@ export const schemaDict = {
         errors: [
           {
             name: "ActorNotFound",
-            description:
-              "the primary actor at-identifier could not be resolved",
+            description: "the primary actor at-identifier could not be resolved",
           },
         ],
       },
@@ -4294,14 +4206,12 @@ export const schemaDict = {
               },
               isFallback: {
                 type: "boolean",
-                description:
-                  "If true, response has fallen-back to generic results, and is not scoped using relativeToDid",
+                description: "If true, response has fallen-back to generic results, and is not scoped using relativeToDid",
                 default: false,
               },
               recId: {
                 type: "integer",
-                description:
-                  "Snowflake for this recommendation, use when submitting recommendation events.",
+                description: "Snowflake for this recommendation, use when submitting recommendation events.",
               },
             },
           },
@@ -4315,8 +4225,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "record",
-        description:
-          "Record representing a list of accounts (actors). Scope includes both moderation-oriented lists and curration-oriented lists.",
+        description: "Record representing a list of accounts (actors). Scope includes both moderation-oriented lists and curration-oriented lists.",
         key: "tid",
         record: {
           type: "object",
@@ -4324,8 +4233,7 @@ export const schemaDict = {
           properties: {
             purpose: {
               type: "ref",
-              description:
-                "Defines the purpose of the list (aka, moderation-oriented or curration-oriented)",
+              description: "Defines the purpose of the list (aka, moderation-oriented or curration-oriented)",
               ref: "lex:app.bsky.graph.defs#listPurpose",
             },
             name: {
@@ -4370,8 +4278,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "record",
-        description:
-          "Record representing a block relationship against an entire an entire list of accounts (actors).",
+        description: "Record representing a block relationship against an entire an entire list of accounts (actors).",
         key: "tid",
         record: {
           type: "object",
@@ -4397,8 +4304,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "record",
-        description:
-          "Record representing an account's inclusion on a specific list. The AppView will ignore duplicate listitem records.",
+        description: "Record representing an account's inclusion on a specific list. The AppView will ignore duplicate listitem records.",
         key: "tid",
         record: {
           type: "object",
@@ -4412,8 +4318,7 @@ export const schemaDict = {
             list: {
               type: "string",
               format: "at-uri",
-              description:
-                "Reference (AT-URI) to the list record (app.bsky.graph.list).",
+              description: "Reference (AT-URI) to the list record (app.bsky.graph.list).",
             },
             createdAt: {
               type: "string",
@@ -4430,8 +4335,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Creates a mute relationship for the specified account. Mutes are private in Bluesky. Requires auth.",
+        description: "Creates a mute relationship for the specified account. Mutes are private in Bluesky. Requires auth.",
         input: {
           encoding: "application/json",
           schema: {
@@ -4454,8 +4358,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Creates a mute relationship for the specified list of accounts. Mutes are private in Bluesky. Requires auth.",
+        description: "Creates a mute relationship for the specified list of accounts. Mutes are private in Bluesky. Requires auth.",
         input: {
           encoding: "application/json",
           schema: {
@@ -4478,8 +4381,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Mutes a thread preventing notifications from the thread and any of its children. Mutes are private in Bluesky. Requires auth.",
+        description: "Mutes a thread preventing notifications from the thread and any of its children. Mutes are private in Bluesky. Requires auth.",
         input: {
           encoding: "application/json",
           schema: {
@@ -4502,16 +4404,14 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Find starter packs matching search criteria. Does not require auth.",
+        description: "Find starter packs matching search criteria. Does not require auth.",
         parameters: {
           type: "params",
           required: ["q"],
           properties: {
             q: {
               type: "string",
-              description:
-                "Search query string. Syntax, phrase, boolean, and faceting is unspecified, but Lucene query syntax is recommended.",
+              description: "Search query string. Syntax, phrase, boolean, and faceting is unspecified, but Lucene query syntax is recommended.",
             },
             limit: {
               type: "integer",
@@ -4552,8 +4452,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "record",
-        description:
-          "Record defining a starter pack of actors and feeds for new users.",
+        description: "Record defining a starter pack of actors and feeds for new users.",
         key: "tid",
         record: {
           type: "object",
@@ -4776,8 +4675,7 @@ export const schemaDict = {
         properties: {
           labelValues: {
             type: "array",
-            description:
-              "The label values which this labeler publishes. May include global or custom labels.",
+            description: "The label values which this labeler publishes. May include global or custom labels.",
             items: {
               type: "ref",
               ref: "lex:com.atproto.label.defs#labelValue",
@@ -4877,8 +4775,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Count the number of unread notifications for the requesting account. Requires auth.",
+        description: "Count the number of unread notifications for the requesting account. Requires auth.",
         parameters: {
           type: "params",
           properties: {
@@ -4912,8 +4809,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Enumerate notifications for the requesting account. Requires auth.",
+        description: "Enumerate notifications for the requesting account. Requires auth.",
         parameters: {
           type: "params",
           properties: {
@@ -4922,8 +4818,7 @@ export const schemaDict = {
               type: "array",
               items: {
                 type: "string",
-                description:
-                  "A reason that matches the reason property of #notification.",
+                description: "A reason that matches the reason property of #notification.",
               },
             },
             limit: {
@@ -4957,8 +4852,7 @@ export const schemaDict = {
                 type: "array",
                 items: {
                   type: "ref",
-                  ref:
-                    "lex:app.bsky.notification.listNotifications#notification",
+                  ref: "lex:app.bsky.notification.listNotifications#notification",
                 },
               },
               priority: {
@@ -4998,8 +4892,7 @@ export const schemaDict = {
           },
           reason: {
             type: "string",
-            description:
-              "Expected values are 'like', 'repost', 'follow', 'mention', 'reply', 'quote', and 'starterpack-joined'.",
+            description: "Expected values are 'like', 'repost', 'follow', 'mention', 'reply', 'quote', and 'starterpack-joined'.",
             knownValues: [
               "like",
               "repost",
@@ -5041,8 +4934,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Set notification-related preferences for an account. Requires auth.",
+        description: "Set notification-related preferences for an account. Requires auth.",
         input: {
           encoding: "application/json",
           schema: {
@@ -5064,8 +4956,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Register to receive push notifications, via a specified service, for the requesting account. Requires auth.",
+        description: "Register to receive push notifications, via a specified service, for the requesting account. Requires auth.",
         input: {
           encoding: "application/json",
           schema: {
@@ -5098,8 +4989,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Notify server that the requesting account has seen notifications. Requires auth.",
+        description: "Notify server that the requesting account has seen notifications. Requires auth.",
         input: {
           encoding: "application/json",
           schema: {
@@ -5156,8 +5046,7 @@ export const schemaDict = {
       },
       link: {
         type: "object",
-        description:
-          "Facet feature for a URL. The text URL may have been simplified or truncated, but the facet reference should be a complete URL.",
+        description: "Facet feature for a URL. The text URL may have been simplified or truncated, but the facet reference should be a complete URL.",
         required: ["uri"],
         properties: {
           uri: {
@@ -5325,8 +5214,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get a skeleton of suggested actors. Intended to be called and then hydrated through app.bsky.actor.getSuggestions",
+        description: "Get a skeleton of suggested actors. Intended to be called and then hydrated through app.bsky.actor.getSuggestions",
         parameters: {
           type: "params",
           properties: {
@@ -5348,8 +5236,7 @@ export const schemaDict = {
             relativeToDid: {
               type: "string",
               format: "did",
-              description:
-                "DID of the account to get suggestions relative to. If not provided, suggestions will be based on the viewer.",
+              description: "DID of the account to get suggestions relative to. If not provided, suggestions will be based on the viewer.",
             },
           },
         },
@@ -5377,8 +5264,7 @@ export const schemaDict = {
               },
               recId: {
                 type: "integer",
-                description:
-                  "Snowflake for this recommendation, use when submitting recommendation events.",
+                description: "Snowflake for this recommendation, use when submitting recommendation events.",
               },
             },
           },
@@ -5392,8 +5278,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get a list of suggestions (feeds and users) tagged with categories",
+        description: "Get a list of suggestions (feeds and users) tagged with categories",
         parameters: {
           type: "params",
           properties: {},
@@ -5518,8 +5403,7 @@ export const schemaDict = {
             },
             cursor: {
               type: "string",
-              description:
-                "Optional pagination mechanism; may not necessarily allow scrolling through entire result set.",
+              description: "Optional pagination mechanism; may not necessarily allow scrolling through entire result set.",
             },
           },
         },
@@ -5534,8 +5418,7 @@ export const schemaDict = {
               },
               hitsTotal: {
                 type: "integer",
-                description:
-                  "Count of search hits. Optional, may be rounded/truncated, and may not be possible to paginate through all hits.",
+                description: "Count of search hits. Optional, may be rounded/truncated, and may not be possible to paginate through all hits.",
               },
               actors: {
                 type: "array",
@@ -5568,8 +5451,7 @@ export const schemaDict = {
           properties: {
             q: {
               type: "string",
-              description:
-                "Search query string; syntax, phrase, boolean, and faceting is unspecified, but Lucene query syntax is recommended.",
+              description: "Search query string; syntax, phrase, boolean, and faceting is unspecified, but Lucene query syntax is recommended.",
             },
             sort: {
               type: "string",
@@ -5596,8 +5478,7 @@ export const schemaDict = {
             author: {
               type: "string",
               format: "at-identifier",
-              description:
-                "Filter to posts by the given account. Handles are resolved to DID before query-time.",
+              description: "Filter to posts by the given account. Handles are resolved to DID before query-time.",
             },
             lang: {
               type: "string",
@@ -5629,8 +5510,7 @@ export const schemaDict = {
             viewer: {
               type: "string",
               format: "did",
-              description:
-                "DID of the account making the request (not included for public/unauthenticated queries). Used for 'from:me' queries.",
+              description: "DID of the account making the request (not included for public/unauthenticated queries). Used for 'from:me' queries.",
             },
             limit: {
               type: "integer",
@@ -5640,8 +5520,7 @@ export const schemaDict = {
             },
             cursor: {
               type: "string",
-              description:
-                "Optional pagination mechanism; may not necessarily allow scrolling through entire result set.",
+              description: "Optional pagination mechanism; may not necessarily allow scrolling through entire result set.",
             },
           },
         },
@@ -5656,8 +5535,7 @@ export const schemaDict = {
               },
               hitsTotal: {
                 type: "integer",
-                description:
-                  "Count of search hits. Optional, may be rounded/truncated, and may not be possible to paginate through all hits.",
+                description: "Count of search hits. Optional, may be rounded/truncated, and may not be possible to paginate through all hits.",
               },
               posts: {
                 type: "array",
@@ -5690,14 +5568,12 @@ export const schemaDict = {
           properties: {
             q: {
               type: "string",
-              description:
-                "Search query string; syntax, phrase, boolean, and faceting is unspecified, but Lucene query syntax is recommended.",
+              description: "Search query string; syntax, phrase, boolean, and faceting is unspecified, but Lucene query syntax is recommended.",
             },
             viewer: {
               type: "string",
               format: "did",
-              description:
-                "DID of the account making the request (not included for public/unauthenticated queries).",
+              description: "DID of the account making the request (not included for public/unauthenticated queries).",
             },
             limit: {
               type: "integer",
@@ -5707,8 +5583,7 @@ export const schemaDict = {
             },
             cursor: {
               type: "string",
-              description:
-                "Optional pagination mechanism; may not necessarily allow scrolling through entire result set.",
+              description: "Optional pagination mechanism; may not necessarily allow scrolling through entire result set.",
             },
           },
         },
@@ -5723,8 +5598,7 @@ export const schemaDict = {
               },
               hitsTotal: {
                 type: "integer",
-                description:
-                  "Count of search hits. Optional, may be rounded/truncated, and may not be possible to paginate through all hits.",
+                description: "Count of search hits. Optional, may be rounded/truncated, and may not be possible to paginate through all hits.",
               },
               starterPacks: {
                 type: "array",
@@ -5761,8 +5635,7 @@ export const schemaDict = {
           },
           state: {
             type: "string",
-            description:
-              "The state of the video processing job. All values not listed as a known value indicate that the job is in process.",
+            description: "The state of the video processing job. All values not listed as a known value indicate that the job is in process.",
             knownValues: ["JOB_STATE_COMPLETED", "JOB_STATE_FAILED"],
           },
           progress: {
@@ -6060,8 +5933,7 @@ export const schemaDict = {
       threadSummaryView: {
         type: "object",
         required: ["participants", "size"],
-        description:
-          "Overview of the thread associated with a message - includes participants and overall message count",
+        description: "Overview of the thread associated with a message - includes participants and overall message count",
         properties: {
           size: {
             type: "integer",
@@ -6083,8 +5955,7 @@ export const schemaDict = {
           server: {
             type: "string",
             format: "at-uri",
-            description:
-              "Reference (AT-URI) to the server record (chat.tinychat.core.server).",
+            description: "Reference (AT-URI) to the server record (chat.tinychat.core.server).",
           },
           channel: {
             type: "ref",
@@ -6139,8 +6010,7 @@ export const schemaDict = {
             server: {
               type: "string",
               format: "at-uri",
-              description:
-                "Reference (AT-URI) to the server record (chat.tinychat.core.server).",
+              description: "Reference (AT-URI) to the server record (chat.tinychat.core.server).",
             },
             createdAt: {
               type: "string",
@@ -6158,8 +6028,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "record",
-        description:
-          "Chat message from a given channel. A bunch of fields are copied from app.bsky.feed.post",
+        description: "Chat message from a given channel. A bunch of fields are copied from app.bsky.feed.post",
         key: "any",
         record: {
           type: "object",
@@ -6168,26 +6037,22 @@ export const schemaDict = {
             server: {
               type: "string",
               format: "at-uri",
-              description:
-                "Reference (AT-URI) to the server record (chat.tinychat.core.server).",
+              description: "Reference (AT-URI) to the server record (chat.tinychat.core.server).",
             },
             channel: {
               type: "string",
               format: "tid",
-              description:
-                "Reference (tid) to the channel within server record.",
+              description: "Reference (tid) to the channel within server record.",
             },
             text: {
               type: "string",
               maxLength: 3000,
               maxGraphemes: 300,
-              description:
-                "The primary post content. May be an empty string, if there are embeds.",
+              description: "The primary post content. May be an empty string, if there are embeds.",
             },
             facets: {
               type: "array",
-              description:
-                "Annotations of text (mentions, URLs, hashtags, etc)",
+              description: "Annotations of text (mentions, URLs, hashtags, etc)",
               items: {
                 type: "ref",
                 ref: "lex:app.bsky.richtext.facet",
@@ -6209,8 +6074,7 @@ export const schemaDict = {
             },
             langs: {
               type: "array",
-              description:
-                "Indicates human language of post primary text content.",
+              description: "Indicates human language of post primary text content.",
               maxLength: 3,
               items: {
                 type: "string",
@@ -6219,14 +6083,12 @@ export const schemaDict = {
             },
             labels: {
               type: "union",
-              description:
-                "Self-label values for this post. Effectively content warnings.",
+              description: "Self-label values for this post. Effectively content warnings.",
               refs: ["lex:com.atproto.label.defs#selfLabels"],
             },
             tags: {
               type: "array",
-              description:
-                "Additional hashtags, in addition to any included in post text and facets.",
+              description: "Additional hashtags, in addition to any included in post text and facets.",
               maxLength: 8,
               items: {
                 type: "string",
@@ -6237,8 +6099,7 @@ export const schemaDict = {
             createdAt: {
               type: "string",
               format: "datetime",
-              description:
-                "Client-declared timestamp when this post was originally created.",
+              description: "Client-declared timestamp when this post was originally created.",
             },
           },
         },
@@ -6260,8 +6121,7 @@ export const schemaDict = {
             server: {
               type: "string",
               format: "at-uri",
-              description:
-                "Reference (AT-URI) to the server record (chat.tinychat.core.server).",
+              description: "Reference (AT-URI) to the server record (chat.tinychat.core.server).",
             },
             channel: {
               type: "string",
@@ -6458,8 +6318,7 @@ export const schemaDict = {
           properties: {
             query: {
               type: "string",
-              description:
-                "Did of the person to get servers for. This returns servers person is member of.",
+              description: "Did of the person to get servers for. This returns servers person is member of.",
             },
           },
         },
@@ -6506,8 +6365,7 @@ export const schemaDict = {
             parent: {
               type: "string",
               format: "at-uri",
-              description:
-                "Parent message at-uri. Use this to pull messages from a specific thread",
+              description: "Parent message at-uri. Use this to pull messages from a specific thread",
             },
             limit: {
               type: "integer",
@@ -6516,15 +6374,13 @@ export const schemaDict = {
             },
             cursor: {
               type: "string",
-              description:
-                "Cursor for pagination. Pagination goes backwards - from more recent messages to older ones",
+              description: "Cursor for pagination. Pagination goes backwards - from more recent messages to older ones",
             },
             sort: {
               type: "string",
               knownValues: ["latest", "chronological"],
               default: "latest",
-              description:
-                "Specifies how to sort messages: latest first VS chronological order",
+              description: "Specifies how to sort messages: latest first VS chronological order",
             },
           },
         },
@@ -6561,8 +6417,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Gets a list of of notifications for a given channel. Requires authentication",
+        description: "Gets a list of of notifications for a given channel. Requires authentication",
         parameters: {
           type: "params",
           required: ["server", "channel"],
@@ -6610,8 +6465,7 @@ export const schemaDict = {
           properties: {
             uris: {
               type: "array",
-              description:
-                "List of server AT-URIs to return hydrated views for.",
+              description: "List of server AT-URIs to return hydrated views for.",
               items: {
                 type: "string",
                 format: "at-uri",
@@ -6621,8 +6475,7 @@ export const schemaDict = {
             did: {
               type: "string",
               format: "did",
-              description:
-                "Did of the person to get servers for. This returns servers person is member of.",
+              description: "Did of the person to get servers for. This returns servers person is member of.",
             },
           },
         },
@@ -6682,8 +6535,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Mark all messages as read in specific channel. Requires authentication.",
+        description: "Mark all messages as read in specific channel. Requires authentication.",
         input: {
           encoding: "application/json",
           schema: {
@@ -6904,8 +6756,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Disable an account from receiving new invite codes, but does not invalidate existing codes.",
+        description: "Disable an account from receiving new invite codes, but does not invalidate existing codes.",
         input: {
           encoding: "application/json",
           schema: {
@@ -6932,8 +6783,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Disable some set of codes and/or all codes associated with a set of users.",
+        description: "Disable some set of codes and/or all codes associated with a set of users.",
         input: {
           encoding: "application/json",
           schema: {
@@ -7104,8 +6954,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get the service-specific admin status of a subject (account, record, or blob).",
+        description: "Get the service-specific admin status of a subject (account, record, or blob).",
         parameters: {
           type: "params",
           properties: {
@@ -7307,8 +7156,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Update the password for a user account as an administrator.",
+        description: "Update the password for a user account as an administrator.",
         input: {
           encoding: "application/json",
           schema: {
@@ -7334,8 +7182,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Update the service-specific admin status of a subject (account, record, or blob).",
+        description: "Update the service-specific admin status of a subject (account, record, or blob).",
         input: {
           encoding: "application/json",
           schema: {
@@ -7391,16 +7238,14 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Describe the credentials that should be included in the DID doc of an account that is migrating to this service.",
+        description: "Describe the credentials that should be included in the DID doc of an account that is migrating to this service.",
         output: {
           encoding: "application/json",
           schema: {
             type: "object",
             properties: {
               rotationKeys: {
-                description:
-                  "Recommended rotation keys for PLC dids. Should be undefined (or ignored) for did:webs.",
+                description: "Recommended rotation keys for PLC dids. Should be undefined (or ignored) for did:webs.",
                 type: "array",
                 items: {
                   type: "string",
@@ -7430,8 +7275,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Request an email with a code to in order to request a signed PLC operation. Requires Auth.",
+        description: "Request an email with a code to in order to request a signed PLC operation. Requires Auth.",
       },
     },
   },
@@ -7475,16 +7319,14 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Signs a PLC operation to update some value(s) in the requesting DID's document.",
+        description: "Signs a PLC operation to update some value(s) in the requesting DID's document.",
         input: {
           encoding: "application/json",
           schema: {
             type: "object",
             properties: {
               token: {
-                description:
-                  "A token received through com.atproto.identity.requestPlcOperationSignature",
+                description: "A token received through com.atproto.identity.requestPlcOperationSignature",
                 type: "string",
               },
               rotationKeys: {
@@ -7578,8 +7420,7 @@ export const schemaDict = {
     defs: {
       label: {
         type: "object",
-        description:
-          "Metadata tag on an atproto resource (eg, repo or record).",
+        description: "Metadata tag on an atproto resource (eg, repo or record).",
         required: ["src", "uri", "val", "cts"],
         properties: {
           ver: {
@@ -7594,25 +7435,21 @@ export const schemaDict = {
           uri: {
             type: "string",
             format: "uri",
-            description:
-              "AT URI of the record, repository (account), or other resource that this label applies to.",
+            description: "AT URI of the record, repository (account), or other resource that this label applies to.",
           },
           cid: {
             type: "string",
             format: "cid",
-            description:
-              "Optionally, CID specifying the specific version of 'uri' resource this label applies to.",
+            description: "Optionally, CID specifying the specific version of 'uri' resource this label applies to.",
           },
           val: {
             type: "string",
             maxLength: 128,
-            description:
-              "The short string name of the value or type of this label.",
+            description: "The short string name of the value or type of this label.",
           },
           neg: {
             type: "boolean",
-            description:
-              "If true, this is a negation label, overwriting a previous label.",
+            description: "If true, this is a negation label, overwriting a previous label.",
           },
           cts: {
             type: "string",
@@ -7622,8 +7459,7 @@ export const schemaDict = {
           exp: {
             type: "string",
             format: "datetime",
-            description:
-              "Timestamp at which this label expires (no longer applies).",
+            description: "Timestamp at which this label expires (no longer applies).",
           },
           sig: {
             type: "bytes",
@@ -7633,8 +7469,7 @@ export const schemaDict = {
       },
       selfLabels: {
         type: "object",
-        description:
-          "Metadata tags on an atproto record, published by the author within the record.",
+        description: "Metadata tags on an atproto record, published by the author within the record.",
         required: ["values"],
         properties: {
           values: {
@@ -7656,21 +7491,18 @@ export const schemaDict = {
           val: {
             type: "string",
             maxLength: 128,
-            description:
-              "The short string name of the value or type of this label.",
+            description: "The short string name of the value or type of this label.",
           },
         },
       },
       labelValueDefinition: {
         type: "object",
-        description:
-          "Declares a label value and its expected interpretations and behaviors.",
+        description: "Declares a label value and its expected interpretations and behaviors.",
         required: ["identifier", "severity", "blurs", "locales"],
         properties: {
           identifier: {
             type: "string",
-            description:
-              "The value of the label being defined. Must only include lowercase ascii and the '-' character ([a-z-]+).",
+            description: "The value of the label being defined. Must only include lowercase ascii and the '-' character ([a-z-]+).",
             maxLength: 100,
             maxGraphemes: 100,
           },
@@ -7694,8 +7526,7 @@ export const schemaDict = {
           },
           adultOnly: {
             type: "boolean",
-            description:
-              "Does the user need to have adult content enabled in order to configure this label?",
+            description: "Does the user need to have adult content enabled in order to configure this label?",
           },
           locales: {
             type: "array",
@@ -7708,14 +7539,12 @@ export const schemaDict = {
       },
       labelValueDefinitionStrings: {
         type: "object",
-        description:
-          "Strings which describe the label in the UI, localized into a specific language.",
+        description: "Strings which describe the label in the UI, localized into a specific language.",
         required: ["lang", "name", "description"],
         properties: {
           lang: {
             type: "string",
-            description:
-              "The code of the language these strings are written in.",
+            description: "The code of the language these strings are written in.",
             format: "language",
           },
           name: {
@@ -7726,8 +7555,7 @@ export const schemaDict = {
           },
           description: {
             type: "string",
-            description:
-              "A longer description of what the label means and why it might be applied.",
+            description: "A longer description of what the label means and why it might be applied.",
             maxGraphemes: 10000,
             maxLength: 100000,
           },
@@ -7777,8 +7605,7 @@ export const schemaDict = {
                 type: "string",
                 format: "did",
               },
-              description:
-                "Optional list of label sources (DIDs) to filter on.",
+              description: "Optional list of label sources (DIDs) to filter on.",
             },
             limit: {
               type: "integer",
@@ -7892,16 +7719,14 @@ export const schemaDict = {
             properties: {
               reasonType: {
                 type: "ref",
-                description:
-                  "Indicates the broad category of violation the report is for.",
+                description: "Indicates the broad category of violation the report is for.",
                 ref: "lex:com.atproto.moderation.defs#reasonType",
               },
               reason: {
                 type: "string",
                 maxGraphemes: 2000,
                 maxLength: 20000,
-                description:
-                  "Additional context about the content and violation.",
+                description: "Additional context about the content and violation.",
               },
               subject: {
                 type: "union",
@@ -7992,8 +7817,7 @@ export const schemaDict = {
       },
       reasonRude: {
         type: "token",
-        description:
-          "Rude, harassing, explicit, or otherwise unwelcoming behavior",
+        description: "Rude, harassing, explicit, or otherwise unwelcoming behavior",
       },
       reasonOther: {
         type: "token",
@@ -8011,8 +7835,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Apply a batch transaction of repository creates, updates, and deletes. Requires auth, implemented by PDS.",
+        description: "Apply a batch transaction of repository creates, updates, and deletes. Requires auth, implemented by PDS.",
         input: {
           encoding: "application/json",
           schema: {
@@ -8022,8 +7845,7 @@ export const schemaDict = {
               repo: {
                 type: "string",
                 format: "at-identifier",
-                description:
-                  "The handle or DID of the repo (aka, current account).",
+                description: "The handle or DID of the repo (aka, current account).",
               },
               validate: {
                 type: "boolean",
@@ -8079,8 +7901,7 @@ export const schemaDict = {
         errors: [
           {
             name: "InvalidSwap",
-            description:
-              "Indicates that the 'swapCommit' parameter did not match current commit.",
+            description: "Indicates that the 'swapCommit' parameter did not match current commit.",
           },
         ],
       },
@@ -8182,8 +8003,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Create a single new repository record. Requires auth, implemented by PDS.",
+        description: "Create a single new repository record. Requires auth, implemented by PDS.",
         input: {
           encoding: "application/json",
           schema: {
@@ -8193,8 +8013,7 @@ export const schemaDict = {
               repo: {
                 type: "string",
                 format: "at-identifier",
-                description:
-                  "The handle or DID of the repo (aka, current account).",
+                description: "The handle or DID of the repo (aka, current account).",
               },
               collection: {
                 type: "string",
@@ -8218,8 +8037,7 @@ export const schemaDict = {
               swapCommit: {
                 type: "string",
                 format: "cid",
-                description:
-                  "Compare and swap with the previous commit by CID.",
+                description: "Compare and swap with the previous commit by CID.",
               },
             },
           },
@@ -8252,8 +8070,7 @@ export const schemaDict = {
         errors: [
           {
             name: "InvalidSwap",
-            description:
-              "Indicates that 'swapCommit' didn't match current repo commit.",
+            description: "Indicates that 'swapCommit' didn't match current repo commit.",
           },
         ],
       },
@@ -8284,8 +8101,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Delete a repository record, or ensure it doesn't exist. Requires auth, implemented by PDS.",
+        description: "Delete a repository record, or ensure it doesn't exist. Requires auth, implemented by PDS.",
         input: {
           encoding: "application/json",
           schema: {
@@ -8295,8 +8111,7 @@ export const schemaDict = {
               repo: {
                 type: "string",
                 format: "at-identifier",
-                description:
-                  "The handle or DID of the repo (aka, current account).",
+                description: "The handle or DID of the repo (aka, current account).",
               },
               collection: {
                 type: "string",
@@ -8310,14 +8125,12 @@ export const schemaDict = {
               swapRecord: {
                 type: "string",
                 format: "cid",
-                description:
-                  "Compare and swap with the previous record by CID.",
+                description: "Compare and swap with the previous record by CID.",
               },
               swapCommit: {
                 type: "string",
                 format: "cid",
-                description:
-                  "Compare and swap with the previous commit by CID.",
+                description: "Compare and swap with the previous commit by CID.",
               },
             },
           },
@@ -8348,8 +8161,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get information about an account and repository, including the list of collections. Does not require auth.",
+        description: "Get information about an account and repository, including the list of collections. Does not require auth.",
         parameters: {
           type: "params",
           required: ["repo"],
@@ -8387,8 +8199,7 @@ export const schemaDict = {
               },
               collections: {
                 type: "array",
-                description:
-                  "List of all the collections (NSIDs) for which this repo contains at least one record.",
+                description: "List of all the collections (NSIDs) for which this repo contains at least one record.",
                 items: {
                   type: "string",
                   format: "nsid",
@@ -8396,8 +8207,7 @@ export const schemaDict = {
               },
               handleIsCorrect: {
                 type: "boolean",
-                description:
-                  "Indicates if handle is currently valid (resolves bi-directionally)",
+                description: "Indicates if handle is currently valid (resolves bi-directionally)",
               },
             },
           },
@@ -8411,8 +8221,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get a single record from a repository. Does not require auth.",
+        description: "Get a single record from a repository. Does not require auth.",
         parameters: {
           type: "params",
           required: ["repo", "collection", "rkey"],
@@ -8434,8 +8243,7 @@ export const schemaDict = {
             cid: {
               type: "string",
               format: "cid",
-              description:
-                "The CID of the version of the record. If not specified, then return the most recent version.",
+              description: "The CID of the version of the record. If not specified, then return the most recent version.",
             },
           },
         },
@@ -8473,8 +8281,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Import a repo in the form of a CAR file. Requires Content-Length HTTP header to be set.",
+        description: "Import a repo in the form of a CAR file. Requires Content-Length HTTP header to be set.",
         input: {
           encoding: "application/vnd.ipld.car",
         },
@@ -8487,8 +8294,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Returns a list of missing blobs for the requesting account. Intended to be used in the account migration flow.",
+        description: "Returns a list of missing blobs for the requesting account. Intended to be used in the account migration flow.",
         parameters: {
           type: "params",
           properties: {
@@ -8545,8 +8351,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "List a range of records in a repository, matching a specific collection. Does not require auth.",
+        description: "List a range of records in a repository, matching a specific collection. Does not require auth.",
         parameters: {
           type: "params",
           required: ["repo", "collection"],
@@ -8573,13 +8378,11 @@ export const schemaDict = {
             },
             rkeyStart: {
               type: "string",
-              description:
-                "DEPRECATED: The lowest sort-ordered rkey to start from (exclusive)",
+              description: "DEPRECATED: The lowest sort-ordered rkey to start from (exclusive)",
             },
             rkeyEnd: {
               type: "string",
-              description:
-                "DEPRECATED: The highest sort-ordered rkey to stop at (exclusive)",
+              description: "DEPRECATED: The highest sort-ordered rkey to stop at (exclusive)",
             },
             reverse: {
               type: "boolean",
@@ -8632,8 +8435,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Write a repository record, creating or updating it as needed. Requires auth, implemented by PDS.",
+        description: "Write a repository record, creating or updating it as needed. Requires auth, implemented by PDS.",
         input: {
           encoding: "application/json",
           schema: {
@@ -8644,8 +8446,7 @@ export const schemaDict = {
               repo: {
                 type: "string",
                 format: "at-identifier",
-                description:
-                  "The handle or DID of the repo (aka, current account).",
+                description: "The handle or DID of the repo (aka, current account).",
               },
               collection: {
                 type: "string",
@@ -8675,8 +8476,7 @@ export const schemaDict = {
               swapCommit: {
                 type: "string",
                 format: "cid",
-                description:
-                  "Compare and swap with the previous commit by CID.",
+                description: "Compare and swap with the previous commit by CID.",
               },
             },
           },
@@ -8836,8 +8636,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Confirm an email using a token from com.atproto.server.requestEmailConfirmation.",
+        description: "Confirm an email using a token from com.atproto.server.requestEmailConfirmation.",
         input: {
           encoding: "application/json",
           schema: {
@@ -8894,8 +8693,7 @@ export const schemaDict = {
               did: {
                 type: "string",
                 format: "did",
-                description:
-                  "Pre-existing atproto DID, being imported to a new account.",
+                description: "Pre-existing atproto DID, being imported to a new account.",
               },
               inviteCode: {
                 type: "string",
@@ -8908,13 +8706,11 @@ export const schemaDict = {
               },
               password: {
                 type: "string",
-                description:
-                  "Initial account password. May need to meet instance-specific password strength requirements.",
+                description: "Initial account password. May need to meet instance-specific password strength requirements.",
               },
               recoveryKey: {
                 type: "string",
-                description:
-                  "DID PLC rotation key (aka, recovery key) to be included in PLC creation operation.",
+                description: "DID PLC rotation key (aka, recovery key) to be included in PLC creation operation.",
               },
               plcOp: {
                 type: "unknown",
@@ -8928,8 +8724,7 @@ export const schemaDict = {
           encoding: "application/json",
           schema: {
             type: "object",
-            description:
-              "Account login session returned on successful account creation.",
+            description: "Account login session returned on successful account creation.",
             required: ["accessJwt", "refreshJwt", "handle", "did"],
             properties: {
               accessJwt: {
@@ -8995,13 +8790,11 @@ export const schemaDict = {
             properties: {
               name: {
                 type: "string",
-                description:
-                  "A short name for the App Password, to help distinguish them.",
+                description: "A short name for the App Password, to help distinguish them.",
               },
               privileged: {
                 type: "boolean",
-                description:
-                  "If an app password has 'privileged' access to possibly sensitive account state. Meant for use with trusted clients.",
+                description: "If an app password has 'privileged' access to possibly sensitive account state. Meant for use with trusted clients.",
               },
             },
           },
@@ -9157,8 +8950,7 @@ export const schemaDict = {
             properties: {
               identifier: {
                 type: "string",
-                description:
-                  "Handle or other identifier supported by the server for the authenticating user.",
+                description: "Handle or other identifier supported by the server for the authenticating user.",
               },
               password: {
                 type: "string",
@@ -9245,8 +9037,7 @@ export const schemaDict = {
               deleteAfter: {
                 type: "string",
                 format: "datetime",
-                description:
-                  "A recommendation to server as to how long they should hold onto the deactivated account before deleting.",
+                description: "A recommendation to server as to how long they should hold onto the deactivated account before deleting.",
               },
             },
           },
@@ -9320,8 +9111,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Delete an actor's account with a token and password. Can only be called after requesting a deletion token. Requires auth.",
+        description: "Delete an actor's account with a token and password. Can only be called after requesting a deletion token. Requires auth.",
         input: {
           encoding: "application/json",
           schema: {
@@ -9368,8 +9158,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Describes the server's account creation requirements and capabilities. Implemented by PDS.",
+        description: "Describes the server's account creation requirements and capabilities. Implemented by PDS.",
         output: {
           encoding: "application/json",
           schema: {
@@ -9378,18 +9167,15 @@ export const schemaDict = {
             properties: {
               inviteCodeRequired: {
                 type: "boolean",
-                description:
-                  "If true, an invite code must be supplied to create an account on this instance.",
+                description: "If true, an invite code must be supplied to create an account on this instance.",
               },
               phoneVerificationRequired: {
                 type: "boolean",
-                description:
-                  "If true, a phone verification token must be supplied to create an account on this instance.",
+                description: "If true, a phone verification token must be supplied to create an account on this instance.",
               },
               availableUserDomains: {
                 type: "array",
-                description:
-                  "List of domain suffixes that can be used in account handles.",
+                description: "List of domain suffixes that can be used in account handles.",
                 items: {
                   type: "string",
                 },
@@ -9441,8 +9227,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get all invite codes for the current account. Requires auth.",
+        description: "Get all invite codes for the current account. Requires auth.",
         parameters: {
           type: "params",
           properties: {
@@ -9453,8 +9238,7 @@ export const schemaDict = {
             createAvailable: {
               type: "boolean",
               default: true,
-              description:
-                "Controls whether any new 'earned' but not 'created' invites should be created.",
+              description: "Controls whether any new 'earned' but not 'created' invites should be created.",
             },
           },
         },
@@ -9488,8 +9272,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get a signed token on behalf of the requesting DID for the requested service.",
+        description: "Get a signed token on behalf of the requesting DID for the requested service.",
         parameters: {
           type: "params",
           required: ["aud"],
@@ -9497,8 +9280,7 @@ export const schemaDict = {
             aud: {
               type: "string",
               format: "did",
-              description:
-                "The DID of the service that the token will be used to authenticate with",
+              description: "The DID of the service that the token will be used to authenticate with",
             },
             exp: {
               type: "integer",
@@ -9508,8 +9290,7 @@ export const schemaDict = {
             lxm: {
               type: "string",
               format: "nsid",
-              description:
-                "Lexicon (XRPC) method to bind the requested token to",
+              description: "Lexicon (XRPC) method to bind the requested token to",
             },
           },
         },
@@ -9528,8 +9309,7 @@ export const schemaDict = {
         errors: [
           {
             name: "BadExpiration",
-            description:
-              "Indicates that the requested expiration date is not a valid. May be in the past or may be reliant on the requested scopes.",
+            description: "Indicates that the requested expiration date is not a valid. May be in the past or may be reliant on the requested scopes.",
           },
         ],
       },
@@ -9541,8 +9321,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get information about the current auth session. Requires auth.",
+        description: "Get information about the current auth session. Requires auth.",
         output: {
           encoding: "application/json",
           schema: {
@@ -9637,8 +9416,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Refresh an authentication session. Requires auth using the 'refreshJwt' (not the 'accessJwt').",
+        description: "Refresh an authentication session. Requires auth using the 'refreshJwt' (not the 'accessJwt').",
         output: {
           encoding: "application/json",
           schema: {
@@ -9667,8 +9445,7 @@ export const schemaDict = {
               },
               status: {
                 type: "string",
-                description:
-                  "Hosting status of the account. If not specified, then assume 'active'.",
+                description: "Hosting status of the account. If not specified, then assume 'active'.",
                 knownValues: ["takendown", "suspended", "deactivated"],
               },
             },
@@ -9698,8 +9475,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Request an email with a code to confirm ownership of email.",
+        description: "Request an email with a code to confirm ownership of email.",
       },
     },
   },
@@ -9776,8 +9552,7 @@ export const schemaDict = {
             properties: {
               signingKey: {
                 type: "string",
-                description:
-                  "The public key for the reserved signing key, in did:key serialization.",
+                description: "The public key for the reserved signing key, in did:key serialization.",
               },
             },
           },
@@ -9861,8 +9636,7 @@ export const schemaDict = {
               },
               token: {
                 type: "string",
-                description:
-                  "Requires a token from com.atproto.sever.requestEmailUpdate if the account's email has been confirmed.",
+                description: "Requires a token from com.atproto.sever.requestEmailUpdate if the account's email has been confirmed.",
               },
             },
           },
@@ -10007,8 +9781,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "DEPRECATED - please use com.atproto.sync.getLatestCommit instead",
+        description: "DEPRECATED - please use com.atproto.sync.getLatestCommit instead",
         parameters: {
           type: "params",
           required: ["did"],
@@ -10047,8 +9820,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get the current commit CID & revision of the specified repo. Does not require auth.",
+        description: "Get the current commit CID & revision of the specified repo. Does not require auth.",
         parameters: {
           type: "params",
           required: ["did"],
@@ -10121,8 +9893,7 @@ export const schemaDict = {
             commit: {
               type: "string",
               format: "cid",
-              description:
-                "DEPRECATED: referenced a repo commit by CID, and retrieved record as of that commit",
+              description: "DEPRECATED: referenced a repo commit by CID, and retrieved record as of that commit",
             },
           },
         },
@@ -10168,8 +9939,7 @@ export const schemaDict = {
             },
             since: {
               type: "string",
-              description:
-                "The revision ('rev') of the repo to create a diff from.",
+              description: "The revision ('rev') of the repo to create a diff from.",
             },
           },
         },
@@ -10199,8 +9969,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "Get the hosting status for a repository, on this server. Expected to be implemented by PDS and Relay.",
+        description: "Get the hosting status for a repository, on this server. Expected to be implemented by PDS and Relay.",
         parameters: {
           type: "params",
           required: ["did"],
@@ -10233,8 +10002,7 @@ export const schemaDict = {
               },
               rev: {
                 type: "string",
-                description:
-                  "Optional field, the current rev of the repo, if active=true",
+                description: "Optional field, the current rev of the repo, if active=true",
               },
             },
           },
@@ -10253,8 +10021,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "List blob CIDs for an account, since some repo revision. Does not require auth; implemented by PDS.",
+        description: "List blob CIDs for an account, since some repo revision. Does not require auth; implemented by PDS.",
         parameters: {
           type: "params",
           required: ["did"],
@@ -10402,8 +10169,7 @@ export const schemaDict = {
             properties: {
               hostname: {
                 type: "string",
-                description:
-                  "Hostname of the current service (usually a PDS) that is notifying of update.",
+                description: "Hostname of the current service (usually a PDS) that is notifying of update.",
               },
             },
           },
@@ -10427,8 +10193,7 @@ export const schemaDict = {
             properties: {
               hostname: {
                 type: "string",
-                description:
-                  "Hostname of the current service (eg, PDS) that is requesting to be crawled.",
+                description: "Hostname of the current service (eg, PDS) that is requesting to be crawled.",
               },
             },
           },
@@ -10521,8 +10286,7 @@ export const schemaDict = {
           },
           prev: {
             type: "cid-link",
-            description:
-              "DEPRECATED -- unused. WARNING -- nullable and optional; stick with optional to ensure golang interoperability.",
+            description: "DEPRECATED -- unused. WARNING -- nullable and optional; stick with optional to ensure golang interoperability.",
           },
           rev: {
             type: "string",
@@ -10531,13 +10295,11 @@ export const schemaDict = {
           },
           since: {
             type: "string",
-            description:
-              "The rev of the last emitted commit from this repo (if any).",
+            description: "The rev of the last emitted commit from this repo (if any).",
           },
           blocks: {
             type: "bytes",
-            description:
-              "CAR file containing relevant blocks, as a diff since the previous repo state.",
+            description: "CAR file containing relevant blocks, as a diff since the previous repo state.",
             maxLength: 1000000,
           },
           ops: {
@@ -10545,8 +10307,7 @@ export const schemaDict = {
             items: {
               type: "ref",
               ref: "lex:com.atproto.sync.subscribeRepos#repoOp",
-              description:
-                "List of repo mutation operations in this commit (eg, records created, updated, or deleted).",
+              description: "List of repo mutation operations in this commit (eg, records created, updated, or deleted).",
             },
             maxLength: 200,
           },
@@ -10554,15 +10315,13 @@ export const schemaDict = {
             type: "array",
             items: {
               type: "cid-link",
-              description:
-                "List of new blobs (by CID) referenced by records in this commit.",
+              description: "List of new blobs (by CID) referenced by records in this commit.",
             },
           },
           time: {
             type: "string",
             format: "datetime",
-            description:
-              "Timestamp of when this message was originally broadcast.",
+            description: "Timestamp of when this message was originally broadcast.",
           },
         },
       },
@@ -10610,13 +10369,11 @@ export const schemaDict = {
           },
           active: {
             type: "boolean",
-            description:
-              "Indicates that the account has a repository which can be fetched from the host that emitted this event.",
+            description: "Indicates that the account has a repository which can be fetched from the host that emitted this event.",
           },
           status: {
             type: "string",
-            description:
-              "If active=false, this optional field indicates a reason for why the account is not active.",
+            description: "If active=false, this optional field indicates a reason for why the account is not active.",
             knownValues: ["takendown", "suspended", "deleted", "deactivated"],
           },
         },
@@ -10711,8 +10468,7 @@ export const schemaDict = {
           },
           cid: {
             type: "cid-link",
-            description:
-              "For creates and updates, the new record CID. For deletions, null.",
+            description: "For creates and updates, the new record CID. For deletions, null.",
           },
         },
       },
@@ -10781,8 +10537,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "query",
-        description:
-          "DEPRECATED: use queryLabels or subscribeLabels instead -- Fetch all labels from a labeler created after a certain date.",
+        description: "DEPRECATED: use queryLabels or subscribeLabels instead -- Fetch all labels from a labeler created after a certain date.",
         parameters: {
           type: "params",
           properties: {
@@ -10822,8 +10577,7 @@ export const schemaDict = {
     defs: {
       main: {
         type: "procedure",
-        description:
-          "Request a verification code to be sent to the supplied phone number",
+        description: "Request a verification code to be sent to the supplied phone number",
         input: {
           encoding: "application/json",
           schema: {
@@ -10900,8 +10654,7 @@ export const ids = {
   AppBskyGraphGetRelationships: "app.bsky.graph.getRelationships",
   AppBskyGraphGetStarterPack: "app.bsky.graph.getStarterPack",
   AppBskyGraphGetStarterPacks: "app.bsky.graph.getStarterPacks",
-  AppBskyGraphGetSuggestedFollowsByActor:
-    "app.bsky.graph.getSuggestedFollowsByActor",
+  AppBskyGraphGetSuggestedFollowsByActor: "app.bsky.graph.getSuggestedFollowsByActor",
   AppBskyGraphList: "app.bsky.graph.list",
   AppBskyGraphListblock: "app.bsky.graph.listblock",
   AppBskyGraphListitem: "app.bsky.graph.listitem",
@@ -10917,26 +10670,20 @@ export const ids = {
   AppBskyLabelerGetServices: "app.bsky.labeler.getServices",
   AppBskyLabelerService: "app.bsky.labeler.service",
   AppBskyNotificationGetUnreadCount: "app.bsky.notification.getUnreadCount",
-  AppBskyNotificationListNotifications:
-    "app.bsky.notification.listNotifications",
+  AppBskyNotificationListNotifications: "app.bsky.notification.listNotifications",
   AppBskyNotificationPutPreferences: "app.bsky.notification.putPreferences",
   AppBskyNotificationRegisterPush: "app.bsky.notification.registerPush",
   AppBskyNotificationUpdateSeen: "app.bsky.notification.updateSeen",
   AppBskyRichtextFacet: "app.bsky.richtext.facet",
   AppBskyUnspeccedDefs: "app.bsky.unspecced.defs",
   AppBskyUnspeccedGetConfig: "app.bsky.unspecced.getConfig",
-  AppBskyUnspeccedGetPopularFeedGenerators:
-    "app.bsky.unspecced.getPopularFeedGenerators",
-  AppBskyUnspeccedGetSuggestionsSkeleton:
-    "app.bsky.unspecced.getSuggestionsSkeleton",
-  AppBskyUnspeccedGetTaggedSuggestions:
-    "app.bsky.unspecced.getTaggedSuggestions",
+  AppBskyUnspeccedGetPopularFeedGenerators: "app.bsky.unspecced.getPopularFeedGenerators",
+  AppBskyUnspeccedGetSuggestionsSkeleton: "app.bsky.unspecced.getSuggestionsSkeleton",
+  AppBskyUnspeccedGetTaggedSuggestions: "app.bsky.unspecced.getTaggedSuggestions",
   AppBskyUnspeccedGetTrendingTopics: "app.bsky.unspecced.getTrendingTopics",
-  AppBskyUnspeccedSearchActorsSkeleton:
-    "app.bsky.unspecced.searchActorsSkeleton",
+  AppBskyUnspeccedSearchActorsSkeleton: "app.bsky.unspecced.searchActorsSkeleton",
   AppBskyUnspeccedSearchPostsSkeleton: "app.bsky.unspecced.searchPostsSkeleton",
-  AppBskyUnspeccedSearchStarterPacksSkeleton:
-    "app.bsky.unspecced.searchStarterPacksSkeleton",
+  AppBskyUnspeccedSearchStarterPacksSkeleton: "app.bsky.unspecced.searchStarterPacksSkeleton",
   AppBskyVideoDefs: "app.bsky.video.defs",
   AppBskyVideoGetJobStatus: "app.bsky.video.getJobStatus",
   AppBskyVideoGetUploadLimits: "app.bsky.video.getUploadLimits",
@@ -10955,13 +10702,11 @@ export const ids = {
   ChatTinychatServerGetNotifications: "chat.tinychat.server.getNotifications",
   ChatTinychatServerGetServers: "chat.tinychat.server.getServers",
   ChatTinychatServerJoinServer: "chat.tinychat.server.joinServer",
-  ChatTinychatServerMarkAllMessagesAsRead:
-    "chat.tinychat.server.markAllMessagesAsRead",
+  ChatTinychatServerMarkAllMessagesAsRead: "chat.tinychat.server.markAllMessagesAsRead",
   ChatTinychatServerToggleReaction: "chat.tinychat.server.toggleReaction",
   ComAtprotoAdminDefs: "com.atproto.admin.defs",
   ComAtprotoAdminDeleteAccount: "com.atproto.admin.deleteAccount",
-  ComAtprotoAdminDisableAccountInvites:
-    "com.atproto.admin.disableAccountInvites",
+  ComAtprotoAdminDisableAccountInvites: "com.atproto.admin.disableAccountInvites",
   ComAtprotoAdminDisableInviteCodes: "com.atproto.admin.disableInviteCodes",
   ComAtprotoAdminEnableAccountInvites: "com.atproto.admin.enableAccountInvites",
   ComAtprotoAdminGetAccountInfo: "com.atproto.admin.getAccountInfo",
@@ -10972,17 +10717,13 @@ export const ids = {
   ComAtprotoAdminSendEmail: "com.atproto.admin.sendEmail",
   ComAtprotoAdminUpdateAccountEmail: "com.atproto.admin.updateAccountEmail",
   ComAtprotoAdminUpdateAccountHandle: "com.atproto.admin.updateAccountHandle",
-  ComAtprotoAdminUpdateAccountPassword:
-    "com.atproto.admin.updateAccountPassword",
+  ComAtprotoAdminUpdateAccountPassword: "com.atproto.admin.updateAccountPassword",
   ComAtprotoAdminUpdateSubjectStatus: "com.atproto.admin.updateSubjectStatus",
-  ComAtprotoIdentityGetRecommendedDidCredentials:
-    "com.atproto.identity.getRecommendedDidCredentials",
-  ComAtprotoIdentityRequestPlcOperationSignature:
-    "com.atproto.identity.requestPlcOperationSignature",
+  ComAtprotoIdentityGetRecommendedDidCredentials: "com.atproto.identity.getRecommendedDidCredentials",
+  ComAtprotoIdentityRequestPlcOperationSignature: "com.atproto.identity.requestPlcOperationSignature",
   ComAtprotoIdentityResolveHandle: "com.atproto.identity.resolveHandle",
   ComAtprotoIdentitySignPlcOperation: "com.atproto.identity.signPlcOperation",
-  ComAtprotoIdentitySubmitPlcOperation:
-    "com.atproto.identity.submitPlcOperation",
+  ComAtprotoIdentitySubmitPlcOperation: "com.atproto.identity.submitPlcOperation",
   ComAtprotoIdentityUpdateHandle: "com.atproto.identity.updateHandle",
   ComAtprotoLabelDefs: "com.atproto.label.defs",
   ComAtprotoLabelQueryLabels: "com.atproto.label.queryLabels",
@@ -11014,19 +10755,15 @@ export const ids = {
   ComAtprotoServerDeleteAccount: "com.atproto.server.deleteAccount",
   ComAtprotoServerDeleteSession: "com.atproto.server.deleteSession",
   ComAtprotoServerDescribeServer: "com.atproto.server.describeServer",
-  ComAtprotoServerGetAccountInviteCodes:
-    "com.atproto.server.getAccountInviteCodes",
+  ComAtprotoServerGetAccountInviteCodes: "com.atproto.server.getAccountInviteCodes",
   ComAtprotoServerGetServiceAuth: "com.atproto.server.getServiceAuth",
   ComAtprotoServerGetSession: "com.atproto.server.getSession",
   ComAtprotoServerListAppPasswords: "com.atproto.server.listAppPasswords",
   ComAtprotoServerRefreshSession: "com.atproto.server.refreshSession",
-  ComAtprotoServerRequestAccountDelete:
-    "com.atproto.server.requestAccountDelete",
-  ComAtprotoServerRequestEmailConfirmation:
-    "com.atproto.server.requestEmailConfirmation",
+  ComAtprotoServerRequestAccountDelete: "com.atproto.server.requestAccountDelete",
+  ComAtprotoServerRequestEmailConfirmation: "com.atproto.server.requestEmailConfirmation",
   ComAtprotoServerRequestEmailUpdate: "com.atproto.server.requestEmailUpdate",
-  ComAtprotoServerRequestPasswordReset:
-    "com.atproto.server.requestPasswordReset",
+  ComAtprotoServerRequestPasswordReset: "com.atproto.server.requestPasswordReset",
   ComAtprotoServerReserveSigningKey: "com.atproto.server.reserveSigningKey",
   ComAtprotoServerResetPassword: "com.atproto.server.resetPassword",
   ComAtprotoServerRevokeAppPassword: "com.atproto.server.revokeAppPassword",
@@ -11047,6 +10784,5 @@ export const ids = {
   ComAtprotoTempAddReservedHandle: "com.atproto.temp.addReservedHandle",
   ComAtprotoTempCheckSignupQueue: "com.atproto.temp.checkSignupQueue",
   ComAtprotoTempFetchLabels: "com.atproto.temp.fetchLabels",
-  ComAtprotoTempRequestPhoneVerification:
-    "com.atproto.temp.requestPhoneVerification",
+  ComAtprotoTempRequestPhoneVerification: "com.atproto.temp.requestPhoneVerification",
 };

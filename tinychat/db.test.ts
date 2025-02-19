@@ -53,67 +53,165 @@ export function fetchView<T>(
   }).filter((v) => v);
 }
 
-const tables: Record<string, string> = {
-  users: `
-    CREATE TABLE users (
+const schema = `
+    CREATE TABLE IF NOT EXISTS users (
       did TEXT PRIMARY KEY,
       handle TEXT NOT NULL,
       display_name TEXT,
       avatar TEXT,
       description TEXT
-    )`,
-  servers: `
-    CREATE TABLE servers (
+    );
+
+    CREATE TABLE IF NOT EXISTS servers (
       uri TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       creator TEXT NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (creator) REFERENCES users(did)
-    );`,
-  channels: `CREATE TABLE channels (
-  id TEXT,
-  name TEXT NOT NULL,
-  server TEXT NOT NULL,
-  latest_message_received_time_us TEXT,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id, server),
-  FOREIGN KEY (server) REFERENCES servers(uri) ON DELETE CASCADE
-);`,
-  server_memberships: `CREATE TABLE server_memberships (
-  uri TEXT PRIMARY KEY NOT NULL,
-  user TEXT NOT NULL,
-  server TEXT NOT NULL,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (server) REFERENCES servers(uri) ON DELETE CASCADE
-  FOREIGN KEY (user) REFERENCES users(did) ON DELETE CASCADE
-);`,
-  messages: `CREATE TABLE messages (
-  uri TEXT NOT NULL PRIMARY KEY,
-  cid TEXT NOT NULL,
-  channel TEXT NOT NULL,
-  server TEXT NOT NULL,
-  sender TEXT NOT NULL,
-  record TEXT NOT NULL,
-  created_at DATETIME NOT NULL,
-  deleted_at DATETIME,
-  time_us TEXT NOT NULL,
-  reply_to TEXT REFERENCES messages(uri),
-  reply_to_root TEXT REFERENCES messages(uri),
-  FOREIGN KEY (channel, server) REFERENCES channels(id, server),
-  FOREIGN KEY (server) REFERENCES servers(uri) ON DELETE CASCADE
-  FOREIGN KEY (sender) REFERENCES users(did) ON DELETE CASCADE
-);
-`,
-  read_receipts: `CREATE TABLE read_receipts (
-  channel TEXT NOT NULL,
-  server TEXT NOT NULL,
-  user TEXT NOT NULL,
-  time_us TEXT NOT NULL,
-  PRIMARY KEY (user, channel, server),
-  FOREIGN KEY (channel, server) REFERENCES channels(id, server) ON DELETE CASCADE,
-  FOREIGN KEY (user) REFERENCES users(did)
-);`,
-};
+    );
+
+    CREATE TABLE IF NOT EXISTS channels (
+      id TEXT,
+      name TEXT NOT NULL,
+      server TEXT NOT NULL,
+      latest_message_received_time_us TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (id, server),
+      FOREIGN KEY (server) REFERENCES servers(uri) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS server_memberships (
+      uri TEXT PRIMARY KEY NOT NULL,
+      user TEXT NOT NULL,
+      server TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (server) REFERENCES servers(uri) ON DELETE CASCADE,
+      FOREIGN KEY (user) REFERENCES users(did) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS messages (
+      uri TEXT NOT NULL PRIMARY KEY,
+      cid TEXT NOT NULL,
+      channel TEXT NOT NULL,
+      server TEXT NOT NULL,
+      sender TEXT NOT NULL,
+      record TEXT NOT NULL,
+      created_at DATETIME NOT NULL,
+      deleted_at DATETIME,
+      time_us TEXT NOT NULL,
+      reply_to TEXT REFERENCES messages(uri),
+      reply_to_root TEXT REFERENCES messages(uri),
+      FOREIGN KEY (channel, server) REFERENCES channels(id, server),
+      FOREIGN KEY (server) REFERENCES servers(uri) ON DELETE CASCADE,
+      FOREIGN KEY (sender) REFERENCES users(did) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS read_receipts (
+      channel TEXT NOT NULL,
+      server TEXT NOT NULL,
+      user TEXT NOT NULL,
+      time_us TEXT NOT NULL,
+      PRIMARY KEY (user, channel, server),
+      FOREIGN KEY (channel, server) REFERENCES channels(id, server) ON DELETE CASCADE,
+      FOREIGN KEY (user) REFERENCES users(did)
+    );
+
+    DROP TRIGGER IF EXISTS update_channel_latest_message;
+    CREATE TRIGGER IF NOT EXISTS  update_channel_latest_message
+    AFTER INSERT ON messages
+    BEGIN
+      UPDATE channels
+      SET latest_message_received_time_us = NEW.time_us
+      WHERE id = NEW.channel AND (latest_message_received_time_us IS NULL OR NEW.time_us > latest_message_received_time_us);
+    END;
+
+    DROP VIEW IF EXISTS server_view;
+    CREATE VIEW IF NOT EXISTS server_view AS
+      SELECT s.uri, s.name,
+        u.did as creator__did,
+        u.handle as creator__handle,
+        u.display_name as creator__display_name,
+        u.avatar as creator__avatar,
+        u.description as creator__description,
+        json_group_array(
+          json_object(
+            'id', c.id,
+            'name', c.name,
+            'server', c.server,
+            'latestMessageReceivedTime', c.latest_message_received_time_us
+          )
+        ) as channels__channels 
+      FROM servers s
+      INNER JOIN channels c ON c.server = s.uri
+      INNER JOIN users u ON u.did = s.creator
+      GROUP BY s.uri;
+
+    DROP VIEW IF EXISTS server_with_members_view;
+    CREATE VIEW IF NOT EXISTS server_with_members_view AS
+      SELECT s.uri, s.name,
+        u.did as creator__did,
+        u.handle as creator__handle,
+        u.display_name as creator__display_name,
+        u.avatar as creator__avatar,
+        u.description as creator__description,
+        json_group_array(
+          json_object(
+            'id', c.id,
+            'name', c.name,
+            'server', c.server,
+            'latestMessageReceivedTime', c.latest_message_received_time_us
+          )
+        ) as channels__channels,
+        sm.user as member  
+      FROM servers s
+      INNER JOIN channels c ON c.server = s.uri
+      INNER JOIN users u ON u.did = s.creator
+      INNER JOIN server_memberships sm ON sm.server = s.uri
+      GROUP BY sm.user, s.uri;
+
+    DROP VIEW IF EXISTS channel_view;
+    CREATE VIEW IF NOT EXISTS channel_view AS
+      SELECT c.*, sm.user, COALESCE(rr.time_us, NULL) as last_message_read_time_us
+      FROM channels c
+      JOIN server_memberships sm ON sm.server = c.server
+      LEFT JOIN read_receipts rr ON rr.channel = c.id AND rr.user = sm.user AND rr.server = sm.server;
+
+    DROP VIEW IF EXISTS message_view;
+    CREATE VIEW IF NOT EXISTS message_view AS
+      SELECT uri, cid, created_at as indexedAt, time_us as ts, channel, server, reply_to as replyTo, reply_to_root as replyToRoot,
+            m.record as json__record, 
+            users.did as author__did, 
+            users.handle as author__handle, 
+            users.display_name as author__displayName,
+            users.avatar as author__avatar,
+            users.description as author__description,
+            CASE 
+              WHEN m.uri IN (SELECT reply_to_root FROM messages WHERE reply_to_root IS NOT NULL)
+              THEN json_object(
+              'size', (SELECT COUNT(*) FROM messages WHERE reply_to_root = m.uri),
+              'participants', (
+                  SELECT json_group_array(
+                      json_object(
+                          'did', u.did,
+                          'handle', u.handle,
+                          'displayName', u.display_name,
+                          'avatar', u.avatar,
+                          'description', u.description
+                      )
+                  ) FROM (
+                      SELECT DISTINCT sender 
+                      FROM messages 
+                      WHERE reply_to_root = m.uri
+                      UNION SELECT m.sender
+                  ) participants
+                  JOIN users u ON u.did = participants.sender
+              )
+              )
+              ELSE NULL
+            END as json__threadSummary
+      FROM messages m
+      INNER JOIN users ON m.sender = users.did;
+  `;
 
 let __db: Database | null = null;
 
@@ -139,142 +237,10 @@ export const getDatabase = (
 
   // WAL please
   __db.exec("pragma journal_mode = WAL");
-
   // foreing keys on
   __db.exec("pragma foreign_keys = ON");
-
-  const existingTables = __db
-    .prepare("SELECT name FROM sqlite_master WHERE type='table'")
-    .all<{ name: string }>();
-
-  Object.keys(tables).forEach((table) => {
-    if (!existingTables.some((t) => t.name === table)) {
-      __db && __db.prepare(tables[table]).run();
-    }
-  });
-
-  // create triggers and etc
-  __db.prepare(`DROP TRIGGER IF EXISTS update_channel_latest_message;`).run();
-  __db.prepare(`DROP VIEW IF EXISTS channel_view;`).run();
-  __db.prepare(`DROP VIEW IF EXISTS message_view;`).run();
-  __db.prepare(`DROP VIEW IF EXISTS server_view;`).run();
-  __db.prepare(`DROP VIEW IF EXISTS server_with_members_view;`).run();
-
-  __db
-    .prepare(
-      `CREATE TRIGGER update_channel_latest_message
-    AFTER INSERT ON messages
-    BEGIN
-      UPDATE channels
-      SET latest_message_received_time_us = NEW.time_us
-      WHERE id = NEW.channel AND (latest_message_received_time_us IS NULL OR NEW.time_us > latest_message_received_time_us);
-    END;`,
-    )
-    .run();
-
-  // simple server view when viewer is not present
-  __db
-    .prepare(
-      `CREATE VIEW server_view AS
-       SELECT s.uri, s.name,
-        u.did as creator__did,
-        u.handle as creator__handle,
-        u.display_name as creator__display_name,
-        u.avatar as creator__avatar,
-        u.description as creator__description,
-        json_group_array(
-          json_object(
-            'id', c.id,
-            'name', c.name,
-            'server', c.server,
-            'latestMessageReceivedTime', c.latest_message_received_time_us
-          )
-        ) as channels__channels 
-      FROM servers s
-      INNER JOIN channels c ON c.server = s.uri
-      INNER JOIN users u ON u.did = s.creator
-      GROUP BY s.uri;
-    `,
-    )
-    .run();
-
-  // server view with members
-  __db
-    .prepare(
-      `CREATE VIEW server_with_members_view AS
-       SELECT s.uri, s.name,
-        u.did as creator__did,
-        u.handle as creator__handle,
-        u.display_name as creator__display_name,
-        u.avatar as creator__avatar,
-        u.description as creator__description,
-        json_group_array(
-          json_object(
-            'id', c.id,
-            'name', c.name,
-            'server', c.server,
-            'latestMessageReceivedTime', c.latest_message_received_time_us
-          )
-        ) as channels__channels,
-        sm.user as member  
-      FROM servers s
-      INNER JOIN channels c ON c.server = s.uri
-      INNER JOIN users u ON u.did = s.creator
-      INNER JOIN server_memberships sm ON sm.server = s.uri
-      GROUP BY sm.user, s.uri;
-    `,
-    )
-    .run();
-
-  __db
-    .prepare(
-      `CREATE VIEW channel_view AS
-       SELECT c.*, sm.user, COALESCE(rr.time_us, NULL) as last_message_read_time_us
-       FROM channels c
-       JOIN server_memberships sm ON sm.server = c.server
-       LEFT JOIN read_receipts rr ON rr.channel = c.id AND rr.user = sm.user AND rr.server = sm.server;`,
-    )
-    .run();
-
-  __db
-    .prepare(
-      `CREATE VIEW message_view AS
-       SELECT uri, cid, created_at as indexedAt, time_us as ts, channel, server, reply_to as replyTo, reply_to_root as replyToRoot,
-              m.record as json__record, 
-              users.did as author__did, 
-              users.handle as author__handle, 
-              users.display_name as author__displayName,
-              users.avatar as author__avatar,
-              users.description as author__description,
-              CASE 
-                WHEN m.uri IN (SELECT reply_to_root FROM messages WHERE reply_to_root IS NOT NULL)
-                THEN json_object(
-                'size', (SELECT COUNT(*) FROM messages WHERE reply_to_root = m.uri),
-                'participants', (
-                    SELECT json_group_array(
-                        json_object(
-                            'did', u.did,
-                            'handle', u.handle,
-                            'displayName', u.display_name,
-                            'avatar', u.avatar,
-                            'description', u.description
-                        )
-                    ) FROM (
-                        SELECT DISTINCT sender 
-                        FROM messages 
-                        WHERE reply_to_root = m.uri
-                        UNION SELECT m.sender
-                    ) participants
-                    JOIN users u ON u.did = participants.sender
-                )
-                )
-                ELSE NULL
-              END as json__threadSummary
-       FROM messages m
-       INNER JOIN users ON m.sender = users.did`,
-    )
-    .run();
-
+  // make DB
+  __db.exec(schema);
   return __db;
 };
 const messagingSeed =

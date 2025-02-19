@@ -12,7 +12,7 @@
     "unslopify": "deno run --unstable-sloppy-imports --allow-read --allow-write ./bin/unslopify.ts ./lexicons-api",
     "playwright:install": "deno run --allow-all npm:playwright install",
     "test:e2e": "deno run --allow-all npm:playwright test",
-    "copy": "npx mandark ./tinychat -a -c"
+    "copy": "npx mandark ./tinychat ./ui -a -c"
   },
   "imports": {
     "@atcute/lex-cli": "npm:@atcute/lex-cli@^1.0.4",

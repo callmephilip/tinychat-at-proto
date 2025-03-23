@@ -35,32 +35,18 @@ export const Chat = () => {
             hidden
             checked={currentChannel ? currentChannel.id === channel.id : false}
           />
-          <div
-            class="flex-1 flex flex-col bg-white overflow-hidden"
-            role="tabpanel"
-          >
+          <div class="flex-1 flex flex-col bg-white overflow-hidden" role="tabpanel">
             <div class="border-b flex md:px-6 py-2 items-center flex-none">
               <div class="flex flex-row items-center">
-                <h3 class="text-grey-darkest font-extrabold">
-                  {`#${channel.name}`}
-                </h3>
+                <h3 class="text-grey-darkest font-extrabold">{`#${channel.name}`}</h3>
               </div>
             </div>
 
-            <div
-              id={`channel-${channel.id}`}
-              class="scroller px-6 py-4 flex-1 flex flex-col-reverse overflow-y-scroll"
-            >
+            <div id={`channel-${channel.id}`} class="scroller px-6 py-4 flex-1 flex flex-col-reverse overflow-y-scroll">
               {/* style="padding-top: 60px; padding-bottom: 130px;" if is_mobile else "" */}
               {/* lazy load messages for current channel */}
               {currentChannel?.id === channel.id
-                ? (
-                  <div
-                    hx-trigger="revealed"
-                    hx-get={urlForChannelMessageList(channel)}
-                    hx-swap="outerHTML"
-                  />
-                )
+                ? <div hx-trigger="revealed" hx-get={urlForChannelMessageList(channel)} hx-swap="outerHTML" />
                 : null}
             </div>
           </div>
@@ -80,11 +66,7 @@ export const Chat = () => {
       <div class="px-3 py-2">
         <div class=" px-1">
           {(server?.channels || []).map((channel, i) => (
-            <Channel
-              key={channel.id}
-              channel={channel}
-              isSelected={currentChannel ? currentChannel.id === channel.id : i === 0}
-            />
+            <Channel key={channel.id} channel={channel} isSelected={currentChannel ? currentChannel.id === channel.id : i === 0} />
           ))}
         </div>
       </div>
@@ -107,11 +89,7 @@ export const Chat = () => {
               {!user
                 ? (
                   <a
-                    href={`/login?r=${
-                      encodeURIComponent(
-                        urlFromServerAtURI(server?.uri!),
-                      )
-                    }`}
+                    href={`/login?r=${encodeURIComponent(urlFromServerAtURI(server?.uri!))}`}
                     type="button"
                     class="px-3 py-2 text-xs font-medium text-center inline-flex items-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                     data-testid="login"
@@ -145,20 +123,14 @@ export const Chat = () => {
               <ul>
                 <li>
                   - follow along over at{" "}
-                  <a
-                    class="font-bold underline"
-                    href="https://bsky.app/profile/callmephilip.com"
-                  >
+                  <a class="font-bold underline" href="https://bsky.app/profile/callmephilip.com">
                     bluesky
                   </a>
                   {" "}
                 </li>
                 <li>
                   - source code is{" "}
-                  <a
-                    class="font-bold underline"
-                    href="https://github.com/callmephilip/tinychat-at-proto"
-                  >
+                  <a class="font-bold underline" href="https://github.com/callmephilip/tinychat-at-proto">
                     here
                   </a>
                 </li>
@@ -169,7 +141,7 @@ export const Chat = () => {
         {/* Profile */}
         {user
           ? (
-            <button class="flex items-center px-4 mx-4 fixed bottom-6">
+            <button type="button" class="flex items-center px-4 mx-4 fixed bottom-6">
               <img src={user.avatar} class="w-10 h-10 mr-3" />
               <div class="text-sm">
                 <div class="font-bold">{user.displayName}</div>

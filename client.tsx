@@ -67,7 +67,7 @@ app.get("/chat/:did/:rkey", async (c) => {
         server: serverData,
         currentChannel: ch ? serverData.channels?.find((c) => c.id === ch) : serverData.channels[0],
       },
-    })
+    }),
   );
 });
 
@@ -107,7 +107,7 @@ app.post("/messages/send", async (c) => {
         record: rec,
       }}
       oob={false}
-    />
+    />,
   );
 });
 
@@ -124,13 +124,15 @@ app.get("/messages/list/:did/:rkey1/:rkey2", async (c) => {
     parent,
     sort: c.req.query("sort"),
   });
-  const loadMore = d?.data.prevCursor ? (
-    <LoadMoreMessages
-      // @ts-ignore yolo
-      messages={d.data.messages}
-      url={c.req.path + `?cursor=${d?.data.prevCursor}`}
-    />
-  ) : null;
+  const loadMore = d?.data.prevCursor
+    ? (
+      <LoadMoreMessages
+        // @ts-ignore yolo
+        messages={d.data.messages}
+        url={c.req.path + `?cursor=${d?.data.prevCursor}`}
+      />
+    )
+    : null;
 
   if (parent) {
     console.log("thread data", d?.data.messages);
@@ -142,7 +144,7 @@ app.get("/messages/list/:did/:rkey1/:rkey2", async (c) => {
     (d?.data.messages || [])
       // @ts-ignore yolo
       .map((message) => (<Message message={message} oob={false} />).toString())
-      .join("") + (loadMore ? loadMore.toString() : "")
+      .join("") + (loadMore ? loadMore.toString() : ""),
   );
 });
 
@@ -209,7 +211,7 @@ app.get("/server/:did/:rkey/:slug/:channel", async (c) => {
       messages={[]} // d?.data.messages ||
       nextCursor={d?.data.nextCursor}
       prevCursor={d?.data.prevCursor}
-    />
+    />,
   );
 });
 
@@ -245,7 +247,7 @@ export const runClient = () => {
     {
       port: parseInt(Deno.env.get("CLIENT_PORT") || "8000"),
     },
-    app.fetch
+    app.fetch,
   );
 };
 

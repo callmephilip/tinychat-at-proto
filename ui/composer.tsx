@@ -27,6 +27,9 @@ export const Composer = () => {
           required
           data-testid="composer"
         />
+        <trix-toolbar onKeyDown="handleSubmitKeyDown" id="my_toolbar"></trix-toolbar>
+        <div class="more-stuff-inbetween"></div>
+        <trix-editor toolbar="my_toolbar" input="msg"></trix-editor>
         <input type="hidden" name="channel" value={currentChannel?.id} />
         <input type="hidden" name="server" value={server?.uri} />
         <template x-if="$store.replyTo.reply">

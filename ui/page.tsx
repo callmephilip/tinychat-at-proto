@@ -10,14 +10,7 @@ type PageProps = PropsWithChildren<{
   tcScripts?: boolean;
 }>;
 
-export const Page = ({
-  hideOverflow,
-  htmx,
-  user,
-  flex = true,
-  tcScripts = false,
-  children,
-}: PageProps) => {
+export const Page = ({ hideOverflow, htmx, user, flex = true, tcScripts = false, children }: PageProps) => {
   const htmxAttrs = htmx
     ? {
       "hx-ext": "ws",
@@ -37,6 +30,8 @@ export const Page = ({
         <script src={`/static/store.js?${Math.random() * 10000}`} />
         <script src="/static/htmx-ws.js" />
         <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" />
+        <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.0.8/dist/trix.css" />
+        <script type="text/javascript" src="https://unpkg.com/trix@2.0.8/dist/trix.umd.min.js" />
         <style
           dangerouslySetInnerHTML={{
             __html: `

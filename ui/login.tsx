@@ -5,16 +5,9 @@ export const LoginForm = () => (
       <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
         <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Login</h2>
 
-        <form
-          class="space-y-4"
-          method="post"
-          data-testid="login-form"
-          action="/login"
-        >
+        <form class="space-y-4" method="post" data-testid="login-form" action="/login">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Bluesky Handle
-            </label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Bluesky Handle</label>
             <input
               data-testid="login-handle"
               name="handle"
@@ -24,7 +17,7 @@ export const LoginForm = () => (
               required
             />
           </div>
-          <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition-colors">
+          <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition-colors">
             Let's go
           </button>
         </form>
@@ -32,10 +25,7 @@ export const LoginForm = () => (
         <div class="mt-6 text-center text-sm text-gray-600">
           Don't have an account?
           <br />
-          <a
-            href="https://bsky.app/"
-            class="text-indigo-600 hover:text-indigo-500 font-medium"
-          >
+          <a href="https://bsky.app/" class="text-indigo-600 hover:text-indigo-500 font-medium">
             Join Bluesky
           </a>
         </div>

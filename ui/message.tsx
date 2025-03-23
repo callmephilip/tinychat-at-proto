@@ -44,7 +44,7 @@ export const MessageThread = ({ messages }: { messages: MessageView[] }) => {
       <div class="thread-branch flex" x-data="{ expanded: true }">
         <div class="flex">
           <div class="flex flex-1 flex-col">
-            <button class="px-0.5 py-2 mr-2" x-on:click="expanded = ! expanded">
+            <button type="button" class="px-0.5 py-2 mr-2" x-on:click="expanded = ! expanded">
               <span x-show="!expanded">
                 <img class="w-4" src="/static/add-square.png" />
               </span>
@@ -113,7 +113,7 @@ export const Message = ({ message, oob = false }: MessageProps) => {
         <div x-data={`${JSON.stringify(message)}`} class="flex-1 overflow-hidden pt-1">
           <div class="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
             <div class="flex gap-2 p-2">
-              <button x-on:click="$store.replyTo.set($data)" class="text-gray-600 hover:text-gray-900">
+              <button type="button" x-on:click="$store.replyTo.set($data)" class="text-gray-600 hover:text-gray-900">
                 Reply
               </button>
             </div>
